@@ -35,8 +35,8 @@ impl SeasonPrices {
     ///     vec![&DriverID::from("max_verstappen")]
     /// );
     /// ```
-    pub fn drivers<'a>(&'a self) -> Box<dyn Iterator<Item = &DriverID> + 'a> {
-        Box::new(self.drivers.keys())
+    pub fn drivers(&self) -> impl Iterator<Item = &DriverID> {
+        self.drivers.keys()
     }
 
     /// Returns an iterator over all the constructors for which there is price information
@@ -57,8 +57,8 @@ impl SeasonPrices {
     ///     vec![&ConstructorID::from("red_bull")]
     /// );
     /// ```
-    pub fn constructors<'a>(&'a self) -> Box<dyn Iterator<Item = &ConstructorID> + 'a> {
-        Box::new(self.constructors.keys())
+    pub fn constructors(&self) -> impl Iterator<Item = &ConstructorID> {
+        self.constructors.keys()
     }
 
     pub fn driver_price(&self, driver: &DriverID, round: &RoundID) -> Option<Price> {
