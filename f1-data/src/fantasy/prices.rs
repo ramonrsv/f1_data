@@ -25,7 +25,7 @@ impl SeasonPrices {
     /// # use std::collections::HashMap;
     /// use f1_data::{id::DriverID, fantasy::prices::SeasonPrices};
     ///
-    /// let season_prices = SeasonPrices::from(
+    /// let season_prices = SeasonPrices::from_str_price_map(
     ///     &HashMap::from([("max_verstappen", vec![1.0])]),
     ///     &HashMap::new(),
     /// );
@@ -47,7 +47,7 @@ impl SeasonPrices {
     /// # use std::collections::HashMap;
     /// use f1_data::{id::ConstructorID, fantasy::prices::SeasonPrices};
     ///
-    /// let season_prices = SeasonPrices::from(
+    /// let season_prices = SeasonPrices::from_str_price_map(
     ///     &HashMap::new(),
     ///     &HashMap::from([("red_bull", vec![1.0])]),
     /// );
@@ -89,7 +89,7 @@ impl SeasonPrices {
             .collect::<HashMap<_, _>>()
     }
 
-    pub fn from(drivers: &StrPriceMap, constructors: &StrPriceMap) -> SeasonPrices {
+    pub fn from_str_price_map(drivers: &StrPriceMap, constructors: &StrPriceMap) -> SeasonPrices {
         SeasonPrices {
             drivers: Self::str_price_map_to_id_price_map(drivers),
             constructors: Self::str_price_map_to_id_price_map(constructors),
@@ -236,8 +236,8 @@ mod tests {
     }
 
     #[test]
-    fn season_prices_from_str_happy_path() {
-        let season_prices = SeasonPrices::from(
+    fn season_prices_from_str_price_map_happy_path() {
+        let season_prices = SeasonPrices::from_str_price_map(
             &HashMap::from([
                 (VER_STR, DRIVER_PRICES.get(&VER_ID).unwrap().clone()),
                 (HAM_STR, DRIVER_PRICES.get(&HAM_ID).unwrap().clone()),
