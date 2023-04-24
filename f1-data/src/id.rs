@@ -1,3 +1,6 @@
+use std::str::FromStr;
+use void::Void;
+
 /// Uniquely identifies a driver by a string, e.g. "max_verstappen" for Max Verstappen
 ///
 /// # Examples
@@ -141,6 +144,22 @@ impl From<RaceID> for SeasonID {
 impl From<RaceID> for RoundID {
     fn from(race: RaceID) -> RoundID {
         RoundID { round: race.round }
+    }
+}
+
+impl FromStr for DriverID {
+    type Err = Void;
+
+    fn from_str(id: &str) -> Result<Self, Self::Err> {
+        Ok(Self { id: id.to_string() })
+    }
+}
+
+impl FromStr for ConstructorID {
+    type Err = Void;
+
+    fn from_str(id: &str) -> Result<Self, Self::Err> {
+        Ok(Self { id: id.to_string() })
     }
 }
 
