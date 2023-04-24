@@ -3,6 +3,9 @@ use std::hash::Hash;
 
 use yaml_rust::{Yaml, YamlLoader};
 
+#[cfg(test)]
+use lazy_static::lazy_static;
+
 use crate::id::{ConstructorID, DriverID, RoundID};
 
 type Price = f32;
