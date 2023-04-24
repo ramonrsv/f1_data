@@ -3,7 +3,6 @@ use ureq;
 use serde_json::{Result, Value};
 
 use crate::driver::Driver;
-use crate::id::DriverID;
 
 #[cfg(test)]
 mod tests {
@@ -22,7 +21,7 @@ mod tests {
         let driver = json["MRData"]["DriverTable"]["Drivers"][0].clone();
         let driver: Driver = serde_json::from_value(driver).unwrap();
 
-        assert_eq!(driver.driver_id, DriverID::from("alonso"));
+        assert_eq!(driver.driver_id, String::from("alonso"));
         assert_eq!(driver.permanent_number, Some(String::from("14")));
         assert_eq!(driver.code, Some(String::from("ALO")));
         assert_eq!(driver.url, String::from("http://en.wikipedia.org/wiki/Fernando_Alonso"));
@@ -45,7 +44,7 @@ mod tests {
         let driver = json["MRData"]["DriverTable"]["Drivers"][0].clone();
         let driver: Driver = serde_json::from_value(driver).unwrap();
 
-        assert_eq!(driver.driver_id, DriverID::from("abate"));
+        assert_eq!(driver.driver_id, String::from("abate"));
         assert_eq!(driver.permanent_number, None);
         assert_eq!(driver.code, None);
         assert_eq!(driver.url, String::from("http://en.wikipedia.org/wiki/Carlo_Mario_Abate"));
