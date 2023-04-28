@@ -193,10 +193,7 @@ mod tests {
     }
 
     fn validate_drivers(season_prices: &SeasonPrices) {
-        assert_eq!(
-            as_hashset(season_prices.drivers()),
-            as_hashset(DRIVERS.iter())
-        );
+        assert_eq!(as_hashset(season_prices.drivers()), as_hashset(DRIVERS.iter()));
     }
 
     fn validate_constructors(season_prices: &SeasonPrices) {
@@ -221,12 +218,7 @@ mod tests {
 
     fn validate_constructor_price(season_prices: &SeasonPrices) {
         for constructor in CONSTRUCTORS.iter() {
-            for (idx, price) in CONSTRUCTOR_PRICES
-                .get(constructor)
-                .unwrap()
-                .iter()
-                .enumerate()
-            {
+            for (idx, price) in CONSTRUCTOR_PRICES.get(constructor).unwrap().iter().enumerate() {
                 assert_eq!(
                     season_prices
                         .constructor_price(constructor, &RoundID::from(idx as u32 + 1))

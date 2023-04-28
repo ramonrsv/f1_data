@@ -174,14 +174,8 @@ mod tests {
 
         assert_eq!(ConstructorID::from("mclaren").id, String::from("mclaren"));
 
-        assert_eq!(
-            ConstructorID::from("mclaren"),
-            ConstructorID::from("mclaren")
-        );
-        assert_ne!(
-            ConstructorID::from("mclaren"),
-            ConstructorID::from("ferrari")
-        );
+        assert_eq!(ConstructorID::from("mclaren"), ConstructorID::from("mclaren"));
+        assert_ne!(ConstructorID::from("mclaren"), ConstructorID::from("ferrari"));
     }
 
     #[test]
@@ -221,13 +215,7 @@ mod tests {
 
     #[test]
     fn race_id_from_year_and_round() {
-        assert_eq!(
-            RaceID {
-                year: 2023,
-                round: 1
-            },
-            RaceID::from(2023, 1)
-        );
+        assert_eq!(RaceID { year: 2023, round: 1 }, RaceID::from(2023, 1));
 
         assert_eq!(RaceID::from(2023, 1).year, 2023);
         assert_eq!(RaceID::from(2023, 1).round, 1);
@@ -239,14 +227,8 @@ mod tests {
 
     #[test]
     fn season_id_from_race_id() {
-        assert_eq!(
-            SeasonID { year: 2023 },
-            SeasonID::from(RaceID::from(2023, 1))
-        );
-        assert_ne!(
-            SeasonID { year: 2022 },
-            SeasonID::from(RaceID::from(2023, 1))
-        );
+        assert_eq!(SeasonID { year: 2023 }, SeasonID::from(RaceID::from(2023, 1)));
+        assert_ne!(SeasonID { year: 2022 }, SeasonID::from(RaceID::from(2023, 1)));
 
         assert_eq!(SeasonID::from(RaceID::from(2023, 1)).year, 2023);
     }

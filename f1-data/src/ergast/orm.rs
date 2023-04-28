@@ -27,31 +27,31 @@ pub struct MrData {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct SeasonTable{
+pub struct SeasonTable {
     #[serde(rename = "Seasons")]
     pub seasons: Vec<Season>,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct DriverTable{
+pub struct DriverTable {
     #[serde(rename = "Drivers")]
     pub drivers: Vec<Driver>,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct ConstructorTable{
+pub struct ConstructorTable {
     #[serde(rename = "Constructors")]
     pub constructors: Vec<Constructor>,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct CircuitTable{
+pub struct CircuitTable {
     #[serde(rename = "Circuits")]
     pub circuits: Vec<Circuit>,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct RaceTable{
+pub struct RaceTable {
     #[serde(rename = "Races")]
     pub races: Vec<Race>,
 }

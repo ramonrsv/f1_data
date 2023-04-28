@@ -30,10 +30,7 @@ mod tests {
         let resp: Response = get_ergast_into_json("/seasons");
 
         assert!(resp.mr_data.season_table.is_some());
-        assert_eq!(
-            resp.mr_data.season_table.as_ref().unwrap().seasons.len(),
-            30
-        );
+        assert_eq!(resp.mr_data.season_table.as_ref().unwrap().seasons.len(), 30);
 
         assert_eq!(
             resp.mr_data.season_table.as_ref().unwrap().seasons[0],
@@ -107,22 +104,10 @@ mod tests {
         let resp: Response = get_ergast_into_json("/constructors/mclaren");
 
         assert!(resp.mr_data.constructor_table.is_some());
-        assert_eq!(
-            resp.mr_data
-                .constructor_table
-                .as_ref()
-                .unwrap()
-                .constructors
-                .len(),
-            1
-        );
+        assert_eq!(resp.mr_data.constructor_table.as_ref().unwrap().constructors.len(), 1);
 
         assert_eq!(
-            resp.mr_data
-                .constructor_table
-                .as_ref()
-                .unwrap()
-                .constructors[0],
+            resp.mr_data.constructor_table.as_ref().unwrap().constructors[0],
             Constructor {
                 constructor_id: "mclaren".to_string(),
                 url: "http://en.wikipedia.org/wiki/McLaren".to_string(),
@@ -140,10 +125,7 @@ mod tests {
         let resp: Response = get_ergast_into_json("/circuits/spa");
 
         assert!(resp.mr_data.circuit_table.is_some());
-        assert_eq!(
-            resp.mr_data.circuit_table.as_ref().unwrap().circuits.len(),
-            1
-        );
+        assert_eq!(resp.mr_data.circuit_table.as_ref().unwrap().circuits.len(), 1);
 
         assert_eq!(
             resp.mr_data.circuit_table.as_ref().unwrap().circuits[0],
