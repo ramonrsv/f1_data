@@ -1,56 +1,163 @@
+use serde::de::DeserializeOwned;
+use serde_json::{Result, Value};
 use ureq;
 
-use serde_json::{Result, Value};
+use crate::ergast::orm::{Driver, Location, Response, Season};
 
-use crate::ergast::orm::Driver;
+fn format_ergast_url(req: &str) -> String {
+    format!("http://ergast.com/api/f1{}.json", req)
+}
+
+fn get_into_json<T: DeserializeOwned>(url: &str) -> T {
+    ureq::get(url).call().unwrap().into_json().unwrap()
+}
+
+fn get_ergast_into_json<T: DeserializeOwned>(req: &str) -> T {
+    get_into_json(&format_ergast_url(req))
+}
 
 #[cfg(test)]
 mod tests {
+    use crate::ergast::orm::{Circuit, Constructor};
+
     use super::*;
+
+    // http://ergast.com/mrd/methods/seasons/
+    // --------------------------------------
+
+    #[test]
+    fn get_seasons() {
+        let resp: Response = get_ergast_into_json("/seasons");
+
+        assert!(resp.mr_data.season_table.is_some());
+        assert_eq!(
+            resp.mr_data.season_table.as_ref().unwrap().seasons.len(),
+            30
+        );
+
+        assert_eq!(
+            resp.mr_data.season_table.as_ref().unwrap().seasons[0],
+            Season {
+                season: "1950".to_string(),
+                url: "http://en.wikipedia.org/wiki/1950_Formula_One_season".to_string()
+            }
+        );
+
+        assert_eq!(
+            resp.mr_data.season_table.as_ref().unwrap().seasons[29],
+            Season {
+                season: "1979".to_string(),
+                url: "http://en.wikipedia.org/wiki/1979_Formula_One_season".to_string()
+            }
+        );
+    }
+
+    // http://ergast.com/mrd/methods/drivers/
+    // --------------------------------------
 
     #[test]
     fn get_driver_all_fields_present() {
-        let body: String = ureq::get("http://ergast.com/api/f1/drivers/alonso.json?")
-            .call()
-            .unwrap()
-            .into_string()
-            .unwrap();
+        let resp: Response = get_ergast_into_json("/drivers/alonso");
 
-        let json: Value = serde_json::from_str(&body).unwrap();
+        assert!(resp.mr_data.driver_table.is_some());
+        assert_eq!(resp.mr_data.driver_table.as_ref().unwrap().drivers.len(), 1);
 
-        let driver = json["MRData"]["DriverTable"]["Drivers"][0].clone();
-        let driver: Driver = serde_json::from_value(driver).unwrap();
-
-        assert_eq!(driver.driver_id, String::from("alonso"));
-        assert_eq!(driver.permanent_number, Some(String::from("14")));
-        assert_eq!(driver.code, Some(String::from("ALO")));
-        assert_eq!(driver.url, String::from("http://en.wikipedia.org/wiki/Fernando_Alonso"));
-        assert_eq!(driver.given_name, String::from("Fernando"));
-        assert_eq!(driver.family_name, String::from("Alonso"));
-        assert_eq!(driver.date_of_birth, String::from("1981-07-29"));
-        assert_eq!(driver.nationality, String::from("Spanish"));
+        assert_eq!(
+            resp.mr_data.driver_table.as_ref().unwrap().drivers[0],
+            Driver {
+                driver_id: "alonso".to_string(),
+                permanent_number: Some("14".to_string()),
+                code: Some("ALO".to_string()),
+                url: "http://en.wikipedia.org/wiki/Fernando_Alonso".to_string(),
+                given_name: "Fernando".to_string(),
+                family_name: "Alonso".to_string(),
+                date_of_birth: "1981-07-29".to_string(),
+                nationality: "Spanish".to_string()
+            }
+        );
     }
 
     #[test]
     fn get_driver_some_fields_missing() {
-        let body: String = ureq::get("http://ergast.com/api/f1/drivers/abate.json?")
-            .call()
-            .unwrap()
-            .into_string()
-            .unwrap();
+        let resp: Response = get_ergast_into_json("/drivers/abate");
 
-        let json: Value = serde_json::from_str(&body).unwrap();
+        assert!(resp.mr_data.driver_table.is_some());
+        assert_eq!(resp.mr_data.driver_table.as_ref().unwrap().drivers.len(), 1);
 
-        let driver = json["MRData"]["DriverTable"]["Drivers"][0].clone();
-        let driver: Driver = serde_json::from_value(driver).unwrap();
+        assert_eq!(
+            resp.mr_data.driver_table.as_ref().unwrap().drivers[0],
+            Driver {
+                driver_id: "abate".to_string(),
+                permanent_number: None,
+                code: None,
+                url: "http://en.wikipedia.org/wiki/Carlo_Mario_Abate".to_string(),
+                given_name: "Carlo".to_string(),
+                family_name: "Abate".to_string(),
+                date_of_birth: "1932-07-10".to_string(),
+                nationality: "Italian".to_string()
+            }
+        );
+    }
 
-        assert_eq!(driver.driver_id, String::from("abate"));
-        assert_eq!(driver.permanent_number, None);
-        assert_eq!(driver.code, None);
-        assert_eq!(driver.url, String::from("http://en.wikipedia.org/wiki/Carlo_Mario_Abate"));
-        assert_eq!(driver.given_name, String::from("Carlo"));
-        assert_eq!(driver.family_name, String::from("Abate"));
-        assert_eq!(driver.date_of_birth, String::from("1932-07-10"));
-        assert_eq!(driver.nationality, String::from("Italian"));
+    // http://ergast.com/mrd/methods/constructors/
+    // -------------------------------------------
+
+    #[test]
+    fn get_constructor() {
+        let resp: Response = get_ergast_into_json("/constructors/mclaren");
+
+        assert!(resp.mr_data.constructor_table.is_some());
+        assert_eq!(
+            resp.mr_data
+                .constructor_table
+                .as_ref()
+                .unwrap()
+                .constructors
+                .len(),
+            1
+        );
+
+        assert_eq!(
+            resp.mr_data
+                .constructor_table
+                .as_ref()
+                .unwrap()
+                .constructors[0],
+            Constructor {
+                constructor_id: "mclaren".to_string(),
+                url: "http://en.wikipedia.org/wiki/McLaren".to_string(),
+                name: "McLaren".to_string(),
+                nationality: "British".to_string(),
+            }
+        );
+    }
+
+    // http://ergast.com/mrd/methods/circuits/
+    // ---------------------------------------
+
+    #[test]
+    fn get_circuit() {
+        let resp: Response = get_ergast_into_json("/circuits/spa");
+
+        assert!(resp.mr_data.circuit_table.is_some());
+        assert_eq!(
+            resp.mr_data.circuit_table.as_ref().unwrap().circuits.len(),
+            1
+        );
+
+        assert_eq!(
+            resp.mr_data.circuit_table.as_ref().unwrap().circuits[0],
+            Circuit {
+                circuit_id: "spa".to_string(),
+                url: "http://en.wikipedia.org/wiki/Circuit_de_Spa-Francorchamps".to_string(),
+                circuit_name: "Circuit de Spa-Francorchamps".to_string(),
+                location: Location {
+                    lat: "50.4372".to_string(),
+                    long: "5.97139".to_string(),
+                    locality: "Spa".to_string(),
+                    country: "Belgium".to_string()
+                }
+            }
+        );
     }
 }
