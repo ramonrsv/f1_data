@@ -1,8 +1,5 @@
 use serde::de::DeserializeOwned;
-use serde_json::{Result, Value};
 use ureq;
-
-use crate::ergast::orm::{Driver, Location, Response, Season};
 
 fn format_ergast_url(req: &str) -> String {
     format!("http://ergast.com/api/f1{}.json", req)
@@ -18,7 +15,7 @@ fn get_ergast_into_json<T: DeserializeOwned>(req: &str) -> T {
 
 #[cfg(test)]
 mod tests {
-    use crate::ergast::orm::{Circuit, Constructor};
+    use crate::ergast::response::*;
 
     use super::*;
     use crate::ergast::tests::*;

@@ -1,7 +1,7 @@
 use const_format::formatcp;
 use once_cell::sync::Lazy;
 
-use super::orm::*;
+use super::response::*;
 
 // http://ergast.com/mrd/methods/seasons/
 // --------------------------------------
