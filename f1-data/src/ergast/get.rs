@@ -21,125 +21,85 @@ mod tests {
     use crate::ergast::orm::{Circuit, Constructor};
 
     use super::*;
+    use crate::ergast::tests::*;
 
     // http://ergast.com/mrd/methods/seasons/
     // --------------------------------------
 
     #[test]
+    #[ignore]
     fn get_seasons() {
         let resp: Response = get_ergast_into_json("/seasons");
 
         assert!(resp.mr_data.season_table.is_some());
         assert_eq!(resp.mr_data.season_table.as_ref().unwrap().seasons.len(), 30);
 
-        assert_eq!(
-            resp.mr_data.season_table.as_ref().unwrap().seasons[0],
-            Season {
-                season: "1950".to_string(),
-                url: "http://en.wikipedia.org/wiki/1950_Formula_One_season".to_string()
-            }
-        );
-
-        assert_eq!(
-            resp.mr_data.season_table.as_ref().unwrap().seasons[29],
-            Season {
-                season: "1979".to_string(),
-                url: "http://en.wikipedia.org/wiki/1979_Formula_One_season".to_string()
-            }
-        );
+        assert_eq!(resp.mr_data.season_table.as_ref().unwrap().seasons[0], *SEASON_1950);
+        assert_eq!(resp.mr_data.season_table.as_ref().unwrap().seasons[29], *SEASON_1979);
     }
 
     // http://ergast.com/mrd/methods/drivers/
     // --------------------------------------
 
-    #[test]
-    fn get_driver_all_fields_present() {
-        let resp: Response = get_ergast_into_json("/drivers/alonso");
+    fn verify_single_driver(driver_id: &str, driver: &Driver) {
+        let resp: Response = get_ergast_into_json(&format!("/drivers/{driver_id}"));
 
         assert!(resp.mr_data.driver_table.is_some());
         assert_eq!(resp.mr_data.driver_table.as_ref().unwrap().drivers.len(), 1);
 
-        assert_eq!(
-            resp.mr_data.driver_table.as_ref().unwrap().drivers[0],
-            Driver {
-                driver_id: "alonso".to_string(),
-                permanent_number: Some("14".to_string()),
-                code: Some("ALO".to_string()),
-                url: "http://en.wikipedia.org/wiki/Fernando_Alonso".to_string(),
-                given_name: "Fernando".to_string(),
-                family_name: "Alonso".to_string(),
-                date_of_birth: "1981-07-29".to_string(),
-                nationality: "Spanish".to_string()
-            }
-        );
+        assert_eq!(&resp.mr_data.driver_table.as_ref().unwrap().drivers[0], driver);
     }
 
     #[test]
+    #[ignore]
+    fn get_driver_all_fields_present() {
+        verify_single_driver("alonso", &DRIVER_ALONSO);
+    }
+
+    #[test]
+    #[ignore]
     fn get_driver_some_fields_missing() {
-        let resp: Response = get_ergast_into_json("/drivers/abate");
-
-        assert!(resp.mr_data.driver_table.is_some());
-        assert_eq!(resp.mr_data.driver_table.as_ref().unwrap().drivers.len(), 1);
-
-        assert_eq!(
-            resp.mr_data.driver_table.as_ref().unwrap().drivers[0],
-            Driver {
-                driver_id: "abate".to_string(),
-                permanent_number: None,
-                code: None,
-                url: "http://en.wikipedia.org/wiki/Carlo_Mario_Abate".to_string(),
-                given_name: "Carlo".to_string(),
-                family_name: "Abate".to_string(),
-                date_of_birth: "1932-07-10".to_string(),
-                nationality: "Italian".to_string()
-            }
-        );
+        verify_single_driver("abate", &DRIVER_ABATE);
     }
 
     // http://ergast.com/mrd/methods/constructors/
     // -------------------------------------------
 
-    #[test]
-    fn get_constructor() {
-        let resp: Response = get_ergast_into_json("/constructors/mclaren");
+    fn verify_single_constructor(constructor_id: &str, constructor: &Constructor) {
+        let resp: Response = get_ergast_into_json(&format!("/constructors/{constructor_id}"));
 
         assert!(resp.mr_data.constructor_table.is_some());
         assert_eq!(resp.mr_data.constructor_table.as_ref().unwrap().constructors.len(), 1);
 
         assert_eq!(
-            resp.mr_data.constructor_table.as_ref().unwrap().constructors[0],
-            Constructor {
-                constructor_id: "mclaren".to_string(),
-                url: "http://en.wikipedia.org/wiki/McLaren".to_string(),
-                name: "McLaren".to_string(),
-                nationality: "British".to_string(),
-            }
+            &resp.mr_data.constructor_table.as_ref().unwrap().constructors[0],
+            constructor
         );
+    }
+
+    #[test]
+    #[ignore]
+    fn get_constructor() {
+        verify_single_constructor("mclaren", &CONSTRUCTOR_MCLAREN);
+        verify_single_constructor("ferrari", &CONSTRUCTOR_FERRARI);
     }
 
     // http://ergast.com/mrd/methods/circuits/
     // ---------------------------------------
 
-    #[test]
-    fn get_circuit() {
-        let resp: Response = get_ergast_into_json("/circuits/spa");
+    fn verify_single_circuit(circuit_id: &str, circuit: &Circuit) {
+        let resp: Response = get_ergast_into_json(&format!("/circuits/{circuit_id}"));
 
         assert!(resp.mr_data.circuit_table.is_some());
         assert_eq!(resp.mr_data.circuit_table.as_ref().unwrap().circuits.len(), 1);
 
-        assert_eq!(
-            resp.mr_data.circuit_table.as_ref().unwrap().circuits[0],
-            Circuit {
-                circuit_id: "spa".to_string(),
-                url: "http://en.wikipedia.org/wiki/Circuit_de_Spa-Francorchamps".to_string(),
-                circuit_name: "Circuit de Spa-Francorchamps".to_string(),
-                location: Location {
-                    lat: "50.4372".to_string(),
-                    long: "5.97139".to_string(),
-                    locality: "Spa".to_string(),
-                    country: "Belgium".to_string()
-                }
-            }
-        );
+        assert_eq!(&resp.mr_data.circuit_table.as_ref().unwrap().circuits[0], circuit);
+    }
+
+    #[test]
+    #[ignore]
+    fn get_circuit() {
+        verify_single_circuit("spa", &CIRCUIT_SPA);
+        verify_single_circuit("silverstone", &CIRCUIT_SILVERSTONE);
     }
 }

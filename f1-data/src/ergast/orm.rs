@@ -1,12 +1,12 @@
 use serde::Deserialize;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct Response {
     #[serde(rename = "MRData")]
     pub mr_data: MrData,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct MrData {
     pub xmlns: String,
     pub series: String,
@@ -26,43 +26,43 @@ pub struct MrData {
     pub race_table: Option<RaceTable>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct SeasonTable {
     #[serde(rename = "Seasons")]
     pub seasons: Vec<Season>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct DriverTable {
     #[serde(rename = "Drivers")]
     pub drivers: Vec<Driver>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct ConstructorTable {
     #[serde(rename = "Constructors")]
     pub constructors: Vec<Constructor>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct CircuitTable {
     #[serde(rename = "Circuits")]
     pub circuits: Vec<Circuit>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct RaceTable {
     #[serde(rename = "Races")]
     pub races: Vec<Race>,
 }
 
-#[derive(Deserialize, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct Season {
     pub season: String,
     pub url: String,
 }
 
-#[derive(Deserialize, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Driver {
     pub driver_id: String,
@@ -75,7 +75,7 @@ pub struct Driver {
     pub nationality: String,
 }
 
-#[derive(Deserialize, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Constructor {
     pub constructor_id: String,
@@ -84,7 +84,7 @@ pub struct Constructor {
     pub nationality: String,
 }
 
-#[derive(Deserialize, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Circuit {
     pub circuit_id: String,
@@ -94,7 +94,7 @@ pub struct Circuit {
     pub location: Location,
 }
 
-#[derive(Deserialize, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Race {
     pub season: String,
@@ -123,7 +123,7 @@ pub struct Race {
     pub results: Vec<Result>,
 }
 
-#[derive(Deserialize, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct QualifyingResult {
     pub number: String,
@@ -137,7 +137,7 @@ pub struct QualifyingResult {
     pub q3: Option<String>,
 }
 
-#[derive(Deserialize, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct SprintResult {
     pub number: String,
@@ -157,7 +157,7 @@ pub struct SprintResult {
     pub fastest_lap: Option<FastestLap>,
 }
 
-#[derive(Deserialize, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Result {
     pub number: String,
@@ -177,7 +177,7 @@ pub struct Result {
     pub fastest_lap: Option<FastestLap>,
 }
 
-#[derive(Deserialize, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct Location {
     pub lat: String,
     pub long: String,
@@ -185,19 +185,19 @@ pub struct Location {
     pub country: String,
 }
 
-#[derive(Deserialize, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct DateTime {
     pub date: String,
     pub time: Option<String>,
 }
 
-#[derive(Deserialize, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct Time {
     pub millis: Option<String>,
     pub time: String,
 }
 
-#[derive(Deserialize, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct FastestLap {
     pub rank: String,
     pub lap: String,
@@ -207,8 +207,46 @@ pub struct FastestLap {
     pub average_speed: AverageSpeed,
 }
 
-#[derive(Deserialize, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct AverageSpeed {
     pub units: String,
     pub speed: String,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::ergast::tests::*;
+
+    #[test]
+    fn season_table() {
+        let season_table: SeasonTable = serde_json::from_str(SEASON_TABLE_STR).unwrap();
+
+        assert_eq!(season_table.seasons.len(), 4);
+        assert_eq!(&season_table.seasons, &SEASON_TABLE.seasons);
+    }
+
+    #[test]
+    fn driver_table() {
+        let driver_table: DriverTable = serde_json::from_str(DRIVER_TABLE_STR).unwrap();
+
+        assert_eq!(driver_table.drivers.len(), 2);
+        assert_eq!(&driver_table.drivers, &DRIVER_TABLE.drivers);
+    }
+
+    #[test]
+    fn constructor_table() {
+        let constructor_table: ConstructorTable = serde_json::from_str(CONSTRUCTOR_TABLE_STR).unwrap();
+
+        assert_eq!(constructor_table.constructors.len(), 2);
+        assert_eq!(&constructor_table.constructors, &CONSTRUCTOR_TABLE.constructors);
+    }
+
+    #[test]
+    fn circuit_table() {
+        let circuit_table: CircuitTable = serde_json::from_str(CIRCUIT_TABLE_STR).unwrap();
+
+        assert_eq!(circuit_table.circuits.len(), 2);
+        assert_eq!(&circuit_table.circuits, &CIRCUIT_TABLE.circuits);
+    }
 }
