@@ -1,5 +1,7 @@
 use serde::Deserialize;
 
+pub const GRID_PIT_LANE: u32 = 0;
+
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct Response {
     #[serde(rename = "MRData")]
@@ -24,6 +26,8 @@ pub struct MrData {
     pub circuit_table: Option<CircuitTable>,
     #[serde(rename = "RaceTable")]
     pub race_table: Option<RaceTable>,
+    #[serde(rename = "StatusTAble")]
+    pub status_table: Option<StatusTable>,
 }
 
 #[derive(Deserialize, PartialEq, Clone, Debug)]
@@ -54,6 +58,12 @@ pub struct CircuitTable {
 pub struct RaceTable {
     #[serde(rename = "Races")]
     pub races: Vec<Race>,
+}
+
+#[derive(Deserialize, PartialEq, Clone, Debug)]
+pub struct StatusTable {
+    #[serde(rename = "Status")]
+    pub status: Vec<Status>,
 }
 
 #[derive(Deserialize, PartialEq, Clone, Debug)]
@@ -175,6 +185,14 @@ pub struct Result {
     pub time: Option<Time>,
     #[serde(rename = "FastestLap")]
     pub fastest_lap: Option<FastestLap>,
+}
+
+#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct Status {
+    pub status_id: String,
+    pub count: String,
+    pub status: String,
 }
 
 #[derive(Deserialize, PartialEq, Clone, Debug)]
