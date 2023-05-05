@@ -289,12 +289,12 @@ impl Filters {
         }
     }
 
-    /// Format a generic `Option<T>`; None as "", and Some(any) as format!("/{any}")
+    /// Format a generic `Option<T>`; None as "", and Some(val) as "/{val}"
     fn fmt_from_opt<T: std::fmt::Display>(field: &Option<T>) -> String {
-        if field.is_some() {
-            format!("/{}", field.as_ref().unwrap())
+        if let Some(val) = field {
+            format!("/{val}")
         } else {
-            "".to_string()
+            String::new()
         }
     }
 
