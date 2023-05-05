@@ -197,10 +197,7 @@ mod tests {
     }
 
     fn validate_constructors(season_prices: &SeasonPrices) {
-        assert_eq!(
-            as_hashset(season_prices.constructors()),
-            as_hashset(CONSTRUCTORS.iter())
-        );
+        assert_eq!(as_hashset(season_prices.constructors()), as_hashset(CONSTRUCTORS.iter()));
     }
 
     fn validate_driver_price(season_prices: &SeasonPrices) {

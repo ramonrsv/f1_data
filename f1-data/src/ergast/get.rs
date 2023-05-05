@@ -339,16 +339,10 @@ mod tests {
     fn resource_to_url_no_filters() {
         assert_eq!(Resource::SeasonList(Filters::none()).to_url(), url("/seasons.json"));
         assert_eq!(Resource::DriverInfo(Filters::none()).to_url(), url("/drivers.json"));
-        assert_eq!(
-            Resource::ConstructorInfo(Filters::none()).to_url(),
-            url("/constructors.json")
-        );
+        assert_eq!(Resource::ConstructorInfo(Filters::none()).to_url(), url("/constructors.json"));
         assert_eq!(Resource::CircuitInfo(Filters::none()).to_url(), url("/circuits.json"));
         assert_eq!(Resource::RaceSchedule(Filters::none()).to_url(), url("/races.json"));
-        assert_eq!(
-            Resource::QualifyingResults(Filters::none()).to_url(),
-            url("/qualifying.json")
-        );
+        assert_eq!(Resource::QualifyingResults(Filters::none()).to_url(), url("/qualifying.json"));
         assert_eq!(Resource::SprintResults(Filters::none()).to_url(), url("/sprint.json"));
         assert_eq!(Resource::RaceResults(Filters::none()).to_url(), url("/results.json"));
         assert_eq!(Resource::FinishingStatus(Filters::none()).to_url(), url("/status.json"));
@@ -481,10 +475,7 @@ mod tests {
         assert!(resp.mr_data.constructor_table.is_some());
         assert_eq!(resp.mr_data.constructor_table.as_ref().unwrap().constructors.len(), 1);
 
-        assert_eq!(
-            &resp.mr_data.constructor_table.as_ref().unwrap().constructors[0],
-            constructor
-        );
+        assert_eq!(&resp.mr_data.constructor_table.as_ref().unwrap().constructors[0], constructor);
     }
 
     #[test]
