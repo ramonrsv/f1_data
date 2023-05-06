@@ -58,6 +58,8 @@ mod tests {
     #[ignore]
     fn get_driver_all_fields_present() {
         verify_single_driver("alonso", &DRIVER_ALONSO);
+        verify_single_driver("max_verstappen", &DRIVER_MAX);
+        verify_single_driver("leclerc", &DRIVER_LECLERC);
     }
 
     // Resource::ConstructorInfo
@@ -82,6 +84,7 @@ mod tests {
         verify_single_constructor("ferrari", &CONSTRUCTOR_FERRARI);
         verify_single_constructor("williams", &CONSTRUCTOR_WILLIAMS);
         verify_single_constructor("minardi", &CONSTRUCTOR_MINARDI);
+        verify_single_constructor("red_bull", &CONSTRUCTOR_RED_BULL);
     }
 
     // Resource::CircuitInfo
@@ -137,6 +140,16 @@ mod tests {
     // Resource::QualifyingResults
     // ---------------------------
 
+    fn assert_eq_race(left: &Race, right: &Race) {
+        assert_eq!(left.season, right.season);
+        assert_eq!(left.round, right.round);
+        assert_eq!(left.url, right.url);
+        assert_eq!(left.race_name, right.race_name);
+        assert_eq!(left.circuit, right.circuit);
+        assert_eq!(left.date, right.date);
+        assert_eq!(left.time, right.time);
+    }
+
     #[test]
     #[ignore]
     fn get_qualifying_results_2003_4() {
@@ -152,12 +165,7 @@ mod tests {
         let actual = &resp.mr_data.race_table.unwrap().races[0];
         let expected = &RACE_2003_4_QUALIFYING_RESULTS;
 
-        assert_eq!(actual.season, expected.season);
-        assert_eq!(actual.round, expected.round);
-        assert_eq!(actual.url, expected.url);
-        assert_eq!(actual.race_name, expected.race_name);
-        assert_eq!(actual.circuit, expected.circuit);
-        assert_eq!(actual.date, expected.date);
+        assert_eq_race(actual, expected);
 
         assert!(actual.qualifying_results.is_some());
 
@@ -168,5 +176,32 @@ mod tests {
 
         assert_eq!(actual_results[0..1], expected_results[0..1]);
         assert_eq!(actual_results[19], expected_results[2]);
+    }
+
+    #[test]
+    #[ignore]
+    fn get_qualifying_results_2023_4() {
+        let resp: Response = get_into_json(Resource::QualifyingResults(Filters {
+            year: Some(2023),
+            round: Some(4),
+            ..Filters::none()
+        }));
+
+        assert!(resp.mr_data.race_table.is_some());
+        assert_eq!(resp.mr_data.race_table.as_ref().unwrap().races.len(), 1);
+
+        let actual = &resp.mr_data.race_table.unwrap().races[0];
+        let expected = &RACE_2023_4_QUALIFYING_RESULTS;
+
+        assert_eq_race(actual, expected);
+
+        assert!(actual.qualifying_results.is_some());
+
+        let actual_results = actual.qualifying_results.as_ref().unwrap();
+        let expected_results = expected.qualifying_results.as_ref().unwrap();
+
+        assert_eq!(actual_results.len(), 20);
+
+        assert_eq!(actual_results[0..1], expected_results[0..1]);
     }
 }

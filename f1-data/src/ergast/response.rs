@@ -143,9 +143,9 @@ pub struct QualifyingResult {
     pub constructor: Constructor,
     #[serde(rename = "Q1")]
     pub q1: Option<String>,
-    #[serde(rename = "Q1")]
+    #[serde(rename = "Q2")]
     pub q2: Option<String>,
-    #[serde(rename = "Q1")]
+    #[serde(rename = "Q3")]
     pub q3: Option<String>,
 }
 
@@ -250,7 +250,7 @@ mod tests {
     fn driver_table() {
         let driver_table: DriverTable = serde_json::from_str(DRIVER_TABLE_STR).unwrap();
 
-        assert_eq!(driver_table.drivers.len(), 5);
+        assert_eq!(driver_table.drivers.len(), 7);
         assert_eq!(&driver_table.drivers, &DRIVER_TABLE.drivers);
     }
 
@@ -258,7 +258,7 @@ mod tests {
     fn constructor_table() {
         let constructor_table: ConstructorTable = serde_json::from_str(CONSTRUCTOR_TABLE_STR).unwrap();
 
-        assert_eq!(constructor_table.constructors.len(), 4);
+        assert_eq!(constructor_table.constructors.len(), 5);
         assert_eq!(&constructor_table.constructors, &CONSTRUCTOR_TABLE.constructors);
     }
 
@@ -280,18 +280,13 @@ mod tests {
 
     #[test]
     fn qualifying_result() {
-        assert_eq!(
-            serde_json::from_str::<QualifyingResult>(QUALIFYING_RESULT_2003_4_P1_STR).unwrap(),
-            *QUALIFYING_RESULT_2003_4_P1
-        );
-        assert_eq!(
-            serde_json::from_str::<QualifyingResult>(QUALIFYING_RESULT_2003_4_P2_STR).unwrap(),
-            *QUALIFYING_RESULT_2003_4_P2
-        );
-        assert_eq!(
-            serde_json::from_str::<QualifyingResult>(QUALIFYING_RESULT_2003_4_P20_STR).unwrap(),
-            *QUALIFYING_RESULT_2003_4_P20
-        );
+        let from_str_quali = |quali_result_str| serde_json::from_str::<QualifyingResult>(quali_result_str).unwrap();
+
+        assert_eq!(from_str_quali(QUALIFYING_RESULT_2003_4_P1_STR), *QUALIFYING_RESULT_2003_4_P1);
+        assert_eq!(from_str_quali(QUALIFYING_RESULT_2003_4_P2_STR), *QUALIFYING_RESULT_2003_4_P2);
+        assert_eq!(from_str_quali(QUALIFYING_RESULT_2003_4_P20_STR), *QUALIFYING_RESULT_2003_4_P20);
+        assert_eq!(from_str_quali(QUALIFYING_RESULT_2023_4_P1_STR), *QUALIFYING_RESULT_2023_4_P1);
+        assert_eq!(from_str_quali(QUALIFYING_RESULT_2023_4_P2_STR), *QUALIFYING_RESULT_2023_4_P2);
     }
 
     #[test]
