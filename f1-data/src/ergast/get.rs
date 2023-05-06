@@ -58,6 +58,7 @@ mod tests {
     #[ignore]
     fn get_driver_all_fields_present() {
         verify_single_driver("alonso", &DRIVER_ALONSO);
+        verify_single_driver("perez", &DRIVER_PEREZ);
         verify_single_driver("max_verstappen", &DRIVER_MAX);
         verify_single_driver("leclerc", &DRIVER_LECLERC);
     }
@@ -203,6 +204,6 @@ mod tests {
 
         assert_eq!(actual_results.len(), 20);
 
-        assert_eq!(actual_results[0..1], expected_results[0..1]);
+        assert_eq!(actual_results[0..2], expected_results[0..2]);
     }
 }

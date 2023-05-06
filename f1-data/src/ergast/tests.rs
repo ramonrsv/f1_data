@@ -112,7 +112,6 @@ pub const DRIVER_RALF_STR: &str = r#"{
     "nationality": "German"
   }"#;
 
-// All fields are present
 pub const DRIVER_ALONSO_STR: &str = r#"{
     "driverId": "alonso",
     "permanentNumber": "14",
@@ -124,7 +123,17 @@ pub const DRIVER_ALONSO_STR: &str = r#"{
     "nationality": "Spanish"
   }"#;
 
-// All fields are present
+pub const DRIVER_PEREZ_STR: &str = r#"{
+    "driverId": "perez",
+    "permanentNumber": "11",
+    "code": "PER",
+    "url": "http://en.wikipedia.org/wiki/Sergio_P%C3%A9rez",
+    "givenName": "Sergio",
+    "familyName": "Pérez",
+    "dateOfBirth": "1990-01-26",
+    "nationality": "Mexican"
+  }"#;
+
 pub const DRIVER_MAX_STR: &str = r#"{
     "driverId": "max_verstappen",
     "permanentNumber": "33",
@@ -136,7 +145,6 @@ pub const DRIVER_MAX_STR: &str = r#"{
     "nationality": "Dutch"
   }"#;
 
-// All fields are present
 pub const DRIVER_LECLERC_STR: &str = r#"{
     "driverId": "leclerc",
     "permanentNumber": "16",
@@ -203,6 +211,17 @@ pub static DRIVER_ALONSO: Lazy<Driver> = Lazy::new(|| Driver {
     nationality: "Spanish".to_string(),
 });
 
+pub static DRIVER_PEREZ: Lazy<Driver> = Lazy::new(|| Driver {
+    driver_id: "perez".to_string(),
+    permanent_number: Some("11".to_string()),
+    code: Some("PER".to_string()),
+    url: "http://en.wikipedia.org/wiki/Sergio_P%C3%A9rez".to_string(),
+    given_name: "Sergio".to_string(),
+    family_name: "Pérez".to_string(),
+    date_of_birth: "1990-01-26".to_string(),
+    nationality: "Mexican".to_string(),
+});
+
 pub static DRIVER_MAX: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "max_verstappen".to_string(),
     permanent_number: Some("33".to_string()),
@@ -233,6 +252,7 @@ pub const DRIVER_TABLE_STR: &str = formatcp!(
         {DRIVER_JOS_STR},
         {DRIVER_RALF_STR},
         {DRIVER_ALONSO_STR},
+        {DRIVER_PEREZ_STR},
         {DRIVER_MAX_STR},
         {DRIVER_LECLERC_STR}
     ]}}"#
@@ -245,6 +265,7 @@ pub static DRIVER_TABLE: Lazy<DriverTable> = Lazy::new(|| DriverTable {
         DRIVER_JOS.clone(),
         DRIVER_RALF.clone(),
         DRIVER_ALONSO.clone(),
+        DRIVER_PEREZ.clone(),
         DRIVER_MAX.clone(),
         DRIVER_LECLERC.clone(),
     ],
@@ -863,6 +884,18 @@ pub const QUALIFYING_RESULT_2023_4_P2_STR: &str = formatcp!(
   }}"#
 );
 
+pub const QUALIFYING_RESULT_2023_4_P3_STR: &str = formatcp!(
+    r#"{{
+        "number": "11",
+        "position": "3",
+        "Driver": {DRIVER_PEREZ_STR},
+        "Constructor": {CONSTRUCTOR_RED_BULL_STR},
+        "Q1": "1:41.756",
+        "Q2": "1:41.131",
+        "Q3": "1:40.495"
+  }}"#
+);
+
 pub const QUALIFYING_RESULT_2003_4_P1: Lazy<QualifyingResult> = Lazy::new(|| QualifyingResult {
     number: "1".to_string(),
     position: "1".to_string(),
@@ -913,6 +946,16 @@ pub const QUALIFYING_RESULT_2023_4_P2: Lazy<QualifyingResult> = Lazy::new(|| Qua
     q3: Some("1:40.391".to_string()),
 });
 
+pub const QUALIFYING_RESULT_2023_4_P3: Lazy<QualifyingResult> = Lazy::new(|| QualifyingResult {
+    number: "11".to_string(),
+    position: "3".to_string(),
+    driver: DRIVER_PEREZ.clone(),
+    constructor: CONSTRUCTOR_RED_BULL.clone(),
+    q1: Some("1:41.756".to_string()),
+    q2: Some("1:41.131".to_string()),
+    q3: Some("1:40.495".to_string()),
+});
+
 pub const RACE_2003_4_QUALIFYING_RESULTS_STR: &str = formatcp!(
     r#"{{
         {RACE_2003_4_STR},
@@ -938,12 +981,17 @@ pub const RACE_2023_4_QUALIFYING_RESULTS_STR: &str = formatcp!(
         {RACE_2023_4_STR},
         "QualifyingResults": [
             {QUALIFYING_RESULT_2023_4_P1_STR},
-            {QUALIFYING_RESULT_2023_4_P2_STR}
+            {QUALIFYING_RESULT_2023_4_P2_STR},
+            {QUALIFYING_RESULT_2023_4_P3_STR}
         ]
     }}"#
 );
 
 pub static RACE_2023_4_QUALIFYING_RESULTS: Lazy<Race> = Lazy::new(|| Race {
-    qualifying_results: Some(vec![QUALIFYING_RESULT_2023_4_P1.clone(), QUALIFYING_RESULT_2023_4_P2.clone()]),
+    qualifying_results: Some(vec![
+        QUALIFYING_RESULT_2023_4_P1.clone(),
+        QUALIFYING_RESULT_2023_4_P2.clone(),
+        QUALIFYING_RESULT_2023_4_P3.clone(),
+    ]),
     ..RACE_2023_4.clone()
 });
