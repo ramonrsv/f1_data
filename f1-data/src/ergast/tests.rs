@@ -289,155 +289,114 @@ pub static CIRCUIT_TABLE: Lazy<CircuitTable> = Lazy::new(|| CircuitTable {
 // ---------------------------------------
 
 // Has "date" only
-pub const RACE_1950_1_SCHEDULE_STR: &str = r#"{
+pub const RACE_1950_1_SCHEDULE_STR: &str = formatcp!(
+    r#"{{
     "season": "1950",
     "round": "1",
     "url": "http://en.wikipedia.org/wiki/1950_British_Grand_Prix",
     "raceName": "British Grand Prix",
-    "Circuit": {
-      "circuitId": "silverstone",
-      "url": "http://en.wikipedia.org/wiki/Silverstone_Circuit",
-      "circuitName": "Silverstone Circuit",
-      "Location": {
-        "lat": "52.0786",
-        "long": "-1.01694",
-        "locality": "Silverstone",
-        "country": "UK"
-      }
-    },
+    "Circuit": {CIRCUIT_SILVERSTONE_STR},
     "date": "1950-05-13"
-  }"#;
+  }}"#
+);
 
 // Has "date" and "time"
-pub const RACE_2015_11_SCHEDULE_STR: &str = r#"{
+pub const RACE_2015_11_SCHEDULE_STR: &str = formatcp!(
+    r#"{{
     "season": "2015",
     "round": "11",
     "url": "http://en.wikipedia.org/wiki/2015_Belgian_Grand_Prix",
     "raceName": "Belgian Grand Prix",
-    "Circuit": {
-      "circuitId": "spa",
-      "url": "http://en.wikipedia.org/wiki/Circuit_de_Spa-Francorchamps",
-      "circuitName": "Circuit de Spa-Francorchamps",
-      "Location": {
-        "lat": "50.4372",
-        "long": "5.97139",
-        "locality": "Spa",
-        "country": "Belgium"
-      }
-    },
+    "Circuit": {CIRCUIT_SPA_STR},
     "date": "2015-08-23",
     "time": "12:00:00Z"
-  }"#;
+  }}"#
+);
 
 // Has "FirstPractice", "SecondPractice", "ThirdPractice", "Qualifying"
 // Sessions have only "data"
-pub const RACE_2021_12_SCHEDULE_STR: &str = r#"{
+pub const RACE_2021_12_SCHEDULE_STR: &str = formatcp!(
+    r#"{{
     "season": "2021",
     "round": "12",
     "url": "http://en.wikipedia.org/wiki/2021_Belgian_Grand_Prix",
     "raceName": "Belgian Grand Prix",
-    "Circuit": {
-      "circuitId": "spa",
-      "url": "http://en.wikipedia.org/wiki/Circuit_de_Spa-Francorchamps",
-      "circuitName": "Circuit de Spa-Francorchamps",
-      "Location": {
-        "lat": "50.4372",
-        "long": "5.97139",
-        "locality": "Spa",
-        "country": "Belgium"
-      }
-    },
+    "Circuit": {CIRCUIT_SPA_STR},
     "date": "2021-08-29",
     "time": "13:00:00Z",
-    "FirstPractice": {
+    "FirstPractice": {{
       "date": "2021-08-27"
-    },
-    "SecondPractice": {
+    }},
+    "SecondPractice": {{
       "date": "2021-08-27"
-    },
-    "ThirdPractice": {
+    }},
+    "ThirdPractice": {{
       "date": "2021-08-28"
-    },
-    "Qualifying": {
+    }},
+    "Qualifying": {{
       "date": "2021-08-28"
-    }
-
-  }"#;
+    }}
+}}"#
+);
 
 // Has "Sprint"
 // Sessions have "date" and "time"
-pub const RACE_2022_4_SCHEDULE_STR: &str = r#"{
+pub const RACE_2022_4_SCHEDULE_STR: &str = formatcp!(
+    r#"{{
     "season": "2022",
     "round": "4",
     "url": "http://en.wikipedia.org/wiki/2022_Emilia_Romagna_Grand_Prix",
     "raceName": "Emilia Romagna Grand Prix",
-    "Circuit": {
-      "circuitId": "imola",
-      "url": "http://en.wikipedia.org/wiki/Autodromo_Enzo_e_Dino_Ferrari",
-      "circuitName": "Autodromo Enzo e Dino Ferrari",
-      "Location": {
-        "lat": "44.3439",
-        "long": "11.7167",
-        "locality": "Imola",
-        "country": "Italy"
-      }
-    },
+    "Circuit": {CIRCUIT_IMOLA_STR},
     "date": "2022-04-24",
     "time": "13:00:00Z",
-    "FirstPractice": {
+    "FirstPractice":  {{
       "date": "2022-04-22",
       "time": "11:30:00Z"
-    },
-    "Qualifying": {
+    }},
+    "Qualifying":  {{
       "date": "2022-04-22",
       "time": "15:00:00Z"
-    },
-    "SecondPractice": {
+    }},
+    "SecondPractice":  {{
       "date": "2022-04-23",
       "time": "10:30:00Z"
-    },
-    "Sprint": {
+    }},
+    "Sprint":  {{
       "date": "2022-04-23",
       "time": "14:30:00Z"
-    }
-  }"#;
+    }}
+}}"#
+);
 
 // @todo Should have sprint shootout session, but Ergast has not updated
-pub const RACE_2023_4_SCHEDULE_STR: &str = r#"{
+pub const RACE_2023_4_SCHEDULE_STR: &str = formatcp!(
+    r#"{{
     "season": "2023",
     "round": "4",
     "url": "https://en.wikipedia.org/wiki/2023_Azerbaijan_Grand_Prix",
     "raceName": "Azerbaijan Grand Prix",
-    "Circuit": {
-      "circuitId": "baku",
-      "url": "http://en.wikipedia.org/wiki/Baku_City_Circuit",
-      "circuitName": "Baku City Circuit",
-      "Location": {
-        "lat": "40.3725",
-        "long": "49.8533",
-        "locality": "Baku",
-        "country": "Azerbaijan"
-      }
-    },
+    "Circuit": {CIRCUIT_BAKU_STR},
     "date": "2023-04-30",
     "time": "11:00:00Z",
-    "FirstPractice": {
+    "FirstPractice":  {{
       "date": "2023-04-28",
       "time": "09:30:00Z"
-    },
-    "Qualifying": {
+    }},
+    "Qualifying":  {{
       "date": "2023-04-28",
       "time": "13:00:00Z"
-    },
-    "SecondPractice": {
+    }},
+    "SecondPractice":  {{
       "date": "2023-04-29",
       "time": "09:30:00Z"
-    },
-    "Sprint": {
+    }},
+    "Sprint": {{
       "date": "2023-04-29",
       "time": "13:30:00Z"
-    }
-  }"#;
+    }}
+}}"#
+);
 
 pub const RACE_1950_1_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
     season: "1950".to_string(),
