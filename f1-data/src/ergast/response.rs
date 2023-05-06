@@ -134,7 +134,6 @@ pub struct Race {
 }
 
 #[derive(Deserialize, PartialEq, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
 pub struct QualifyingResult {
     pub number: String,
     pub position: String,
@@ -142,8 +141,11 @@ pub struct QualifyingResult {
     pub driver: Driver,
     #[serde(rename = "Constructor")]
     pub constructor: Constructor,
+    #[serde(rename = "Q1")]
     pub q1: Option<String>,
+    #[serde(rename = "Q1")]
     pub q2: Option<String>,
+    #[serde(rename = "Q1")]
     pub q3: Option<String>,
 }
 
@@ -248,7 +250,7 @@ mod tests {
     fn driver_table() {
         let driver_table: DriverTable = serde_json::from_str(DRIVER_TABLE_STR).unwrap();
 
-        assert_eq!(driver_table.drivers.len(), 2);
+        assert_eq!(driver_table.drivers.len(), 5);
         assert_eq!(&driver_table.drivers, &DRIVER_TABLE.drivers);
     }
 
@@ -256,7 +258,7 @@ mod tests {
     fn constructor_table() {
         let constructor_table: ConstructorTable = serde_json::from_str(CONSTRUCTOR_TABLE_STR).unwrap();
 
-        assert_eq!(constructor_table.constructors.len(), 2);
+        assert_eq!(constructor_table.constructors.len(), 4);
         assert_eq!(&constructor_table.constructors, &CONSTRUCTOR_TABLE.constructors);
     }
 
@@ -274,5 +276,30 @@ mod tests {
 
         assert_eq!(race_table.races.len(), 5);
         assert_eq!(&race_table.races, &RACE_TABLE_SCHEDULE.races);
+    }
+
+    #[test]
+    fn qualifying_result() {
+        assert_eq!(
+            serde_json::from_str::<QualifyingResult>(QUALIFYING_RESULT_2003_4_P1_STR).unwrap(),
+            *QUALIFYING_RESULT_2003_4_P1
+        );
+        assert_eq!(
+            serde_json::from_str::<QualifyingResult>(QUALIFYING_RESULT_2003_4_P2_STR).unwrap(),
+            *QUALIFYING_RESULT_2003_4_P2
+        );
+        assert_eq!(
+            serde_json::from_str::<QualifyingResult>(QUALIFYING_RESULT_2003_4_P20_STR).unwrap(),
+            *QUALIFYING_RESULT_2003_4_P20
+        );
+    }
+
+    #[test]
+    fn qualifying_results() {
+        let race: Race = serde_json::from_str(RACE_2003_4_QUALIFYING_RESULTS_STR).unwrap();
+
+        assert!(race.qualifying_results.is_some());
+        assert_eq!(race.qualifying_results.as_ref().unwrap().len(), 3);
+        assert_eq!(race, *RACE_2003_4_QUALIFYING_RESULTS);
     }
 }

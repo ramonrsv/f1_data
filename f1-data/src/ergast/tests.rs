@@ -1,3 +1,5 @@
+use std::vec;
+
 use const_format::formatcp;
 use once_cell::sync::Lazy;
 
@@ -68,18 +70,6 @@ pub static SEASON_TABLE: Lazy<SeasonTable> = Lazy::new(|| SeasonTable {
 // http://ergast.com/mrd/methods/drivers/
 // --------------------------------------
 
-// All possible fields are present
-pub const DRIVER_ALONSO_STR: &str = r#"{
-    "driverId": "alonso",
-    "permanentNumber": "14",
-    "code": "ALO",
-    "url": "http://en.wikipedia.org/wiki/Fernando_Alonso",
-    "givenName": "Fernando",
-    "familyName": "Alonso",
-    "dateOfBirth": "1981-07-29",
-    "nationality": "Spanish"
-  }"#;
-
 // Optional fields are missing: ["permanentNumber", "code"]
 pub const DRIVER_ABATE_STR: &str = r#"{
     "driverId": "abate",
@@ -90,16 +80,49 @@ pub const DRIVER_ABATE_STR: &str = r#"{
     "nationality": "Italian"
   }"#;
 
-pub static DRIVER_ALONSO: Lazy<Driver> = Lazy::new(|| Driver {
-    driver_id: "alonso".to_string(),
-    permanent_number: Some("14".to_string()),
-    code: Some("ALO".to_string()),
-    url: "http://en.wikipedia.org/wiki/Fernando_Alonso".to_string(),
-    given_name: "Fernando".to_string(),
-    family_name: "Alonso".to_string(),
-    date_of_birth: "1981-07-29".to_string(),
-    nationality: "Spanish".to_string(),
-});
+// Optional fields are missing: ["permanentNumber"]
+pub const DRIVER_MICHAEL_STR: &str = r#"{
+    "driverId": "michael_schumacher",
+    "code": "MSC",
+    "url": "http://en.wikipedia.org/wiki/Michael_Schumacher",
+    "givenName": "Michael",
+    "familyName": "Schumacher",
+    "dateOfBirth": "1969-01-03",
+    "nationality": "German"
+  }"#;
+
+// Optional fields are missing: ["permanentNumber", "code"]
+pub const DRIVER_JOS_STR: &str = r#"{
+    "driverId": "verstappen",
+    "url": "http://en.wikipedia.org/wiki/Jos_Verstappen",
+    "givenName": "Jos",
+    "familyName": "Verstappen",
+    "dateOfBirth": "1972-03-04",
+    "nationality": "Dutch"
+  }"#;
+
+// Optional fields are missing: ["permanentNumber"]
+pub const DRIVER_RALF_STR: &str = r#"{
+    "driverId": "ralf_schumacher",
+    "code": "SCH",
+    "url": "http://en.wikipedia.org/wiki/Ralf_Schumacher",
+    "givenName": "Ralf",
+    "familyName": "Schumacher",
+    "dateOfBirth": "1975-06-30",
+    "nationality": "German"
+  }"#;
+
+// All fields are present
+pub const DRIVER_ALONSO_STR: &str = r#"{
+    "driverId": "alonso",
+    "permanentNumber": "14",
+    "code": "ALO",
+    "url": "http://en.wikipedia.org/wiki/Fernando_Alonso",
+    "givenName": "Fernando",
+    "familyName": "Alonso",
+    "dateOfBirth": "1981-07-29",
+    "nationality": "Spanish"
+  }"#;
 
 pub static DRIVER_ABATE: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "abate".to_string(),
@@ -112,16 +135,69 @@ pub static DRIVER_ABATE: Lazy<Driver> = Lazy::new(|| Driver {
     nationality: "Italian".to_string(),
 });
 
+pub static DRIVER_MICHAEL: Lazy<Driver> = Lazy::new(|| Driver {
+    driver_id: "michael_schumacher".to_string(),
+    permanent_number: None,
+    code: Some("MSC".to_string()),
+    url: "http://en.wikipedia.org/wiki/Michael_Schumacher".to_string(),
+    given_name: "Michael".to_string(),
+    family_name: "Schumacher".to_string(),
+    date_of_birth: "1969-01-03".to_string(),
+    nationality: "German".to_string(),
+});
+
+pub static DRIVER_JOS: Lazy<Driver> = Lazy::new(|| Driver {
+    driver_id: "verstappen".to_string(),
+    permanent_number: None,
+    code: None,
+    url: "http://en.wikipedia.org/wiki/Jos_Verstappen".to_string(),
+    given_name: "Jos".to_string(),
+    family_name: "Verstappen".to_string(),
+    date_of_birth: "1972-03-04".to_string(),
+    nationality: "Dutch".to_string(),
+});
+
+pub static DRIVER_RALF: Lazy<Driver> = Lazy::new(|| Driver {
+    driver_id: "ralf_schumacher".to_string(),
+    permanent_number: None,
+    code: Some("SCH".to_string()),
+    url: "http://en.wikipedia.org/wiki/Ralf_Schumacher".to_string(),
+    given_name: "Ralf".to_string(),
+    family_name: "Schumacher".to_string(),
+    date_of_birth: "1975-06-30".to_string(),
+    nationality: "German".to_string(),
+});
+
+pub static DRIVER_ALONSO: Lazy<Driver> = Lazy::new(|| Driver {
+    driver_id: "alonso".to_string(),
+    permanent_number: Some("14".to_string()),
+    code: Some("ALO".to_string()),
+    url: "http://en.wikipedia.org/wiki/Fernando_Alonso".to_string(),
+    given_name: "Fernando".to_string(),
+    family_name: "Alonso".to_string(),
+    date_of_birth: "1981-07-29".to_string(),
+    nationality: "Spanish".to_string(),
+});
+
 pub const DRIVER_TABLE_STR: &str = formatcp!(
     r#"{{
     "Drivers": [
-        {DRIVER_ALONSO_STR},
-        {DRIVER_ABATE_STR}
+        {DRIVER_ABATE_STR},
+        {DRIVER_MICHAEL_STR},
+        {DRIVER_JOS_STR},
+        {DRIVER_RALF_STR},
+        {DRIVER_ALONSO_STR}
     ]}}"#
 );
 
 pub static DRIVER_TABLE: Lazy<DriverTable> = Lazy::new(|| DriverTable {
-    drivers: vec![DRIVER_ALONSO.clone(), DRIVER_ABATE.clone()],
+    drivers: vec![
+        DRIVER_ABATE.clone(),
+        DRIVER_MICHAEL.clone(),
+        DRIVER_JOS.clone(),
+        DRIVER_RALF.clone(),
+        DRIVER_ALONSO.clone(),
+    ],
 });
 
 // http://ergast.com/mrd/methods/constructors/
@@ -141,6 +217,20 @@ pub const CONSTRUCTOR_FERRARI_STR: &str = r#"{
     "nationality": "Italian"
   }"#;
 
+pub const CONSTRUCTOR_WILLIAMS_STR: &str = r#"{
+    "constructorId": "williams",
+    "url": "http://en.wikipedia.org/wiki/Williams_Grand_Prix_Engineering",
+    "name": "Williams",
+    "nationality": "British"
+  }"#;
+
+pub const CONSTRUCTOR_MINARDI_STR: &str = r#"{
+    "constructorId": "minardi",
+    "url": "http://en.wikipedia.org/wiki/Minardi",
+    "name": "Minardi",
+    "nationality": "Italian"
+  }"#;
+
 pub static CONSTRUCTOR_MCLAREN: Lazy<Constructor> = Lazy::new(|| Constructor {
     constructor_id: "mclaren".to_string(),
     url: "http://en.wikipedia.org/wiki/McLaren".to_string(),
@@ -155,16 +245,37 @@ pub static CONSTRUCTOR_FERRARI: Lazy<Constructor> = Lazy::new(|| Constructor {
     nationality: "Italian".to_string(),
 });
 
+pub static CONSTRUCTOR_WILLIAMS: Lazy<Constructor> = Lazy::new(|| Constructor {
+    constructor_id: "williams".to_string(),
+    url: "http://en.wikipedia.org/wiki/Williams_Grand_Prix_Engineering".to_string(),
+    name: "Williams".to_string(),
+    nationality: "British".to_string(),
+});
+
+pub static CONSTRUCTOR_MINARDI: Lazy<Constructor> = Lazy::new(|| Constructor {
+    constructor_id: "minardi".to_string(),
+    url: "http://en.wikipedia.org/wiki/Minardi".to_string(),
+    name: "Minardi".to_string(),
+    nationality: "Italian".to_string(),
+});
+
 pub const CONSTRUCTOR_TABLE_STR: &str = formatcp!(
     r#"{{
     "Constructors": [
         {CONSTRUCTOR_MCLAREN_STR},
-        {CONSTRUCTOR_FERRARI_STR}
+        {CONSTRUCTOR_FERRARI_STR},
+        {CONSTRUCTOR_WILLIAMS_STR},
+        {CONSTRUCTOR_MINARDI_STR}
     ]}}"#
 );
 
 pub static CONSTRUCTOR_TABLE: Lazy<ConstructorTable> = Lazy::new(|| ConstructorTable {
-    constructors: vec![CONSTRUCTOR_MCLAREN.clone(), CONSTRUCTOR_FERRARI.clone()],
+    constructors: vec![
+        CONSTRUCTOR_MCLAREN.clone(),
+        CONSTRUCTOR_FERRARI.clone(),
+        CONSTRUCTOR_WILLIAMS.clone(),
+        CONSTRUCTOR_MINARDI.clone(),
+    ],
 });
 
 // http://ergast.com/mrd/methods/circuits/
@@ -543,4 +654,105 @@ pub static RACE_TABLE_SCHEDULE: Lazy<RaceTable> = Lazy::new(|| RaceTable {
         RACE_2022_4_SCHEDULE.clone(),
         RACE_2023_4_SCHEDULE.clone(),
     ],
+});
+
+// http://ergast.com/mrd/methods/qualifying/
+// -----------------------------------------
+
+pub const QUALIFYING_RESULT_2003_4_P1_STR: &str = formatcp!(
+    r#"{{
+        "number": "1",
+        "position": "1",
+        "Driver": {DRIVER_MICHAEL_STR},
+        "Constructor": {CONSTRUCTOR_FERRARI_STR},
+        "Q1": "1:22.327"
+  }}"#
+);
+
+pub const QUALIFYING_RESULT_2003_4_P2_STR: &str = formatcp!(
+    r#"{{
+        "number": "4",
+        "position": "2",
+        "Driver": {DRIVER_RALF_STR},
+        "Constructor": {CONSTRUCTOR_WILLIAMS_STR},
+        "Q1": "1:22.341"
+  }}"#
+);
+
+pub const QUALIFYING_RESULT_2003_4_P20_STR: &str = formatcp!(
+    r#"{{
+        "number": "19",
+        "position": "20",
+        "Driver": {DRIVER_JOS_STR},
+        "Constructor": {CONSTRUCTOR_MINARDI_STR},
+        "Q1": ""
+  }}"#
+);
+
+pub const QUALIFYING_RESULT_2003_4_P1: Lazy<QualifyingResult> = Lazy::new(|| QualifyingResult {
+    number: "1".to_string(),
+    position: "1".to_string(),
+    driver: DRIVER_MICHAEL.clone(),
+    constructor: CONSTRUCTOR_FERRARI.clone(),
+    q1: Some("1:22.327".to_string()),
+    q2: None,
+    q3: None,
+});
+
+pub const QUALIFYING_RESULT_2003_4_P2: Lazy<QualifyingResult> = Lazy::new(|| QualifyingResult {
+    number: "4".to_string(),
+    position: "2".to_string(),
+    driver: DRIVER_RALF.clone(),
+    constructor: CONSTRUCTOR_WILLIAMS.clone(),
+    q1: Some("1:22.341".to_string()),
+    q2: None,
+    q3: None,
+});
+
+pub const QUALIFYING_RESULT_2003_4_P20: Lazy<QualifyingResult> = Lazy::new(|| QualifyingResult {
+    number: "19".to_string(),
+    position: "20".to_string(),
+    driver: DRIVER_JOS.clone(),
+    constructor: CONSTRUCTOR_MINARDI.clone(),
+    q1: Some("".to_string()),
+    q2: None,
+    q3: None,
+});
+
+pub const RACE_2003_4_QUALIFYING_RESULTS_STR: &str = formatcp!(
+    r#"{{
+        "season": "2003",
+        "round": "4",
+        "url": "http://en.wikipedia.org/wiki/2003_San_Marino_Grand_Prix",
+        "raceName": "San Marino Grand Prix",
+        "Circuit": {CIRCUIT_IMOLA_STR},
+        "date": "2003-04-20",
+        "QualifyingResults": [
+            {QUALIFYING_RESULT_2003_4_P1_STR},
+            {QUALIFYING_RESULT_2003_4_P2_STR},
+            {QUALIFYING_RESULT_2003_4_P20_STR}
+        ]
+    }}"#
+);
+
+pub static RACE_2003_4_QUALIFYING_RESULTS: Lazy<Race> = Lazy::new(|| Race {
+    season: "2003".to_string(),
+    round: "4".to_string(),
+    url: "http://en.wikipedia.org/wiki/2003_San_Marino_Grand_Prix".to_string(),
+    race_name: "San Marino Grand Prix".to_string(),
+    circuit: CIRCUIT_IMOLA.clone(),
+    date: "2003-04-20".to_string(),
+    time: None,
+    first_practice: None,
+    second_practice: None,
+    third_practice: None,
+    qualifying: None,
+    sprint: None,
+    qualifying_results: Some(vec![
+        QUALIFYING_RESULT_2003_4_P1.clone(),
+        QUALIFYING_RESULT_2003_4_P2.clone(),
+        QUALIFYING_RESULT_2003_4_P20.clone(),
+    ]),
+    sprint_results: None,
+    results: None,
 });

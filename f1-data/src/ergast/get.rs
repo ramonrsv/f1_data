@@ -453,14 +453,17 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_driver_all_fields_present() {
-        verify_single_driver("alonso", &DRIVER_ALONSO);
+    fn get_driver_some_fields_missing() {
+        verify_single_driver("abate", &DRIVER_ABATE);
+        verify_single_driver("michael_schumacher", &DRIVER_MICHAEL);
+        verify_single_driver("verstappen", &DRIVER_JOS);
+        verify_single_driver("ralf_schumacher", &DRIVER_RALF);
     }
 
     #[test]
     #[ignore]
-    fn get_driver_some_fields_missing() {
-        verify_single_driver("abate", &DRIVER_ABATE);
+    fn get_driver_all_fields_present() {
+        verify_single_driver("alonso", &DRIVER_ALONSO);
     }
 
     // Resource::ConstructorInfo
@@ -483,6 +486,8 @@ mod tests {
     fn get_constructor() {
         verify_single_constructor("mclaren", &CONSTRUCTOR_MCLAREN);
         verify_single_constructor("ferrari", &CONSTRUCTOR_FERRARI);
+        verify_single_constructor("williams", &CONSTRUCTOR_WILLIAMS);
+        verify_single_constructor("minardi", &CONSTRUCTOR_MINARDI);
     }
 
     // Resource::CircuitInfo
@@ -510,7 +515,7 @@ mod tests {
     }
 
     // Resource::RaceSchedule
-    // ---------------------
+    // ----------------------
 
     fn verify_single_race_schedule(year: u32, round: u32, race_schedule: &Race) {
         let resp: Response = get_into_json(Resource::RaceSchedule(Filters {
@@ -533,5 +538,41 @@ mod tests {
         verify_single_race_schedule(2021, 12, &RACE_2021_12_SCHEDULE);
         verify_single_race_schedule(2022, 4, &RACE_2022_4_SCHEDULE);
         verify_single_race_schedule(2023, 4, &RACE_2023_4_SCHEDULE);
+    }
+
+    // Resource::QualifyingResults
+    // ---------------------------
+
+    #[test]
+    #[ignore]
+    fn get_qualifying_results_2003_4() {
+        let resp: Response = get_into_json(Resource::QualifyingResults(Filters {
+            year: Some(2003),
+            round: Some(4),
+            ..Filters::none()
+        }));
+
+        assert!(resp.mr_data.race_table.is_some());
+        assert_eq!(resp.mr_data.race_table.as_ref().unwrap().races.len(), 1);
+
+        let actual = &resp.mr_data.race_table.unwrap().races[0];
+        let expected = &RACE_2003_4_QUALIFYING_RESULTS;
+
+        assert_eq!(actual.season, expected.season);
+        assert_eq!(actual.round, expected.round);
+        assert_eq!(actual.url, expected.url);
+        assert_eq!(actual.race_name, expected.race_name);
+        assert_eq!(actual.circuit, expected.circuit);
+        assert_eq!(actual.date, expected.date);
+
+        assert!(actual.qualifying_results.is_some());
+
+        let actual_results = actual.qualifying_results.as_ref().unwrap();
+        let expected_results = expected.qualifying_results.as_ref().unwrap();
+
+        assert_eq!(actual_results.len(), 20);
+
+        assert_eq!(actual_results[0..1], expected_results[0..1]);
+        assert_eq!(actual_results[19], expected_results[2]);
     }
 }
