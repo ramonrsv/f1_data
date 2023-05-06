@@ -421,8 +421,8 @@ mod tests {
         );
     }
 
-    // http://ergast.com/mrd/methods/seasons/
-    // --------------------------------------
+    // Resource::SeasonList
+    // --------------------
 
     #[test]
     #[ignore]
@@ -436,8 +436,8 @@ mod tests {
         assert_eq!(resp.mr_data.season_table.as_ref().unwrap().seasons[29], *SEASON_1979);
     }
 
-    // http://ergast.com/mrd/methods/drivers/
-    // --------------------------------------
+    // Resource::DriverInfo
+    // --------------------
 
     fn verify_single_driver(driver_id: &str, driver: &Driver) {
         let resp: Response = get_into_json(Resource::DriverInfo(Filters {
@@ -463,8 +463,8 @@ mod tests {
         verify_single_driver("abate", &DRIVER_ABATE);
     }
 
-    // http://ergast.com/mrd/methods/constructors/
-    // -------------------------------------------
+    // Resource::ConstructorInfo
+    // -------------------------
 
     fn verify_single_constructor(constructor_id: &str, constructor: &Constructor) {
         let resp: Response = get_into_json(Resource::ConstructorInfo(Filters {
@@ -485,8 +485,8 @@ mod tests {
         verify_single_constructor("ferrari", &CONSTRUCTOR_FERRARI);
     }
 
-    // http://ergast.com/mrd/methods/circuits/
-    // ---------------------------------------
+    // Resource::CircuitInfo
+    // ---------------------
 
     fn verify_single_circuit(circuit_id: &str, circuit: &Circuit) {
         let resp: Response = get_into_json(Resource::CircuitInfo(Filters {
@@ -505,5 +505,33 @@ mod tests {
     fn get_circuit() {
         verify_single_circuit("spa", &CIRCUIT_SPA);
         verify_single_circuit("silverstone", &CIRCUIT_SILVERSTONE);
+        verify_single_circuit("imola", &CIRCUIT_IMOLA);
+        verify_single_circuit("baku", &CIRCUIT_BAKU);
+    }
+
+    // Resource::RaceSchedule
+    // ---------------------
+
+    fn verify_single_race_schedule(year: u32, round: u32, race_schedule: &Race) {
+        let resp: Response = get_into_json(Resource::RaceSchedule(Filters {
+            year: Some(year),
+            round: Some(round),
+            ..Filters::none()
+        }));
+
+        assert!(resp.mr_data.race_table.is_some());
+        assert_eq!(resp.mr_data.race_table.as_ref().unwrap().races.len(), 1);
+
+        assert_eq!(&resp.mr_data.race_table.as_ref().unwrap().races[0], race_schedule);
+    }
+
+    #[test]
+    #[ignore]
+    fn get_race_schedule() {
+        verify_single_race_schedule(1950, 1, &RACE_1950_1_SCHEDULE);
+        verify_single_race_schedule(2015, 11, &RACE_2015_11_SCHEDULE);
+        verify_single_race_schedule(2021, 12, &RACE_2021_12_SCHEDULE);
+        verify_single_race_schedule(2022, 4, &RACE_2022_4_SCHEDULE);
+        verify_single_race_schedule(2023, 4, &RACE_2023_4_SCHEDULE);
     }
 }

@@ -126,11 +126,11 @@ pub struct Race {
     #[serde(rename = "Sprint")]
     pub sprint: Option<DateTime>,
     #[serde(rename = "QualifyingResults")]
-    pub qualifying_results: Vec<QualifyingResult>,
+    pub qualifying_results: Option<Vec<QualifyingResult>>,
     #[serde(rename = "SprintResults")]
-    pub sprint_results: Vec<SprintResult>,
+    pub sprint_results: Option<Vec<SprintResult>>,
     #[serde(rename = "Results")]
-    pub results: Vec<Result>,
+    pub results: Option<Vec<Result>>,
 }
 
 #[derive(Deserialize, PartialEq, Clone, Debug)]
@@ -264,7 +264,15 @@ mod tests {
     fn circuit_table() {
         let circuit_table: CircuitTable = serde_json::from_str(CIRCUIT_TABLE_STR).unwrap();
 
-        assert_eq!(circuit_table.circuits.len(), 2);
+        assert_eq!(circuit_table.circuits.len(), 4);
         assert_eq!(&circuit_table.circuits, &CIRCUIT_TABLE.circuits);
+    }
+
+    #[test]
+    fn race_table_schedule() {
+        let race_table: RaceTable = serde_json::from_str(RACE_TABLE_SCHEDULE_STR).unwrap();
+
+        assert_eq!(race_table.races.len(), 5);
+        assert_eq!(&race_table.races, &RACE_TABLE_SCHEDULE.races);
     }
 }
