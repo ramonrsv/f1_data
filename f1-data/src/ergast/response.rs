@@ -219,12 +219,12 @@ pub struct Time {
 
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct FastestLap {
-    pub rank: String,
+    pub rank: Option<String>,
     pub lap: String,
     #[serde(rename = "Time")]
     pub time: Time,
     #[serde(rename = "AverageSpeed")]
-    pub average_speed: AverageSpeed,
+    pub average_speed: Option<AverageSpeed>,
 }
 
 #[derive(Deserialize, PartialEq, Clone, Debug)]
@@ -280,13 +280,14 @@ mod tests {
 
     #[test]
     fn qualifying_result() {
-        let from_str_quali = |quali_result_str| serde_json::from_str::<QualifyingResult>(quali_result_str).unwrap();
+        let from_str = |result_str| serde_json::from_str::<QualifyingResult>(result_str).unwrap();
 
-        assert_eq!(from_str_quali(QUALIFYING_RESULT_2003_4_P1_STR), *QUALIFYING_RESULT_2003_4_P1);
-        assert_eq!(from_str_quali(QUALIFYING_RESULT_2003_4_P2_STR), *QUALIFYING_RESULT_2003_4_P2);
-        assert_eq!(from_str_quali(QUALIFYING_RESULT_2003_4_P20_STR), *QUALIFYING_RESULT_2003_4_P20);
-        assert_eq!(from_str_quali(QUALIFYING_RESULT_2023_4_P1_STR), *QUALIFYING_RESULT_2023_4_P1);
-        assert_eq!(from_str_quali(QUALIFYING_RESULT_2023_4_P2_STR), *QUALIFYING_RESULT_2023_4_P2);
+        assert_eq!(from_str(QUALIFYING_RESULT_2003_4_P1_STR), *QUALIFYING_RESULT_2003_4_P1);
+        assert_eq!(from_str(QUALIFYING_RESULT_2003_4_P2_STR), *QUALIFYING_RESULT_2003_4_P2);
+        assert_eq!(from_str(QUALIFYING_RESULT_2003_4_P20_STR), *QUALIFYING_RESULT_2003_4_P20);
+        assert_eq!(from_str(QUALIFYING_RESULT_2023_4_P1_STR), *QUALIFYING_RESULT_2023_4_P1);
+        assert_eq!(from_str(QUALIFYING_RESULT_2023_4_P2_STR), *QUALIFYING_RESULT_2023_4_P2);
+        assert_eq!(from_str(QUALIFYING_RESULT_2023_4_P3_STR), *QUALIFYING_RESULT_2023_4_P3);
     }
 
     #[test]
@@ -306,5 +307,21 @@ mod tests {
             assert!(!race.qualifying_results.as_ref().unwrap().is_empty());
             assert_eq!(race, *RACE_2023_4_QUALIFYING_RESULTS);
         }
+    }
+
+    #[test]
+    fn sprint_result() {
+        let from_str = |result_str| serde_json::from_str::<SprintResult>(result_str).unwrap();
+
+        assert_eq!(from_str(SPRINT_RESULT_2023_4_P1_STR), *SPRINT_RESULT_2023_4_P1);
+    }
+
+    #[test]
+    fn sprint_results() {
+        let race: Race = serde_json::from_str(RACE_2023_4_SPRINT_RESULTS_STR).unwrap();
+
+        assert!(race.sprint_results.is_some());
+        assert!(!race.sprint_results.as_ref().unwrap().is_empty());
+        assert_eq!(race, *RACE_2023_4_SPRINT_RESULTS);
     }
 }

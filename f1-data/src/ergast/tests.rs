@@ -832,67 +832,67 @@ pub static RACE_TABLE_SCHEDULE: Lazy<RaceTable> = Lazy::new(|| RaceTable {
 
 pub const QUALIFYING_RESULT_2003_4_P1_STR: &str = formatcp!(
     r#"{{
-        "number": "1",
-        "position": "1",
-        "Driver": {DRIVER_MICHAEL_STR},
-        "Constructor": {CONSTRUCTOR_FERRARI_STR},
-        "Q1": "1:22.327"
+    "number": "1",
+    "position": "1",
+    "Driver": {DRIVER_MICHAEL_STR},
+    "Constructor": {CONSTRUCTOR_FERRARI_STR},
+    "Q1": "1:22.327"
   }}"#
 );
 
 pub const QUALIFYING_RESULT_2003_4_P2_STR: &str = formatcp!(
     r#"{{
-        "number": "4",
-        "position": "2",
-        "Driver": {DRIVER_RALF_STR},
-        "Constructor": {CONSTRUCTOR_WILLIAMS_STR},
-        "Q1": "1:22.341"
+    "number": "4",
+    "position": "2",
+    "Driver": {DRIVER_RALF_STR},
+    "Constructor": {CONSTRUCTOR_WILLIAMS_STR},
+    "Q1": "1:22.341"
   }}"#
 );
 
 pub const QUALIFYING_RESULT_2003_4_P20_STR: &str = formatcp!(
     r#"{{
-        "number": "19",
-        "position": "20",
-        "Driver": {DRIVER_JOS_STR},
-        "Constructor": {CONSTRUCTOR_MINARDI_STR},
-        "Q1": ""
+    "number": "19",
+    "position": "20",
+    "Driver": {DRIVER_JOS_STR},
+    "Constructor": {CONSTRUCTOR_MINARDI_STR},
+    "Q1": ""
   }}"#
 );
 
 pub const QUALIFYING_RESULT_2023_4_P1_STR: &str = formatcp!(
     r#"{{
-        "number": "16",
-        "position": "1",
-        "Driver": {DRIVER_LECLERC_STR},
-        "Constructor": {CONSTRUCTOR_FERRARI_STR},
-        "Q1": "1:41.269",
-        "Q2": "1:41.037",
-        "Q3": "1:40.203"
+    "number": "16",
+    "position": "1",
+    "Driver": {DRIVER_LECLERC_STR},
+    "Constructor": {CONSTRUCTOR_FERRARI_STR},
+    "Q1": "1:41.269",
+    "Q2": "1:41.037",
+    "Q3": "1:40.203"
   }}"#
 );
 
 pub const QUALIFYING_RESULT_2023_4_P2_STR: &str = formatcp!(
     r#"{{
-        "number": "1",
-        "position": "2",
-        "Driver": {DRIVER_MAX_STR},
-        "Constructor": {CONSTRUCTOR_RED_BULL_STR},
-        "Q1": "1:41.398",
-        "Q2": "1:40.822",
-        "Q3": "1:40.391"
+    "number": "1",
+    "position": "2",
+    "Driver": {DRIVER_MAX_STR},
+    "Constructor": {CONSTRUCTOR_RED_BULL_STR},
+    "Q1": "1:41.398",
+    "Q2": "1:40.822",
+    "Q3": "1:40.391"
   }}"#
 );
 
 pub const QUALIFYING_RESULT_2023_4_P3_STR: &str = formatcp!(
     r#"{{
-        "number": "11",
-        "position": "3",
-        "Driver": {DRIVER_PEREZ_STR},
-        "Constructor": {CONSTRUCTOR_RED_BULL_STR},
-        "Q1": "1:41.756",
-        "Q2": "1:41.131",
-        "Q3": "1:40.495"
+    "number": "11",
+    "position": "3",
+    "Driver": {DRIVER_PEREZ_STR},
+    "Constructor": {CONSTRUCTOR_RED_BULL_STR},
+    "Q1": "1:41.756",
+    "Q2": "1:41.131",
+    "Q3": "1:40.495"
   }}"#
 );
 
@@ -958,13 +958,13 @@ pub const QUALIFYING_RESULT_2023_4_P3: Lazy<QualifyingResult> = Lazy::new(|| Qua
 
 pub const RACE_2003_4_QUALIFYING_RESULTS_STR: &str = formatcp!(
     r#"{{
-        {RACE_2003_4_STR},
-        "QualifyingResults": [
-            {QUALIFYING_RESULT_2003_4_P1_STR},
-            {QUALIFYING_RESULT_2003_4_P2_STR},
-            {QUALIFYING_RESULT_2003_4_P20_STR}
-        ]
-    }}"#
+    {RACE_2003_4_STR},
+    "QualifyingResults": [
+        {QUALIFYING_RESULT_2003_4_P1_STR},
+        {QUALIFYING_RESULT_2003_4_P2_STR},
+        {QUALIFYING_RESULT_2003_4_P20_STR}
+    ]
+  }}"#
 );
 
 pub static RACE_2003_4_QUALIFYING_RESULTS: Lazy<Race> = Lazy::new(|| Race {
@@ -978,13 +978,13 @@ pub static RACE_2003_4_QUALIFYING_RESULTS: Lazy<Race> = Lazy::new(|| Race {
 
 pub const RACE_2023_4_QUALIFYING_RESULTS_STR: &str = formatcp!(
     r#"{{
-        {RACE_2023_4_STR},
-        "QualifyingResults": [
-            {QUALIFYING_RESULT_2023_4_P1_STR},
-            {QUALIFYING_RESULT_2023_4_P2_STR},
-            {QUALIFYING_RESULT_2023_4_P3_STR}
-        ]
-    }}"#
+    {RACE_2023_4_STR},
+    "QualifyingResults": [
+        {QUALIFYING_RESULT_2023_4_P1_STR},
+        {QUALIFYING_RESULT_2023_4_P2_STR},
+        {QUALIFYING_RESULT_2023_4_P3_STR}
+    ]
+  }}"#
 );
 
 pub static RACE_2023_4_QUALIFYING_RESULTS: Lazy<Race> = Lazy::new(|| Race {
@@ -993,5 +993,71 @@ pub static RACE_2023_4_QUALIFYING_RESULTS: Lazy<Race> = Lazy::new(|| Race {
         QUALIFYING_RESULT_2023_4_P2.clone(),
         QUALIFYING_RESULT_2023_4_P3.clone(),
     ]),
+    ..RACE_2023_4.clone()
+});
+
+// http://ergast.com/mrd/methods/sprint/
+// -------------------------------------
+
+pub const SPRINT_RESULT_2023_4_P1_STR: &str = formatcp!(
+    r#"{{
+    "number": "11",
+    "position": "1",
+    "positionText": "1",
+    "points": "8",
+    "Driver": {DRIVER_PEREZ_STR},
+    "Constructor": {CONSTRUCTOR_RED_BULL_STR},
+    "grid": "2",
+    "laps": "17",
+    "status": "Finished",
+    "Time": {{
+        "millis": "1997667",
+        "time": "33:17.667"
+    }},
+    "FastestLap": {{
+        "lap": "11",
+        "Time": {{
+            "time": "1:43.616"
+        }}
+    }}
+  }}"#
+);
+
+pub const SPRINT_RESULT_2023_4_P1: Lazy<SprintResult> = Lazy::new(|| SprintResult {
+    number: "11".to_string(),
+    position: "1".to_string(),
+    position_text: "1".to_string(),
+    points: "8".to_string(),
+    driver: DRIVER_PEREZ.clone(),
+    constructor: CONSTRUCTOR_RED_BULL.clone(),
+    grid: "2".to_string(),
+    laps: "17".to_string(),
+    status: "Finished".to_string(),
+    time: Some(Time {
+        millis: Some("1997667".to_string()),
+        time: "33:17.667".to_string(),
+    }),
+    fastest_lap: Some(FastestLap {
+        rank: None,
+        lap: "11".to_string(),
+        time: Time {
+            millis: None,
+            time: "1:43.616".to_string(),
+        },
+        average_speed: None,
+    }),
+});
+
+pub const RACE_2023_4_SPRINT_RESULTS_STR: &str = formatcp!(
+    r#"{{
+    {RACE_2023_4_STR},
+    "SprintResults": [
+        {SPRINT_RESULT_2023_4_P1_STR}
+    ]
+  }}"#
+);
+
+pub static RACE_2023_4_SPRINT_RESULTS: Lazy<Race> = Lazy::new(|| Race {
+    sprint_results: Some(vec![SPRINT_RESULT_2023_4_P1.clone()]),
     ..RACE_2023_4.clone()
 });

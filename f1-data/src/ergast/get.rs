@@ -15,6 +15,16 @@ mod tests {
     use super::*;
     use crate::ergast::tests::*;
 
+    fn assert_eq_race(left: &Race, right: &Race) {
+        assert_eq!(left.season, right.season);
+        assert_eq!(left.round, right.round);
+        assert_eq!(left.url, right.url);
+        assert_eq!(left.race_name, right.race_name);
+        assert_eq!(left.circuit, right.circuit);
+        assert_eq!(left.date, right.date);
+        assert_eq!(left.time, right.time);
+    }
+
     // Resource::SeasonList
     // --------------------
 
@@ -142,16 +152,6 @@ mod tests {
     // Resource::QualifyingResults
     // ---------------------------
 
-    fn assert_eq_race(left: &Race, right: &Race) {
-        assert_eq!(left.season, right.season);
-        assert_eq!(left.round, right.round);
-        assert_eq!(left.url, right.url);
-        assert_eq!(left.race_name, right.race_name);
-        assert_eq!(left.circuit, right.circuit);
-        assert_eq!(left.date, right.date);
-        assert_eq!(left.time, right.time);
-    }
-
     #[test]
     #[ignore]
     fn get_qualifying_results_2003_4() {
@@ -205,5 +205,48 @@ mod tests {
         assert_eq!(actual_results.len(), 20);
 
         assert_eq!(actual_results[0..2], expected_results[0..2]);
+    }
+
+    // Resource::SprintResults
+    // -----------------------
+
+    #[test]
+    #[ignore]
+    fn get_sprint_results_2023_4() {
+        let resp: Response = get_into_json(Resource::SprintResults(Filters {
+            year: Some(2023),
+            round: Some(4),
+            ..Filters::none()
+        }));
+
+        assert!(resp.mr_data.race_table.is_some());
+        assert_eq!(resp.mr_data.race_table.as_ref().unwrap().races.len(), 1);
+
+        let actual = &resp.mr_data.race_table.unwrap().races[0];
+        let expected = &RACE_2023_4_SPRINT_RESULTS;
+
+        assert_eq_race(actual, expected);
+
+        assert!(actual.sprint_results.is_some());
+
+        let actual_results = actual.sprint_results.as_ref().unwrap();
+        let expected_results = expected.sprint_results.as_ref().unwrap();
+
+        assert_eq!(actual_results.len(), 20);
+
+        assert_eq!(actual_results[0], expected_results[0]);
+    }
+
+    #[test]
+    #[ignore]
+    fn get_sprint_results_no_sprint() {
+        let resp: Response = get_into_json(Resource::SprintResults(Filters {
+            year: Some(2023),
+            round: Some(1),
+            ..Filters::none()
+        }));
+
+        assert!(resp.mr_data.race_table.is_some());
+        assert!(resp.mr_data.race_table.as_ref().unwrap().races.is_empty());
     }
 }
