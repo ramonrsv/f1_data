@@ -462,24 +462,33 @@ pub static CIRCUIT_TABLE: Lazy<CircuitTable> = Lazy::new(|| CircuitTable {
     ],
 });
 
-// http://ergast.com/mrd/methods/schedule/
-// ---------------------------------------
+// Races, used in schedule, qualifying, sprint, results
+// ----------------------------------------------------
 
-// Has "date" only
-pub const RACE_1950_1_SCHEDULE_STR: &str = formatcp!(
-    r#"{{
+pub const RACE_1950_1_STR: &str = formatcp!(
+    r#"
     "season": "1950",
     "round": "1",
     "url": "http://en.wikipedia.org/wiki/1950_British_Grand_Prix",
     "raceName": "British Grand Prix",
     "Circuit": {CIRCUIT_SILVERSTONE_STR},
     "date": "1950-05-13"
-  }}"#
+  "#
 );
 
-// Has "date" and "time"
-pub const RACE_2015_11_SCHEDULE_STR: &str = formatcp!(
-    r#"{{
+pub const RACE_2003_4_STR: &str = formatcp!(
+    r#"
+    "season": "2003",
+    "round": "4",
+    "url": "http://en.wikipedia.org/wiki/2003_San_Marino_Grand_Prix",
+    "raceName": "San Marino Grand Prix",
+    "Circuit": {CIRCUIT_IMOLA_STR},
+    "date": "2003-04-20"
+  "#
+);
+
+pub const RACE_2015_11_STR: &str = formatcp!(
+    r#"
     "season": "2015",
     "round": "11",
     "url": "http://en.wikipedia.org/wiki/2015_Belgian_Grand_Prix",
@@ -487,20 +496,167 @@ pub const RACE_2015_11_SCHEDULE_STR: &str = formatcp!(
     "Circuit": {CIRCUIT_SPA_STR},
     "date": "2015-08-23",
     "time": "12:00:00Z"
-  }}"#
+  "#
 );
 
-// Has "FirstPractice", "SecondPractice", "ThirdPractice", "Qualifying"
-// Sessions have only "data"
-pub const RACE_2021_12_SCHEDULE_STR: &str = formatcp!(
-    r#"{{
+pub const RACE_2021_12_STR: &str = formatcp!(
+    r#"
     "season": "2021",
     "round": "12",
     "url": "http://en.wikipedia.org/wiki/2021_Belgian_Grand_Prix",
     "raceName": "Belgian Grand Prix",
     "Circuit": {CIRCUIT_SPA_STR},
     "date": "2021-08-29",
-    "time": "13:00:00Z",
+    "time": "13:00:00Z"
+  "#
+);
+
+pub const RACE_2022_4_STR: &str = formatcp!(
+    r#"
+    "season": "2022",
+    "round": "4",
+    "url": "http://en.wikipedia.org/wiki/2022_Emilia_Romagna_Grand_Prix",
+    "raceName": "Emilia Romagna Grand Prix",
+    "Circuit": {CIRCUIT_IMOLA_STR},
+    "date": "2022-04-24",
+    "time": "13:00:00Z"
+  "#
+);
+
+pub const RACE_2023_4_STR: &str = formatcp!(
+    r#"
+    "season": "2023",
+    "round": "4",
+    "url": "https://en.wikipedia.org/wiki/2023_Azerbaijan_Grand_Prix",
+    "raceName": "Azerbaijan Grand Prix",
+    "Circuit": {CIRCUIT_BAKU_STR},
+    "date": "2023-04-30",
+    "time": "11:00:00Z"
+  "#
+);
+
+// Can be used to fill all unspecified fields for a given race
+pub const RACE_NONE: Lazy<Race> = Lazy::new(|| Race {
+    season: "".to_string(),
+    round: "".to_string(),
+    url: "".to_string(),
+    race_name: "".to_string(),
+    circuit: Circuit {
+        circuit_id: "".to_string(),
+        url: "".to_string(),
+        circuit_name: "".to_string(),
+        location: Location {
+            lat: "".to_string(),
+            long: "".to_string(),
+            locality: "".to_string(),
+            country: "".to_string(),
+        },
+    },
+    date: "".to_string(),
+    time: None,
+    first_practice: None,
+    second_practice: None,
+    third_practice: None,
+    qualifying: None,
+    sprint: None,
+    qualifying_results: None,
+    sprint_results: None,
+    results: None,
+});
+
+pub const RACE_1950_1: Lazy<Race> = Lazy::new(|| Race {
+    season: "1950".to_string(),
+    round: "1".to_string(),
+    url: "http://en.wikipedia.org/wiki/1950_British_Grand_Prix".to_string(),
+    race_name: "British Grand Prix".to_string(),
+    circuit: CIRCUIT_SILVERSTONE.clone(),
+    date: "1950-05-13".to_string(),
+    ..RACE_NONE.clone()
+});
+
+pub const RACE_2003_4: Lazy<Race> = Lazy::new(|| Race {
+    season: "2003".to_string(),
+    round: "4".to_string(),
+    url: "http://en.wikipedia.org/wiki/2003_San_Marino_Grand_Prix".to_string(),
+    race_name: "San Marino Grand Prix".to_string(),
+    circuit: CIRCUIT_IMOLA.clone(),
+    date: "2003-04-20".to_string(),
+    ..RACE_NONE.clone()
+});
+
+pub const RACE_2015_11: Lazy<Race> = Lazy::new(|| Race {
+    season: "2015".to_string(),
+    round: "11".to_string(),
+    url: "http://en.wikipedia.org/wiki/2015_Belgian_Grand_Prix".to_string(),
+    race_name: "Belgian Grand Prix".to_string(),
+    circuit: CIRCUIT_SPA.clone(),
+    date: "2015-08-23".to_string(),
+    time: Some("12:00:00Z".to_string()),
+    ..RACE_NONE.clone()
+});
+
+pub const RACE_2021_12: Lazy<Race> = Lazy::new(|| Race {
+    season: "2021".to_string(),
+    round: "12".to_string(),
+    url: "http://en.wikipedia.org/wiki/2021_Belgian_Grand_Prix".to_string(),
+    race_name: "Belgian Grand Prix".to_string(),
+    circuit: CIRCUIT_SPA.clone(),
+    date: "2021-08-29".to_string(),
+    time: Some("13:00:00Z".to_string()),
+    ..RACE_NONE.clone()
+});
+
+pub const RACE_2022_4: Lazy<Race> = Lazy::new(|| Race {
+    season: "2022".to_string(),
+    round: "4".to_string(),
+    url: "http://en.wikipedia.org/wiki/2022_Emilia_Romagna_Grand_Prix".to_string(),
+    race_name: "Emilia Romagna Grand Prix".to_string(),
+    circuit: CIRCUIT_IMOLA.clone(),
+    date: "2022-04-24".to_string(),
+    time: Some("13:00:00Z".to_string()),
+    ..RACE_NONE.clone()
+});
+
+pub const RACE_2023_4: Lazy<Race> = Lazy::new(|| Race {
+    season: "2023".to_string(),
+    round: "4".to_string(),
+    url: "https://en.wikipedia.org/wiki/2023_Azerbaijan_Grand_Prix".to_string(),
+    race_name: "Azerbaijan Grand Prix".to_string(),
+    circuit: CIRCUIT_BAKU.clone(),
+    date: "2023-04-30".to_string(),
+    time: Some("11:00:00Z".to_string()),
+    ..RACE_NONE.clone()
+});
+
+// http://ergast.com/mrd/methods/schedule/
+// ---------------------------------------
+
+// Has "date" only
+pub const RACE_1950_1_SCHEDULE_STR: &str = formatcp!(
+    r#"{{
+    {RACE_1950_1_STR}
+  }}"#
+);
+
+// Has "date" only
+pub const RACE_2003_4_SCHEDULE_STR: &str = formatcp!(
+    r#"{{
+    {RACE_2003_4_STR}
+  }}"#
+);
+
+// Has "date" and "time"
+pub const RACE_2015_11_SCHEDULE_STR: &str = formatcp!(
+    r#"{{
+    {RACE_2015_11_STR}
+  }}"#
+);
+
+// Has "FirstPractice", "SecondPractice", "ThirdPractice", "Qualifying"
+// Sessions have only "date"
+pub const RACE_2021_12_SCHEDULE_STR: &str = formatcp!(
+    r#"{{
+    {RACE_2021_12_STR},
     "FirstPractice": {{
       "date": "2021-08-27"
     }},
@@ -520,13 +676,7 @@ pub const RACE_2021_12_SCHEDULE_STR: &str = formatcp!(
 // Sessions have "date" and "time"
 pub const RACE_2022_4_SCHEDULE_STR: &str = formatcp!(
     r#"{{
-    "season": "2022",
-    "round": "4",
-    "url": "http://en.wikipedia.org/wiki/2022_Emilia_Romagna_Grand_Prix",
-    "raceName": "Emilia Romagna Grand Prix",
-    "Circuit": {CIRCUIT_IMOLA_STR},
-    "date": "2022-04-24",
-    "time": "13:00:00Z",
+    {RACE_2022_4_STR},
     "FirstPractice":  {{
       "date": "2022-04-22",
       "time": "11:30:00Z"
@@ -549,13 +699,7 @@ pub const RACE_2022_4_SCHEDULE_STR: &str = formatcp!(
 // @todo Should have sprint shootout session, but Ergast has not updated
 pub const RACE_2023_4_SCHEDULE_STR: &str = formatcp!(
     r#"{{
-    "season": "2023",
-    "round": "4",
-    "url": "https://en.wikipedia.org/wiki/2023_Azerbaijan_Grand_Prix",
-    "raceName": "Azerbaijan Grand Prix",
-    "Circuit": {CIRCUIT_BAKU_STR},
-    "date": "2023-04-30",
-    "time": "11:00:00Z",
+    {RACE_2023_4_STR},
     "FirstPractice":  {{
       "date": "2023-04-28",
       "time": "09:30:00Z"
@@ -575,50 +719,11 @@ pub const RACE_2023_4_SCHEDULE_STR: &str = formatcp!(
 }}"#
 );
 
-pub const RACE_1950_1_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
-    season: "1950".to_string(),
-    round: "1".to_string(),
-    url: "http://en.wikipedia.org/wiki/1950_British_Grand_Prix".to_string(),
-    race_name: "British Grand Prix".to_string(),
-    circuit: CIRCUIT_SILVERSTONE.clone(),
-    date: "1950-05-13".to_string(),
-    time: None,
-    first_practice: None,
-    second_practice: None,
-    third_practice: None,
-    qualifying: None,
-    sprint: None,
-    qualifying_results: None,
-    sprint_results: None,
-    results: None,
-});
-
-pub const RACE_2015_11_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
-    season: "2015".to_string(),
-    round: "11".to_string(),
-    url: "http://en.wikipedia.org/wiki/2015_Belgian_Grand_Prix".to_string(),
-    race_name: "Belgian Grand Prix".to_string(),
-    circuit: CIRCUIT_SPA.clone(),
-    date: "2015-08-23".to_string(),
-    time: Some("12:00:00Z".to_string()),
-    first_practice: None,
-    second_practice: None,
-    third_practice: None,
-    qualifying: None,
-    sprint: None,
-    qualifying_results: None,
-    sprint_results: None,
-    results: None,
-});
+pub const RACE_1950_1_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_1950_1.clone() });
+pub const RACE_2003_4_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_2003_4.clone() });
+pub const RACE_2015_11_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_2015_11.clone() });
 
 pub const RACE_2021_12_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
-    season: "2021".to_string(),
-    round: "12".to_string(),
-    url: "http://en.wikipedia.org/wiki/2021_Belgian_Grand_Prix".to_string(),
-    race_name: "Belgian Grand Prix".to_string(),
-    circuit: CIRCUIT_SPA.clone(),
-    date: "2021-08-29".to_string(),
-    time: Some("13:00:00Z".to_string()),
     first_practice: Some(DateTime {
         date: "2021-08-27".to_string(),
         time: None,
@@ -635,20 +740,10 @@ pub const RACE_2021_12_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
         date: "2021-08-28".to_string(),
         time: None,
     }),
-    sprint: None,
-    qualifying_results: None,
-    sprint_results: None,
-    results: None,
+    ..RACE_2021_12.clone()
 });
 
 pub const RACE_2022_4_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
-    season: "2022".to_string(),
-    round: "4".to_string(),
-    url: "http://en.wikipedia.org/wiki/2022_Emilia_Romagna_Grand_Prix".to_string(),
-    race_name: "Emilia Romagna Grand Prix".to_string(),
-    circuit: CIRCUIT_IMOLA.clone(),
-    date: "2022-04-24".to_string(),
-    time: Some("13:00:00Z".to_string()),
     first_practice: Some(DateTime {
         date: "2022-04-22".to_string(),
         time: Some("11:30:00Z".to_string()),
@@ -665,20 +760,10 @@ pub const RACE_2022_4_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
         date: "2022-04-23".to_string(),
         time: Some("14:30:00Z".to_string()),
     }),
-    third_practice: None,
-    qualifying_results: None,
-    sprint_results: None,
-    results: None,
+    ..RACE_2022_4.clone()
 });
 
 pub const RACE_2023_4_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
-    season: "2023".to_string(),
-    round: "4".to_string(),
-    url: "https://en.wikipedia.org/wiki/2023_Azerbaijan_Grand_Prix".to_string(),
-    race_name: "Azerbaijan Grand Prix".to_string(),
-    circuit: CIRCUIT_BAKU.clone(),
-    date: "2023-04-30".to_string(),
-    time: Some("11:00:00Z".to_string()),
     first_practice: Some(DateTime {
         date: "2023-04-28".to_string(),
         time: Some("09:30:00Z".to_string()),
@@ -695,16 +780,14 @@ pub const RACE_2023_4_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
         date: "2023-04-29".to_string(),
         time: Some("13:30:00Z".to_string()),
     }),
-    third_practice: None,
-    qualifying_results: None,
-    sprint_results: None,
-    results: None,
+    ..RACE_2023_4.clone()
 });
 
 pub const RACE_TABLE_SCHEDULE_STR: &str = formatcp!(
     r#"{{
     "Races": [
         {RACE_1950_1_SCHEDULE_STR},
+        {RACE_2003_4_SCHEDULE_STR},
         {RACE_2015_11_SCHEDULE_STR},
         {RACE_2021_12_SCHEDULE_STR},
         {RACE_2022_4_SCHEDULE_STR},
@@ -715,6 +798,7 @@ pub const RACE_TABLE_SCHEDULE_STR: &str = formatcp!(
 pub static RACE_TABLE_SCHEDULE: Lazy<RaceTable> = Lazy::new(|| RaceTable {
     races: vec![
         RACE_1950_1_SCHEDULE.clone(),
+        RACE_2003_4_SCHEDULE.clone(),
         RACE_2015_11_SCHEDULE.clone(),
         RACE_2021_12_SCHEDULE.clone(),
         RACE_2022_4_SCHEDULE.clone(),
@@ -831,12 +915,7 @@ pub const QUALIFYING_RESULT_2023_4_P2: Lazy<QualifyingResult> = Lazy::new(|| Qua
 
 pub const RACE_2003_4_QUALIFYING_RESULTS_STR: &str = formatcp!(
     r#"{{
-        "season": "2003",
-        "round": "4",
-        "url": "http://en.wikipedia.org/wiki/2003_San_Marino_Grand_Prix",
-        "raceName": "San Marino Grand Prix",
-        "Circuit": {CIRCUIT_IMOLA_STR},
-        "date": "2003-04-20",
+        {RACE_2003_4_STR},
         "QualifyingResults": [
             {QUALIFYING_RESULT_2003_4_P1_STR},
             {QUALIFYING_RESULT_2003_4_P2_STR},
@@ -846,36 +925,17 @@ pub const RACE_2003_4_QUALIFYING_RESULTS_STR: &str = formatcp!(
 );
 
 pub static RACE_2003_4_QUALIFYING_RESULTS: Lazy<Race> = Lazy::new(|| Race {
-    season: "2003".to_string(),
-    round: "4".to_string(),
-    url: "http://en.wikipedia.org/wiki/2003_San_Marino_Grand_Prix".to_string(),
-    race_name: "San Marino Grand Prix".to_string(),
-    circuit: CIRCUIT_IMOLA.clone(),
-    date: "2003-04-20".to_string(),
-    time: None,
-    first_practice: None,
-    second_practice: None,
-    third_practice: None,
-    qualifying: None,
-    sprint: None,
     qualifying_results: Some(vec![
         QUALIFYING_RESULT_2003_4_P1.clone(),
         QUALIFYING_RESULT_2003_4_P2.clone(),
         QUALIFYING_RESULT_2003_4_P20.clone(),
     ]),
-    sprint_results: None,
-    results: None,
+    ..RACE_2003_4.clone()
 });
 
 pub const RACE_2023_4_QUALIFYING_RESULTS_STR: &str = formatcp!(
     r#"{{
-        "season": "2023",
-        "round": "4",
-        "url": "https://en.wikipedia.org/wiki/2023_Azerbaijan_Grand_Prix",
-        "raceName": "Azerbaijan Grand Prix",
-        "Circuit": {CIRCUIT_BAKU_STR},
-        "date": "2023-04-30",
-        "time": "11:00:00Z",
+        {RACE_2023_4_STR},
         "QualifyingResults": [
             {QUALIFYING_RESULT_2023_4_P1_STR},
             {QUALIFYING_RESULT_2023_4_P2_STR}
@@ -884,19 +944,6 @@ pub const RACE_2023_4_QUALIFYING_RESULTS_STR: &str = formatcp!(
 );
 
 pub static RACE_2023_4_QUALIFYING_RESULTS: Lazy<Race> = Lazy::new(|| Race {
-    season: "2023".to_string(),
-    round: "4".to_string(),
-    url: "https://en.wikipedia.org/wiki/2023_Azerbaijan_Grand_Prix".to_string(),
-    race_name: "Azerbaijan Grand Prix".to_string(),
-    circuit: CIRCUIT_BAKU.clone(),
-    date: "2023-04-30".to_string(),
-    time: Some("11:00:00Z".to_string()),
-    first_practice: None,
-    second_practice: None,
-    third_practice: None,
-    qualifying: None,
-    sprint: None,
     qualifying_results: Some(vec![QUALIFYING_RESULT_2023_4_P1.clone(), QUALIFYING_RESULT_2023_4_P2.clone()]),
-    sprint_results: None,
-    results: None,
+    ..RACE_2023_4.clone()
 });

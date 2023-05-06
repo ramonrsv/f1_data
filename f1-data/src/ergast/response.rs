@@ -274,7 +274,7 @@ mod tests {
     fn race_table_schedule() {
         let race_table: RaceTable = serde_json::from_str(RACE_TABLE_SCHEDULE_STR).unwrap();
 
-        assert_eq!(race_table.races.len(), 5);
+        assert_eq!(race_table.races.len(), 6);
         assert_eq!(&race_table.races, &RACE_TABLE_SCHEDULE.races);
     }
 

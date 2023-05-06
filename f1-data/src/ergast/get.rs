@@ -131,6 +131,7 @@ mod tests {
     #[ignore]
     fn get_race_schedule() {
         verify_single_race_schedule(1950, 1, &RACE_1950_1_SCHEDULE);
+        verify_single_race_schedule(2003, 4, &RACE_2003_4_SCHEDULE);
         verify_single_race_schedule(2015, 11, &RACE_2015_11_SCHEDULE);
         verify_single_race_schedule(2021, 12, &RACE_2021_12_SCHEDULE);
         verify_single_race_schedule(2022, 4, &RACE_2022_4_SCHEDULE);
