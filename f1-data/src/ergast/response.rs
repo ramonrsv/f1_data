@@ -242,7 +242,7 @@ mod tests {
     fn season_table() {
         let season_table: SeasonTable = serde_json::from_str(SEASON_TABLE_STR).unwrap();
 
-        assert_eq!(season_table.seasons.len(), 4);
+        assert!(!season_table.seasons.is_empty());
         assert_eq!(&season_table.seasons, &SEASON_TABLE.seasons);
     }
 
@@ -250,7 +250,7 @@ mod tests {
     fn driver_table() {
         let driver_table: DriverTable = serde_json::from_str(DRIVER_TABLE_STR).unwrap();
 
-        assert_eq!(driver_table.drivers.len(), 7);
+        assert!(!driver_table.drivers.is_empty());
         assert_eq!(&driver_table.drivers, &DRIVER_TABLE.drivers);
     }
 
@@ -258,7 +258,7 @@ mod tests {
     fn constructor_table() {
         let constructor_table: ConstructorTable = serde_json::from_str(CONSTRUCTOR_TABLE_STR).unwrap();
 
-        assert_eq!(constructor_table.constructors.len(), 5);
+        assert!(!constructor_table.constructors.is_empty());
         assert_eq!(&constructor_table.constructors, &CONSTRUCTOR_TABLE.constructors);
     }
 
@@ -266,7 +266,7 @@ mod tests {
     fn circuit_table() {
         let circuit_table: CircuitTable = serde_json::from_str(CIRCUIT_TABLE_STR).unwrap();
 
-        assert_eq!(circuit_table.circuits.len(), 4);
+        assert!(!circuit_table.circuits.is_empty());
         assert_eq!(&circuit_table.circuits, &CIRCUIT_TABLE.circuits);
     }
 
@@ -274,7 +274,7 @@ mod tests {
     fn race_table_schedule() {
         let race_table: RaceTable = serde_json::from_str(RACE_TABLE_SCHEDULE_STR).unwrap();
 
-        assert_eq!(race_table.races.len(), 6);
+        assert!(!race_table.races.is_empty());
         assert_eq!(&race_table.races, &RACE_TABLE_SCHEDULE.races);
     }
 
@@ -291,10 +291,20 @@ mod tests {
 
     #[test]
     fn qualifying_results() {
-        let race: Race = serde_json::from_str(RACE_2003_4_QUALIFYING_RESULTS_STR).unwrap();
+        {
+            let race: Race = serde_json::from_str(RACE_2003_4_QUALIFYING_RESULTS_STR).unwrap();
 
-        assert!(race.qualifying_results.is_some());
-        assert_eq!(race.qualifying_results.as_ref().unwrap().len(), 3);
-        assert_eq!(race, *RACE_2003_4_QUALIFYING_RESULTS);
+            assert!(race.qualifying_results.is_some());
+            assert!(!race.qualifying_results.as_ref().unwrap().is_empty());
+            assert_eq!(race, *RACE_2003_4_QUALIFYING_RESULTS);
+        }
+
+        {
+            let race: Race = serde_json::from_str(RACE_2023_4_QUALIFYING_RESULTS_STR).unwrap();
+
+            assert!(race.qualifying_results.is_some());
+            assert!(!race.qualifying_results.as_ref().unwrap().is_empty());
+            assert_eq!(race, *RACE_2023_4_QUALIFYING_RESULTS);
+        }
     }
 }
