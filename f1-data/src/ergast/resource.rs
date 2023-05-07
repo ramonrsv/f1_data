@@ -297,6 +297,9 @@ impl Filters {
 
     /// Return a list of (<resource_key>, <formatted_value>) for all possible filters
     fn to_formatted_pairs(&self) -> Vec<(&str, String)> {
+        // .round cannot be set without .year
+        assert!(!(self.round.is_some() && self.year.is_none()));
+
         Vec::from([
             ("", Self::fmt_from_opt(&self.year)),
             ("", Self::fmt_from_opt(&self.round)),
@@ -348,6 +351,33 @@ mod tests {
             .to_url(),
             url("/drivers/leclerc.json")
         );
+
+        assert_eq!(
+            Resource::QualifyingResults(Filters {
+                qualifying_pos: Some(1),
+                ..Filters::none()
+            })
+            .to_url(),
+            url("/qualifying/1.json")
+        );
+
+        assert_eq!(
+            Resource::RaceResults(Filters {
+                finish_pos: Some(1),
+                ..Filters::none()
+            })
+            .to_url(),
+            url("/results/1.json")
+        );
+
+        assert_eq!(
+            Resource::FinishingStatus(Filters {
+                finishing_status: Some(1),
+                ..Filters::none()
+            })
+            .to_url(),
+            url("/status/1.json")
+        );
     }
 
     #[test]
@@ -360,6 +390,17 @@ mod tests {
             .to_url(),
             url("/drivers/leclerc/seasons.json")
         );
+
+        assert_eq!(
+            Resource::DriverInfo(Filters {
+                constructor_id: Some("ferrari".to_string()),
+                circuit_id: Some("spa".to_string()),
+                qualifying_pos: Some(1),
+                ..Filters::none()
+            })
+            .to_url(),
+            url("/constructors/ferrari/circuits/spa/qualifying/1/drivers.json")
+        );
     }
 
     #[test]
@@ -368,11 +409,55 @@ mod tests {
             Resource::DriverInfo(Filters {
                 driver_id: Some("leclerc".to_string()),
                 constructor_id: Some("ferrari".to_string()),
+                circuit_id: Some("spa".to_string()),
+                qualifying_pos: Some(1),
                 ..Filters::none()
             })
             .to_url(),
-            url("/constructors/ferrari/drivers/leclerc.json")
+            url("/constructors/ferrari/circuits/spa/qualifying/1/drivers/leclerc.json")
         );
+    }
+
+    #[test]
+    fn resource_to_url_year_round_filters() {
+        assert_eq!(
+            Resource::DriverInfo(Filters {
+                year: Some(2023),
+                ..Filters::none()
+            })
+            .to_url(),
+            url("/2023/drivers.json")
+        );
+
+        assert_eq!(
+            Resource::SeasonList(Filters {
+                year: Some(2023),
+                round: Some(1),
+                ..Filters::none()
+            })
+            .to_url(),
+            url("/2023/1/seasons.json")
+        );
+
+        assert_eq!(
+            Resource::RaceSchedule(Filters {
+                year: Some(2023),
+                round: Some(4),
+                ..Filters::none()
+            })
+            .to_url(),
+            url("/2023/4/races.json")
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn resource_to_url_round_without_year_filter_panics() {
+        Resource::RaceSchedule(Filters {
+            round: Some(1),
+            ..Filters::none()
+        })
+        .to_url();
     }
 
     #[test]
