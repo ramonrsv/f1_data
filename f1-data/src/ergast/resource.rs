@@ -296,7 +296,7 @@ impl Filters {
     }
 
     /// Return a list of (<resource_key>, <formatted_value>) for all possible filters
-    fn to_formatted_pairs(&self) -> Vec<(&str, String)> {
+    fn to_formatted_pairs(&self) -> Vec<(&'static str, String)> {
         // .round cannot be set without .year
         assert!(!(self.round.is_some() && self.year.is_none()));
 
@@ -494,5 +494,17 @@ mod tests {
                 && filters.fastest_lap_rank.is_none()
                 && filters.finishing_status.is_none()
         );
+    }
+
+    #[test]
+    fn filters_to_formatted_pairs_lifetime() {
+        let &mut formatted_pairs;
+
+        {
+            formatted_pairs = Filters::none().to_formatted_pairs();
+        }
+
+        assert!(!formatted_pairs.is_empty());
+        assert_eq!(formatted_pairs[0].0, "");
     }
 }
