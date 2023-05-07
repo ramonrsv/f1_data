@@ -62,13 +62,16 @@ mod tests {
         verify_single_driver("michael_schumacher", &DRIVER_MICHAEL);
         verify_single_driver("verstappen", &DRIVER_JOS);
         verify_single_driver("ralf_schumacher", &DRIVER_RALF);
+        verify_single_driver("wilson", &DRIVER_WILSON);
     }
 
     #[test]
     #[ignore]
     fn get_driver_all_fields_present() {
+        verify_single_driver("raikkonen", &DRIVER_KIMI);
         verify_single_driver("alonso", &DRIVER_ALONSO);
         verify_single_driver("perez", &DRIVER_PEREZ);
+        verify_single_driver("de_vries", &DRIVER_DE_VRIES);
         verify_single_driver("max_verstappen", &DRIVER_MAX);
         verify_single_driver("leclerc", &DRIVER_LECLERC);
     }
@@ -95,6 +98,7 @@ mod tests {
         verify_single_constructor("ferrari", &CONSTRUCTOR_FERRARI);
         verify_single_constructor("williams", &CONSTRUCTOR_WILLIAMS);
         verify_single_constructor("minardi", &CONSTRUCTOR_MINARDI);
+        verify_single_constructor("alphatauri", &CONSTRUCTOR_ALPHA_TAURI);
         verify_single_constructor("red_bull", &CONSTRUCTOR_RED_BULL);
     }
 
@@ -248,5 +252,64 @@ mod tests {
 
         assert!(resp.mr_data.race_table.is_some());
         assert!(resp.mr_data.race_table.as_ref().unwrap().races.is_empty());
+    }
+
+    // Resource::RaceResults
+    // ---------------------
+
+    #[test]
+    #[ignore]
+    fn get_race_results_2003_4() {
+        let resp: Response = get_into_json(Resource::RaceResults(Filters {
+            year: Some(2003),
+            round: Some(4),
+            ..Filters::none()
+        }));
+
+        assert!(resp.mr_data.race_table.is_some());
+        assert_eq!(resp.mr_data.race_table.as_ref().unwrap().races.len(), 1);
+
+        let actual = &resp.mr_data.race_table.unwrap().races[0];
+        let expected = &RACE_2003_4_RESULTS;
+
+        assert_eq_race(actual, expected);
+
+        assert!(actual.results.is_some());
+
+        let actual_results = actual.results.as_ref().unwrap();
+        let expected_results = expected.results.as_ref().unwrap();
+
+        assert_eq!(actual_results.len(), 20);
+
+        assert_eq!(actual_results[0..1], expected_results[0..1]);
+        assert_eq!(actual_results[18], expected_results[2]);
+    }
+
+    #[test]
+    #[ignore]
+    fn get_race_results_2023_4() {
+        let resp: Response = get_into_json(Resource::RaceResults(Filters {
+            year: Some(2023),
+            round: Some(4),
+            ..Filters::none()
+        }));
+
+        assert!(resp.mr_data.race_table.is_some());
+        assert_eq!(resp.mr_data.race_table.as_ref().unwrap().races.len(), 1);
+
+        let actual = &resp.mr_data.race_table.unwrap().races[0];
+        let expected = &RACE_2023_4_RESULTS;
+
+        assert_eq_race(actual, expected);
+
+        assert!(actual.results.is_some());
+
+        let actual_results = actual.results.as_ref().unwrap();
+        let expected_results = expected.results.as_ref().unwrap();
+
+        assert_eq!(actual_results.len(), 20);
+
+        assert_eq!(actual_results[0..1], expected_results[0..1]);
+        assert_eq!(actual_results[19], expected_results[2]);
     }
 }

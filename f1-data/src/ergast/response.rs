@@ -324,4 +324,36 @@ mod tests {
         assert!(!race.sprint_results.as_ref().unwrap().is_empty());
         assert_eq!(race, *RACE_2023_4_SPRINT_RESULTS);
     }
+
+    #[test]
+    fn result() {
+        let from_str = |result_str| serde_json::from_str::<Result>(result_str).unwrap();
+
+        assert_eq!(from_str(RESULT_2003_4_P1_STR), *RESULT_2003_4_P1);
+        assert_eq!(from_str(RESULT_2003_4_P2_STR), *RESULT_2003_4_P2);
+        assert_eq!(from_str(RESULT_2003_4_P19_STR), *RESULT_2003_4_P19);
+
+        assert_eq!(from_str(RESULT_2023_4_P1_STR), *RESULT_2023_4_P1);
+        assert_eq!(from_str(RESULT_2023_4_P2_STR), *RESULT_2023_4_P2);
+        assert_eq!(from_str(RESULT_2023_4_P20_STR), *RESULT_2023_4_P20);
+    }
+
+    #[test]
+    fn results() {
+        {
+            let race: Race = serde_json::from_str(RACE_2003_4_RESULTS_STR).unwrap();
+
+            assert!(race.results.is_some());
+            assert!(!race.results.as_ref().unwrap().is_empty());
+            assert_eq!(race, *RACE_2003_4_RESULTS);
+        }
+
+        {
+            let race: Race = serde_json::from_str(RACE_2023_4_RESULTS_STR).unwrap();
+
+            assert!(race.results.is_some());
+            assert!(!race.results.as_ref().unwrap().is_empty());
+            assert_eq!(race, *RACE_2023_4_RESULTS);
+        }
+    }
 }
