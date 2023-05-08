@@ -79,11 +79,13 @@ pub struct Season {
     pub url: String,
 }
 
+#[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Driver {
     pub driver_id: String,
-    pub permanent_number: Option<String>,
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    pub permanent_number: Option<u32>,
     pub code: Option<String>,
     pub url: String,
     pub given_name: String,
@@ -239,16 +241,19 @@ pub struct DateTime {
     pub time: Option<String>,
 }
 
+#[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct Time {
-    pub millis: Option<String>,
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    pub millis: Option<u32>,
     pub time: String,
 }
 
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct FastestLap {
-    pub rank: Option<String>,
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    pub rank: Option<u32>,
     #[serde_as(as = "DisplayFromStr")]
     pub lap: u32,
     #[serde(rename = "Time")]

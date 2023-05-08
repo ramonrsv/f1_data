@@ -245,7 +245,7 @@ pub static DRIVER_WILSON: Lazy<Driver> = Lazy::new(|| Driver {
 
 pub static DRIVER_KIMI: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "raikkonen".to_string(),
-    permanent_number: Some("7".to_string()),
+    permanent_number: Some(7),
     code: Some("RAI".to_string()),
     url: "http://en.wikipedia.org/wiki/Kimi_R%C3%A4ikk%C3%B6nen".to_string(),
     given_name: "Kimi".to_string(),
@@ -256,7 +256,7 @@ pub static DRIVER_KIMI: Lazy<Driver> = Lazy::new(|| Driver {
 
 pub static DRIVER_ALONSO: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "alonso".to_string(),
-    permanent_number: Some("14".to_string()),
+    permanent_number: Some(14),
     code: Some("ALO".to_string()),
     url: "http://en.wikipedia.org/wiki/Fernando_Alonso".to_string(),
     given_name: "Fernando".to_string(),
@@ -267,7 +267,7 @@ pub static DRIVER_ALONSO: Lazy<Driver> = Lazy::new(|| Driver {
 
 pub static DRIVER_PEREZ: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "perez".to_string(),
-    permanent_number: Some("11".to_string()),
+    permanent_number: Some(11),
     code: Some("PER".to_string()),
     url: "http://en.wikipedia.org/wiki/Sergio_P%C3%A9rez".to_string(),
     given_name: "Sergio".to_string(),
@@ -278,7 +278,7 @@ pub static DRIVER_PEREZ: Lazy<Driver> = Lazy::new(|| Driver {
 
 pub static DRIVER_DE_VRIES: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "de_vries".to_string(),
-    permanent_number: Some("21".to_string()),
+    permanent_number: Some(21),
     code: Some("DEV".to_string()),
     url: "http://en.wikipedia.org/wiki/Nyck_de_Vries".to_string(),
     given_name: "Nyck".to_string(),
@@ -289,7 +289,7 @@ pub static DRIVER_DE_VRIES: Lazy<Driver> = Lazy::new(|| Driver {
 
 pub static DRIVER_MAX: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "max_verstappen".to_string(),
-    permanent_number: Some("33".to_string()),
+    permanent_number: Some(33),
     code: Some("VER".to_string()),
     url: "http://en.wikipedia.org/wiki/Max_Verstappen".to_string(),
     given_name: "Max".to_string(),
@@ -300,7 +300,7 @@ pub static DRIVER_MAX: Lazy<Driver> = Lazy::new(|| Driver {
 
 pub static DRIVER_LECLERC: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "leclerc".to_string(),
-    permanent_number: Some("16".to_string()),
+    permanent_number: Some(16),
     code: Some("LEC".to_string()),
     url: "http://en.wikipedia.org/wiki/Charles_Leclerc".to_string(),
     given_name: "Charles".to_string(),
@@ -1121,7 +1121,7 @@ pub const SPRINT_RESULT_2023_4_P1: Lazy<SprintResult> = Lazy::new(|| SprintResul
     laps: 17,
     status: "Finished".to_string(),
     time: Some(Time {
-        millis: Some("1997667".to_string()),
+        millis: Some(1997667),
         time: "33:17.667".to_string(),
     }),
     fastest_lap: Some(FastestLap {
@@ -1296,7 +1296,7 @@ pub const RESULT_2003_4_P1: Lazy<Result> = Lazy::new(|| Result {
     laps: 62,
     status: "Finished".to_string(),
     time: Some(Time {
-        millis: Some("5292058".to_string()),
+        millis: Some(5292058),
         time: "1:28:12.058".to_string(),
     }),
     fastest_lap: None,
@@ -1313,7 +1313,7 @@ pub const RESULT_2003_4_P2: Lazy<Result> = Lazy::new(|| Result {
     laps: 62,
     status: "Finished".to_string(),
     time: Some(Time {
-        millis: Some("5293940".to_string()),
+        millis: Some(5293940),
         time: "+1.882".to_string(),
     }),
     fastest_lap: None,
@@ -1344,11 +1344,11 @@ pub const RESULT_2023_4_P1: Lazy<Result> = Lazy::new(|| Result {
     laps: 51,
     status: "Finished".to_string(),
     time: Some(Time {
-        millis: Some("5562436".to_string()),
+        millis: Some(5562436),
         time: "1:32:42.436".to_string(),
     }),
     fastest_lap: Some(FastestLap {
-        rank: Some("5".to_string()),
+        rank: Some(5),
         lap: 50,
         time: Time {
             millis: None,
@@ -1372,11 +1372,11 @@ pub const RESULT_2023_4_P2: Lazy<Result> = Lazy::new(|| Result {
     laps: 51,
     status: "Finished".to_string(),
     time: Some(Time {
-        millis: Some("5564573".to_string()),
+        millis: Some(5564573),
         time: "+2.137".to_string(),
     }),
     fastest_lap: Some(FastestLap {
-        rank: Some("2".to_string()),
+        rank: Some(2),
         lap: 51,
         time: Time {
             millis: None,
@@ -1401,7 +1401,7 @@ pub const RESULT_2023_4_P20: Lazy<Result> = Lazy::new(|| Result {
     status: "Accident".to_string(),
     time: None,
     fastest_lap: Some(FastestLap {
-        rank: Some("20".to_string()),
+        rank: Some(20),
         lap: 4,
         time: Time {
             millis: None,
