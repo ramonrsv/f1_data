@@ -1357,7 +1357,7 @@ pub const RESULT_2023_4_P1: Lazy<Result> = Lazy::new(|| Result {
         },
         average_speed: Some(AverageSpeed {
             units: "kph".to_string(),
-            speed: "206.625".to_string(),
+            speed: 206.625,
         }),
     }),
 });
@@ -1385,7 +1385,7 @@ pub const RESULT_2023_4_P2: Lazy<Result> = Lazy::new(|| Result {
         },
         average_speed: Some(AverageSpeed {
             units: "kph".to_string(),
-            speed: "207.333".to_string(),
+            speed: 207.333,
         }),
     }),
 });
@@ -1410,7 +1410,7 @@ pub const RESULT_2023_4_P20: Lazy<Result> = Lazy::new(|| Result {
         },
         average_speed: Some(AverageSpeed {
             units: "kph".to_string(),
-            speed: "198.663".to_string(),
+            speed: 198.663,
         }),
     }),
 });

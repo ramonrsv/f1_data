@@ -263,10 +263,12 @@ pub struct FastestLap {
     pub average_speed: Option<AverageSpeed>,
 }
 
+#[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct AverageSpeed {
     pub units: String,
-    pub speed: String,
+    #[serde_as(as = "DisplayFromStr")]
+    pub speed: f32,
 }
 
 #[cfg(test)]
