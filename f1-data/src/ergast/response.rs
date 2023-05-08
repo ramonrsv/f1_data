@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use serde_with::{serde_as, DisplayFromStr};
 
 pub const GRID_PIT_LANE: u32 = 0;
 
@@ -8,14 +9,18 @@ pub struct Response {
     pub mr_data: MrData,
 }
 
+#[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct MrData {
     pub xmlns: String,
     pub series: String,
     pub url: String,
-    pub limit: String,
-    pub offset: String,
-    pub total: String,
+    #[serde_as(as = "DisplayFromStr")]
+    pub limit: u32,
+    #[serde_as(as = "DisplayFromStr")]
+    pub offset: u32,
+    #[serde_as(as = "DisplayFromStr")]
+    pub total: u32,
     #[serde(rename = "SeasonTable")]
     pub season_table: Option<SeasonTable>,
     #[serde(rename = "DriverTable")]
@@ -66,9 +71,11 @@ pub struct StatusTable {
     pub status: Vec<Status>,
 }
 
+#[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct Season {
-    pub season: String,
+    #[serde_as(as = "DisplayFromStr")]
+    pub season: u32,
     pub url: String,
 }
 
@@ -104,11 +111,14 @@ pub struct Circuit {
     pub location: Location,
 }
 
+#[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Race {
-    pub season: String,
-    pub round: String,
+    #[serde_as(as = "DisplayFromStr")]
+    pub season: u32,
+    #[serde_as(as = "DisplayFromStr")]
+    pub round: u32,
     pub url: String,
     pub race_name: String,
     #[serde(rename = "Circuit")]
@@ -133,10 +143,13 @@ pub struct Race {
     pub results: Option<Vec<Result>>,
 }
 
+#[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct QualifyingResult {
-    pub number: String,
-    pub position: String,
+    #[serde_as(as = "DisplayFromStr")]
+    pub number: u32,
+    #[serde_as(as = "DisplayFromStr")]
+    pub position: u32,
     #[serde(rename = "Driver")]
     pub driver: Driver,
     #[serde(rename = "Constructor")]
@@ -149,19 +162,25 @@ pub struct QualifyingResult {
     pub q3: Option<String>,
 }
 
+#[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct SprintResult {
-    pub number: String,
-    pub position: String,
+    #[serde_as(as = "DisplayFromStr")]
+    pub number: u32,
+    #[serde_as(as = "DisplayFromStr")]
+    pub position: u32,
     pub position_text: String,
-    pub points: String,
+    #[serde_as(as = "DisplayFromStr")]
+    pub points: u32,
     #[serde(rename = "Driver")]
     pub driver: Driver,
     #[serde(rename = "Constructor")]
     pub constructor: Constructor,
-    pub grid: String,
-    pub laps: String,
+    #[serde_as(as = "DisplayFromStr")]
+    pub grid: u32,
+    #[serde_as(as = "DisplayFromStr")]
+    pub laps: u32,
     pub status: String,
     #[serde(rename = "Time")]
     pub time: Option<Time>,
@@ -169,19 +188,25 @@ pub struct SprintResult {
     pub fastest_lap: Option<FastestLap>,
 }
 
+#[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Result {
-    pub number: String,
-    pub position: String,
+    #[serde_as(as = "DisplayFromStr")]
+    pub number: u32,
+    #[serde_as(as = "DisplayFromStr")]
+    pub position: u32,
     pub position_text: String,
-    pub points: String,
+    #[serde_as(as = "DisplayFromStr")]
+    pub points: u32,
     #[serde(rename = "Driver")]
     pub driver: Driver,
     #[serde(rename = "Constructor")]
     pub constructor: Constructor,
-    pub grid: String,
-    pub laps: String,
+    #[serde_as(as = "DisplayFromStr")]
+    pub grid: u32,
+    #[serde_as(as = "DisplayFromStr")]
+    pub laps: u32,
     pub status: String,
     #[serde(rename = "Time")]
     pub time: Option<Time>,
@@ -189,11 +214,14 @@ pub struct Result {
     pub fastest_lap: Option<FastestLap>,
 }
 
+#[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Status {
-    pub status_id: String,
-    pub count: String,
+    #[serde_as(as = "DisplayFromStr")]
+    pub status_id: u32,
+    #[serde_as(as = "DisplayFromStr")]
+    pub count: u32,
     pub status: String,
 }
 
@@ -217,10 +245,12 @@ pub struct Time {
     pub time: String,
 }
 
+#[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct FastestLap {
     pub rank: Option<String>,
-    pub lap: String,
+    #[serde_as(as = "DisplayFromStr")]
+    pub lap: u32,
     #[serde(rename = "Time")]
     pub time: Time,
     #[serde(rename = "AverageSpeed")]

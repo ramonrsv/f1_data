@@ -29,22 +29,22 @@ pub const SEASON_2023_STR: &str = r#"{
   }"#;
 
 pub static SEASON_1950: Lazy<Season> = Lazy::new(|| Season {
-    season: "1950".to_string(),
+    season: 1950,
     url: "http://en.wikipedia.org/wiki/1950_Formula_One_season".to_string(),
 });
 
 pub static SEASON_1979: Lazy<Season> = Lazy::new(|| Season {
-    season: "1979".to_string(),
+    season: 1979,
     url: "http://en.wikipedia.org/wiki/1979_Formula_One_season".to_string(),
 });
 
 pub static SEASON_2000: Lazy<Season> = Lazy::new(|| Season {
-    season: "2000".to_string(),
+    season: 2000,
     url: "http://en.wikipedia.org/wiki/2000_Formula_One_season".to_string(),
 });
 
 pub static SEASON_2023: Lazy<Season> = Lazy::new(|| Season {
-    season: "2023".to_string(),
+    season: 2023,
     url: "https://en.wikipedia.org/wiki/2023_Formula_One_World_Championship".to_string(),
 });
 
@@ -645,8 +645,8 @@ pub const RACE_2023_4_STR: &str = formatcp!(
 
 // Can be used to fill all unspecified fields for a given race
 pub const RACE_NONE: Lazy<Race> = Lazy::new(|| Race {
-    season: "".to_string(),
-    round: "".to_string(),
+    season: 0,
+    round: 0,
     url: "".to_string(),
     race_name: "".to_string(),
     circuit: Circuit {
@@ -673,8 +673,8 @@ pub const RACE_NONE: Lazy<Race> = Lazy::new(|| Race {
 });
 
 pub const RACE_1950_1: Lazy<Race> = Lazy::new(|| Race {
-    season: "1950".to_string(),
-    round: "1".to_string(),
+    season: 1950,
+    round: 1,
     url: "http://en.wikipedia.org/wiki/1950_British_Grand_Prix".to_string(),
     race_name: "British Grand Prix".to_string(),
     circuit: CIRCUIT_SILVERSTONE.clone(),
@@ -683,8 +683,8 @@ pub const RACE_1950_1: Lazy<Race> = Lazy::new(|| Race {
 });
 
 pub const RACE_2003_4: Lazy<Race> = Lazy::new(|| Race {
-    season: "2003".to_string(),
-    round: "4".to_string(),
+    season: 2003,
+    round: 4,
     url: "http://en.wikipedia.org/wiki/2003_San_Marino_Grand_Prix".to_string(),
     race_name: "San Marino Grand Prix".to_string(),
     circuit: CIRCUIT_IMOLA.clone(),
@@ -693,8 +693,8 @@ pub const RACE_2003_4: Lazy<Race> = Lazy::new(|| Race {
 });
 
 pub const RACE_2015_11: Lazy<Race> = Lazy::new(|| Race {
-    season: "2015".to_string(),
-    round: "11".to_string(),
+    season: 2015,
+    round: 11,
     url: "http://en.wikipedia.org/wiki/2015_Belgian_Grand_Prix".to_string(),
     race_name: "Belgian Grand Prix".to_string(),
     circuit: CIRCUIT_SPA.clone(),
@@ -704,8 +704,8 @@ pub const RACE_2015_11: Lazy<Race> = Lazy::new(|| Race {
 });
 
 pub const RACE_2021_12: Lazy<Race> = Lazy::new(|| Race {
-    season: "2021".to_string(),
-    round: "12".to_string(),
+    season: 2021,
+    round: 12,
     url: "http://en.wikipedia.org/wiki/2021_Belgian_Grand_Prix".to_string(),
     race_name: "Belgian Grand Prix".to_string(),
     circuit: CIRCUIT_SPA.clone(),
@@ -715,8 +715,8 @@ pub const RACE_2021_12: Lazy<Race> = Lazy::new(|| Race {
 });
 
 pub const RACE_2022_4: Lazy<Race> = Lazy::new(|| Race {
-    season: "2022".to_string(),
-    round: "4".to_string(),
+    season: 2022,
+    round: 4,
     url: "http://en.wikipedia.org/wiki/2022_Emilia_Romagna_Grand_Prix".to_string(),
     race_name: "Emilia Romagna Grand Prix".to_string(),
     circuit: CIRCUIT_IMOLA.clone(),
@@ -726,8 +726,8 @@ pub const RACE_2022_4: Lazy<Race> = Lazy::new(|| Race {
 });
 
 pub const RACE_2023_4: Lazy<Race> = Lazy::new(|| Race {
-    season: "2023".to_string(),
-    round: "4".to_string(),
+    season: 2023,
+    round: 4,
     url: "https://en.wikipedia.org/wiki/2023_Azerbaijan_Grand_Prix".to_string(),
     race_name: "Azerbaijan Grand Prix".to_string(),
     circuit: CIRCUIT_BAKU.clone(),
@@ -984,8 +984,8 @@ pub const QUALIFYING_RESULT_2023_4_P3_STR: &str = formatcp!(
 );
 
 pub const QUALIFYING_RESULT_2003_4_P1: Lazy<QualifyingResult> = Lazy::new(|| QualifyingResult {
-    number: "1".to_string(),
-    position: "1".to_string(),
+    number: 1,
+    position: 1,
     driver: DRIVER_MICHAEL.clone(),
     constructor: CONSTRUCTOR_FERRARI.clone(),
     q1: Some("1:22.327".to_string()),
@@ -994,8 +994,8 @@ pub const QUALIFYING_RESULT_2003_4_P1: Lazy<QualifyingResult> = Lazy::new(|| Qua
 });
 
 pub const QUALIFYING_RESULT_2003_4_P2: Lazy<QualifyingResult> = Lazy::new(|| QualifyingResult {
-    number: "4".to_string(),
-    position: "2".to_string(),
+    number: 4,
+    position: 2,
     driver: DRIVER_RALF.clone(),
     constructor: CONSTRUCTOR_WILLIAMS.clone(),
     q1: Some("1:22.341".to_string()),
@@ -1004,8 +1004,8 @@ pub const QUALIFYING_RESULT_2003_4_P2: Lazy<QualifyingResult> = Lazy::new(|| Qua
 });
 
 pub const QUALIFYING_RESULT_2003_4_P20: Lazy<QualifyingResult> = Lazy::new(|| QualifyingResult {
-    number: "19".to_string(),
-    position: "20".to_string(),
+    number: 19,
+    position: 20,
     driver: DRIVER_JOS.clone(),
     constructor: CONSTRUCTOR_MINARDI.clone(),
     q1: Some("".to_string()),
@@ -1014,8 +1014,8 @@ pub const QUALIFYING_RESULT_2003_4_P20: Lazy<QualifyingResult> = Lazy::new(|| Qu
 });
 
 pub const QUALIFYING_RESULT_2023_4_P1: Lazy<QualifyingResult> = Lazy::new(|| QualifyingResult {
-    number: "16".to_string(),
-    position: "1".to_string(),
+    number: 16,
+    position: 1,
     driver: DRIVER_LECLERC.clone(),
     constructor: CONSTRUCTOR_FERRARI.clone(),
     q1: Some("1:41.269".to_string()),
@@ -1024,8 +1024,8 @@ pub const QUALIFYING_RESULT_2023_4_P1: Lazy<QualifyingResult> = Lazy::new(|| Qua
 });
 
 pub const QUALIFYING_RESULT_2023_4_P2: Lazy<QualifyingResult> = Lazy::new(|| QualifyingResult {
-    number: "1".to_string(),
-    position: "2".to_string(),
+    number: 1,
+    position: 2,
     driver: DRIVER_MAX.clone(),
     constructor: CONSTRUCTOR_RED_BULL.clone(),
     q1: Some("1:41.398".to_string()),
@@ -1034,8 +1034,8 @@ pub const QUALIFYING_RESULT_2023_4_P2: Lazy<QualifyingResult> = Lazy::new(|| Qua
 });
 
 pub const QUALIFYING_RESULT_2023_4_P3: Lazy<QualifyingResult> = Lazy::new(|| QualifyingResult {
-    number: "11".to_string(),
-    position: "3".to_string(),
+    number: 11,
+    position: 3,
     driver: DRIVER_PEREZ.clone(),
     constructor: CONSTRUCTOR_RED_BULL.clone(),
     q1: Some("1:41.756".to_string()),
@@ -1111,14 +1111,14 @@ pub const SPRINT_RESULT_2023_4_P1_STR: &str = formatcp!(
 );
 
 pub const SPRINT_RESULT_2023_4_P1: Lazy<SprintResult> = Lazy::new(|| SprintResult {
-    number: "11".to_string(),
-    position: "1".to_string(),
+    number: 11,
+    position: 1,
     position_text: "1".to_string(),
-    points: "8".to_string(),
+    points: 8,
     driver: DRIVER_PEREZ.clone(),
     constructor: CONSTRUCTOR_RED_BULL.clone(),
-    grid: "2".to_string(),
-    laps: "17".to_string(),
+    grid: 2,
+    laps: 17,
     status: "Finished".to_string(),
     time: Some(Time {
         millis: Some("1997667".to_string()),
@@ -1126,7 +1126,7 @@ pub const SPRINT_RESULT_2023_4_P1: Lazy<SprintResult> = Lazy::new(|| SprintResul
     }),
     fastest_lap: Some(FastestLap {
         rank: None,
-        lap: "11".to_string(),
+        lap: 11,
         time: Time {
             millis: None,
             time: "1:43.616".to_string(),
@@ -1286,14 +1286,14 @@ pub const RESULT_2023_4_P20_STR: &str = formatcp!(
 );
 
 pub const RESULT_2003_4_P1: Lazy<Result> = Lazy::new(|| Result {
-    number: "1".to_string(),
-    position: "1".to_string(),
+    number: 1,
+    position: 1,
     position_text: "1".to_string(),
-    points: "10".to_string(),
+    points: 10,
     driver: DRIVER_MICHAEL.clone(),
     constructor: CONSTRUCTOR_FERRARI.clone(),
-    grid: "1".to_string(),
-    laps: "62".to_string(),
+    grid: 1,
+    laps: 62,
     status: "Finished".to_string(),
     time: Some(Time {
         millis: Some("5292058".to_string()),
@@ -1303,14 +1303,14 @@ pub const RESULT_2003_4_P1: Lazy<Result> = Lazy::new(|| Result {
 });
 
 pub const RESULT_2003_4_P2: Lazy<Result> = Lazy::new(|| Result {
-    number: "6".to_string(),
-    position: "2".to_string(),
+    number: 6,
+    position: 2,
     position_text: "2".to_string(),
-    points: "8".to_string(),
+    points: 8,
     driver: DRIVER_KIMI.clone(),
     constructor: CONSTRUCTOR_MCLAREN.clone(),
-    grid: "6".to_string(),
-    laps: "62".to_string(),
+    grid: 6,
+    laps: 62,
     status: "Finished".to_string(),
     time: Some(Time {
         millis: Some("5293940".to_string()),
@@ -1320,28 +1320,28 @@ pub const RESULT_2003_4_P2: Lazy<Result> = Lazy::new(|| Result {
 });
 
 pub const RESULT_2003_4_P19: Lazy<Result> = Lazy::new(|| Result {
-    number: "18".to_string(),
-    position: "19".to_string(),
+    number: 18,
+    position: 19,
     position_text: "R".to_string(),
-    points: "0".to_string(),
+    points: 0,
     driver: DRIVER_WILSON.clone(),
     constructor: CONSTRUCTOR_MINARDI.clone(),
-    grid: "18".to_string(),
-    laps: "23".to_string(),
+    grid: 18,
+    laps: 23,
     status: "Fuel rig".to_string(),
     time: None,
     fastest_lap: None,
 });
 
 pub const RESULT_2023_4_P1: Lazy<Result> = Lazy::new(|| Result {
-    number: "11".to_string(),
-    position: "1".to_string(),
+    number: 11,
+    position: 1,
     position_text: "1".to_string(),
-    points: "25".to_string(),
+    points: 25,
     driver: DRIVER_PEREZ.clone(),
     constructor: CONSTRUCTOR_RED_BULL.clone(),
-    grid: "3".to_string(),
-    laps: "51".to_string(),
+    grid: 3,
+    laps: 51,
     status: "Finished".to_string(),
     time: Some(Time {
         millis: Some("5562436".to_string()),
@@ -1349,7 +1349,7 @@ pub const RESULT_2023_4_P1: Lazy<Result> = Lazy::new(|| Result {
     }),
     fastest_lap: Some(FastestLap {
         rank: Some("5".to_string()),
-        lap: "50".to_string(),
+        lap: 50,
         time: Time {
             millis: None,
             time: "1:44.589".to_string(),
@@ -1362,14 +1362,14 @@ pub const RESULT_2023_4_P1: Lazy<Result> = Lazy::new(|| Result {
 });
 
 pub const RESULT_2023_4_P2: Lazy<Result> = Lazy::new(|| Result {
-    number: "1".to_string(),
-    position: "2".to_string(),
+    number: 1,
+    position: 2,
     position_text: "2".to_string(),
-    points: "18".to_string(),
+    points: 18,
     driver: DRIVER_MAX.clone(),
     constructor: CONSTRUCTOR_RED_BULL.clone(),
-    grid: "2".to_string(),
-    laps: "51".to_string(),
+    grid: 2,
+    laps: 51,
     status: "Finished".to_string(),
     time: Some(Time {
         millis: Some("5564573".to_string()),
@@ -1377,7 +1377,7 @@ pub const RESULT_2023_4_P2: Lazy<Result> = Lazy::new(|| Result {
     }),
     fastest_lap: Some(FastestLap {
         rank: Some("2".to_string()),
-        lap: "51".to_string(),
+        lap: 51,
         time: Time {
             millis: None,
             time: "1:44.232".to_string(),
@@ -1390,19 +1390,19 @@ pub const RESULT_2023_4_P2: Lazy<Result> = Lazy::new(|| Result {
 });
 
 pub const RESULT_2023_4_P20: Lazy<Result> = Lazy::new(|| Result {
-    number: "21".to_string(),
-    position: "20".to_string(),
+    number: 21,
+    position: 20,
     position_text: "R".to_string(),
-    points: "0".to_string(),
+    points: 0,
     driver: DRIVER_DE_VRIES.clone(),
     constructor: CONSTRUCTOR_ALPHA_TAURI.clone(),
-    grid: "18".to_string(),
-    laps: "9".to_string(),
+    grid: 18,
+    laps: 9,
     status: "Accident".to_string(),
     time: None,
     fastest_lap: Some(FastestLap {
         rank: Some("20".to_string()),
-        lap: "4".to_string(),
+        lap: 4,
         time: Time {
             millis: None,
             time: "1:48.781".to_string(),
