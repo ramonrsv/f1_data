@@ -1,5 +1,6 @@
 use serde::Deserialize;
 use serde_with::{serde_as, DisplayFromStr};
+use url::Url;
 
 pub const GRID_PIT_LANE: u32 = 0;
 
@@ -14,7 +15,7 @@ pub struct Response {
 pub struct MrData {
     pub xmlns: String,
     pub series: String,
-    pub url: String,
+    pub url: Url,
     #[serde_as(as = "DisplayFromStr")]
     pub limit: u32,
     #[serde_as(as = "DisplayFromStr")]
@@ -76,7 +77,7 @@ pub struct StatusTable {
 pub struct Season {
     #[serde_as(as = "DisplayFromStr")]
     pub season: u32,
-    pub url: String,
+    pub url: Url,
 }
 
 #[serde_as]
@@ -87,7 +88,7 @@ pub struct Driver {
     #[serde_as(as = "Option<DisplayFromStr>")]
     pub permanent_number: Option<u32>,
     pub code: Option<String>,
-    pub url: String,
+    pub url: Url,
     pub given_name: String,
     pub family_name: String,
     pub date_of_birth: String,
@@ -98,7 +99,7 @@ pub struct Driver {
 #[serde(rename_all = "camelCase")]
 pub struct Constructor {
     pub constructor_id: String,
-    pub url: String,
+    pub url: Url,
     pub name: String,
     pub nationality: String,
 }
@@ -107,7 +108,7 @@ pub struct Constructor {
 #[serde(rename_all = "camelCase")]
 pub struct Circuit {
     pub circuit_id: String,
-    pub url: String,
+    pub url: Url,
     pub circuit_name: String,
     #[serde(rename = "Location")]
     pub location: Location,
@@ -121,7 +122,7 @@ pub struct Race {
     pub season: u32,
     #[serde_as(as = "DisplayFromStr")]
     pub round: u32,
-    pub url: String,
+    pub url: Url,
     pub race_name: String,
     #[serde(rename = "Circuit")]
     pub circuit: Circuit,

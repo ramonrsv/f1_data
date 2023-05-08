@@ -2,6 +2,7 @@ use std::vec;
 
 use const_format::formatcp;
 use once_cell::sync::Lazy;
+use url::Url;
 
 use super::response::*;
 
@@ -30,22 +31,22 @@ pub const SEASON_2023_STR: &str = r#"{
 
 pub static SEASON_1950: Lazy<Season> = Lazy::new(|| Season {
     season: 1950,
-    url: "http://en.wikipedia.org/wiki/1950_Formula_One_season".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/1950_Formula_One_season").unwrap(),
 });
 
 pub static SEASON_1979: Lazy<Season> = Lazy::new(|| Season {
     season: 1979,
-    url: "http://en.wikipedia.org/wiki/1979_Formula_One_season".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/1979_Formula_One_season").unwrap(),
 });
 
 pub static SEASON_2000: Lazy<Season> = Lazy::new(|| Season {
     season: 2000,
-    url: "http://en.wikipedia.org/wiki/2000_Formula_One_season".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/2000_Formula_One_season").unwrap(),
 });
 
 pub static SEASON_2023: Lazy<Season> = Lazy::new(|| Season {
     season: 2023,
-    url: "https://en.wikipedia.org/wiki/2023_Formula_One_World_Championship".to_string(),
+    url: Url::parse("https://en.wikipedia.org/wiki/2023_Formula_One_World_Championship").unwrap(),
 });
 
 pub const SEASON_TABLE_STR: &str = formatcp!(
@@ -192,7 +193,7 @@ pub static DRIVER_ABATE: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "abate".to_string(),
     permanent_number: None,
     code: None,
-    url: "http://en.wikipedia.org/wiki/Carlo_Mario_Abate".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Carlo_Mario_Abate").unwrap(),
     given_name: "Carlo".to_string(),
     family_name: "Abate".to_string(),
     date_of_birth: "1932-07-10".to_string(),
@@ -203,7 +204,7 @@ pub static DRIVER_MICHAEL: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "michael_schumacher".to_string(),
     permanent_number: None,
     code: Some("MSC".to_string()),
-    url: "http://en.wikipedia.org/wiki/Michael_Schumacher".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Michael_Schumacher").unwrap(),
     given_name: "Michael".to_string(),
     family_name: "Schumacher".to_string(),
     date_of_birth: "1969-01-03".to_string(),
@@ -214,7 +215,7 @@ pub static DRIVER_JOS: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "verstappen".to_string(),
     permanent_number: None,
     code: None,
-    url: "http://en.wikipedia.org/wiki/Jos_Verstappen".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Jos_Verstappen").unwrap(),
     given_name: "Jos".to_string(),
     family_name: "Verstappen".to_string(),
     date_of_birth: "1972-03-04".to_string(),
@@ -225,7 +226,7 @@ pub static DRIVER_RALF: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "ralf_schumacher".to_string(),
     permanent_number: None,
     code: Some("SCH".to_string()),
-    url: "http://en.wikipedia.org/wiki/Ralf_Schumacher".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Ralf_Schumacher").unwrap(),
     given_name: "Ralf".to_string(),
     family_name: "Schumacher".to_string(),
     date_of_birth: "1975-06-30".to_string(),
@@ -236,7 +237,7 @@ pub static DRIVER_WILSON: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "wilson".to_string(),
     permanent_number: None,
     code: None,
-    url: "http://en.wikipedia.org/wiki/Justin_Wilson_(racing_driver)".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Justin_Wilson_(racing_driver)").unwrap(),
     given_name: "Justin".to_string(),
     family_name: "Wilson".to_string(),
     date_of_birth: "1978-07-31".to_string(),
@@ -247,7 +248,7 @@ pub static DRIVER_KIMI: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "raikkonen".to_string(),
     permanent_number: Some(7),
     code: Some("RAI".to_string()),
-    url: "http://en.wikipedia.org/wiki/Kimi_R%C3%A4ikk%C3%B6nen".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Kimi_R%C3%A4ikk%C3%B6nen").unwrap(),
     given_name: "Kimi".to_string(),
     family_name: "Räikkönen".to_string(),
     date_of_birth: "1979-10-17".to_string(),
@@ -258,7 +259,7 @@ pub static DRIVER_ALONSO: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "alonso".to_string(),
     permanent_number: Some(14),
     code: Some("ALO".to_string()),
-    url: "http://en.wikipedia.org/wiki/Fernando_Alonso".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Fernando_Alonso").unwrap(),
     given_name: "Fernando".to_string(),
     family_name: "Alonso".to_string(),
     date_of_birth: "1981-07-29".to_string(),
@@ -269,7 +270,7 @@ pub static DRIVER_PEREZ: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "perez".to_string(),
     permanent_number: Some(11),
     code: Some("PER".to_string()),
-    url: "http://en.wikipedia.org/wiki/Sergio_P%C3%A9rez".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Sergio_P%C3%A9rez").unwrap(),
     given_name: "Sergio".to_string(),
     family_name: "Pérez".to_string(),
     date_of_birth: "1990-01-26".to_string(),
@@ -280,7 +281,7 @@ pub static DRIVER_DE_VRIES: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "de_vries".to_string(),
     permanent_number: Some(21),
     code: Some("DEV".to_string()),
-    url: "http://en.wikipedia.org/wiki/Nyck_de_Vries".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Nyck_de_Vries").unwrap(),
     given_name: "Nyck".to_string(),
     family_name: "de Vries".to_string(),
     date_of_birth: "1995-02-06".to_string(),
@@ -291,7 +292,7 @@ pub static DRIVER_MAX: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "max_verstappen".to_string(),
     permanent_number: Some(33),
     code: Some("VER".to_string()),
-    url: "http://en.wikipedia.org/wiki/Max_Verstappen".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Max_Verstappen").unwrap(),
     given_name: "Max".to_string(),
     family_name: "Verstappen".to_string(),
     date_of_birth: "1997-09-30".to_string(),
@@ -302,7 +303,7 @@ pub static DRIVER_LECLERC: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "leclerc".to_string(),
     permanent_number: Some(16),
     code: Some("LEC".to_string()),
-    url: "http://en.wikipedia.org/wiki/Charles_Leclerc".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Charles_Leclerc").unwrap(),
     given_name: "Charles".to_string(),
     family_name: "Leclerc".to_string(),
     date_of_birth: "1997-10-16".to_string(),
@@ -389,42 +390,42 @@ pub const CONSTRUCTOR_RED_BULL_STR: &str = r#"{
 
 pub static CONSTRUCTOR_MCLAREN: Lazy<Constructor> = Lazy::new(|| Constructor {
     constructor_id: "mclaren".to_string(),
-    url: "http://en.wikipedia.org/wiki/McLaren".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/McLaren").unwrap(),
     name: "McLaren".to_string(),
     nationality: "British".to_string(),
 });
 
 pub static CONSTRUCTOR_FERRARI: Lazy<Constructor> = Lazy::new(|| Constructor {
     constructor_id: "ferrari".to_string(),
-    url: "http://en.wikipedia.org/wiki/Scuderia_Ferrari".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Scuderia_Ferrari").unwrap(),
     name: "Ferrari".to_string(),
     nationality: "Italian".to_string(),
 });
 
 pub static CONSTRUCTOR_WILLIAMS: Lazy<Constructor> = Lazy::new(|| Constructor {
     constructor_id: "williams".to_string(),
-    url: "http://en.wikipedia.org/wiki/Williams_Grand_Prix_Engineering".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Williams_Grand_Prix_Engineering").unwrap(),
     name: "Williams".to_string(),
     nationality: "British".to_string(),
 });
 
 pub static CONSTRUCTOR_MINARDI: Lazy<Constructor> = Lazy::new(|| Constructor {
     constructor_id: "minardi".to_string(),
-    url: "http://en.wikipedia.org/wiki/Minardi".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Minardi").unwrap(),
     name: "Minardi".to_string(),
     nationality: "Italian".to_string(),
 });
 
 pub static CONSTRUCTOR_ALPHA_TAURI: Lazy<Constructor> = Lazy::new(|| Constructor {
     constructor_id: "alphatauri".to_string(),
-    url: "http://en.wikipedia.org/wiki/Scuderia_AlphaTauri".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Scuderia_AlphaTauri").unwrap(),
     name: "AlphaTauri".to_string(),
     nationality: "Italian".to_string(),
 });
 
 pub static CONSTRUCTOR_RED_BULL: Lazy<Constructor> = Lazy::new(|| Constructor {
     constructor_id: "red_bull".to_string(),
-    url: "http://en.wikipedia.org/wiki/Red_Bull_Racing".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Red_Bull_Racing").unwrap(),
     name: "Red Bull".to_string(),
     nationality: "Austrian".to_string(),
 });
@@ -505,7 +506,7 @@ pub const CIRCUIT_BAKU_STR: &str = r#"{
 
 pub static CIRCUIT_SPA: Lazy<Circuit> = Lazy::new(|| Circuit {
     circuit_id: "spa".to_string(),
-    url: "http://en.wikipedia.org/wiki/Circuit_de_Spa-Francorchamps".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Circuit_de_Spa-Francorchamps").unwrap(),
     circuit_name: "Circuit de Spa-Francorchamps".to_string(),
     location: Location {
         lat: "50.4372".to_string(),
@@ -517,7 +518,7 @@ pub static CIRCUIT_SPA: Lazy<Circuit> = Lazy::new(|| Circuit {
 
 pub static CIRCUIT_SILVERSTONE: Lazy<Circuit> = Lazy::new(|| Circuit {
     circuit_id: "silverstone".to_string(),
-    url: "http://en.wikipedia.org/wiki/Silverstone_Circuit".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Silverstone_Circuit").unwrap(),
     circuit_name: "Silverstone Circuit".to_string(),
     location: Location {
         lat: "52.0786".to_string(),
@@ -529,7 +530,7 @@ pub static CIRCUIT_SILVERSTONE: Lazy<Circuit> = Lazy::new(|| Circuit {
 
 pub static CIRCUIT_IMOLA: Lazy<Circuit> = Lazy::new(|| Circuit {
     circuit_id: "imola".to_string(),
-    url: "http://en.wikipedia.org/wiki/Autodromo_Enzo_e_Dino_Ferrari".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Autodromo_Enzo_e_Dino_Ferrari").unwrap(),
     circuit_name: "Autodromo Enzo e Dino Ferrari".to_string(),
     location: Location {
         lat: "44.3439".to_string(),
@@ -541,7 +542,7 @@ pub static CIRCUIT_IMOLA: Lazy<Circuit> = Lazy::new(|| Circuit {
 
 pub static CIRCUIT_BAKU: Lazy<Circuit> = Lazy::new(|| Circuit {
     circuit_id: "baku".to_string(),
-    url: "http://en.wikipedia.org/wiki/Baku_City_Circuit".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Baku_City_Circuit").unwrap(),
     circuit_name: "Baku City Circuit".to_string(),
     location: Location {
         lat: "40.3725".to_string(),
@@ -647,11 +648,11 @@ pub const RACE_2023_4_STR: &str = formatcp!(
 pub const RACE_NONE: Lazy<Race> = Lazy::new(|| Race {
     season: 0,
     round: 0,
-    url: "".to_string(),
+    url: Url::parse("http://empty.org").unwrap(),
     race_name: "".to_string(),
     circuit: Circuit {
         circuit_id: "".to_string(),
-        url: "".to_string(),
+        url: Url::parse("http://empty.org").unwrap(),
         circuit_name: "".to_string(),
         location: Location {
             lat: "".to_string(),
@@ -675,7 +676,7 @@ pub const RACE_NONE: Lazy<Race> = Lazy::new(|| Race {
 pub const RACE_1950_1: Lazy<Race> = Lazy::new(|| Race {
     season: 1950,
     round: 1,
-    url: "http://en.wikipedia.org/wiki/1950_British_Grand_Prix".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/1950_British_Grand_Prix").unwrap(),
     race_name: "British Grand Prix".to_string(),
     circuit: CIRCUIT_SILVERSTONE.clone(),
     date: "1950-05-13".to_string(),
@@ -685,7 +686,7 @@ pub const RACE_1950_1: Lazy<Race> = Lazy::new(|| Race {
 pub const RACE_2003_4: Lazy<Race> = Lazy::new(|| Race {
     season: 2003,
     round: 4,
-    url: "http://en.wikipedia.org/wiki/2003_San_Marino_Grand_Prix".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/2003_San_Marino_Grand_Prix").unwrap(),
     race_name: "San Marino Grand Prix".to_string(),
     circuit: CIRCUIT_IMOLA.clone(),
     date: "2003-04-20".to_string(),
@@ -695,7 +696,7 @@ pub const RACE_2003_4: Lazy<Race> = Lazy::new(|| Race {
 pub const RACE_2015_11: Lazy<Race> = Lazy::new(|| Race {
     season: 2015,
     round: 11,
-    url: "http://en.wikipedia.org/wiki/2015_Belgian_Grand_Prix".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/2015_Belgian_Grand_Prix").unwrap(),
     race_name: "Belgian Grand Prix".to_string(),
     circuit: CIRCUIT_SPA.clone(),
     date: "2015-08-23".to_string(),
@@ -706,7 +707,7 @@ pub const RACE_2015_11: Lazy<Race> = Lazy::new(|| Race {
 pub const RACE_2021_12: Lazy<Race> = Lazy::new(|| Race {
     season: 2021,
     round: 12,
-    url: "http://en.wikipedia.org/wiki/2021_Belgian_Grand_Prix".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/2021_Belgian_Grand_Prix").unwrap(),
     race_name: "Belgian Grand Prix".to_string(),
     circuit: CIRCUIT_SPA.clone(),
     date: "2021-08-29".to_string(),
@@ -717,7 +718,7 @@ pub const RACE_2021_12: Lazy<Race> = Lazy::new(|| Race {
 pub const RACE_2022_4: Lazy<Race> = Lazy::new(|| Race {
     season: 2022,
     round: 4,
-    url: "http://en.wikipedia.org/wiki/2022_Emilia_Romagna_Grand_Prix".to_string(),
+    url: Url::parse("http://en.wikipedia.org/wiki/2022_Emilia_Romagna_Grand_Prix").unwrap(),
     race_name: "Emilia Romagna Grand Prix".to_string(),
     circuit: CIRCUIT_IMOLA.clone(),
     date: "2022-04-24".to_string(),
@@ -728,7 +729,7 @@ pub const RACE_2022_4: Lazy<Race> = Lazy::new(|| Race {
 pub const RACE_2023_4: Lazy<Race> = Lazy::new(|| Race {
     season: 2023,
     round: 4,
-    url: "https://en.wikipedia.org/wiki/2023_Azerbaijan_Grand_Prix".to_string(),
+    url: Url::parse("https://en.wikipedia.org/wiki/2023_Azerbaijan_Grand_Prix").unwrap(),
     race_name: "Azerbaijan Grand Prix".to_string(),
     circuit: CIRCUIT_BAKU.clone(),
     date: "2023-04-30".to_string(),
