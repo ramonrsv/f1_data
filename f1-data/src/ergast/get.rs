@@ -4,7 +4,11 @@ use ureq;
 use crate::ergast::resource::Resource;
 
 fn get_into_json<T: DeserializeOwned>(request: Resource) -> T {
-    ureq::get(&request.to_url()).call().unwrap().into_json().unwrap()
+    ureq::request_url("GET", &request.to_url())
+        .call()
+        .unwrap()
+        .into_json()
+        .unwrap()
 }
 
 #[cfg(test)]

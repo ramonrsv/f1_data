@@ -1,3 +1,5 @@
+use url::Url;
+
 /// Each variant of the [`Resource`] enumeration represents a given resource that can be requested
 /// from the Ergast API, and it contains any options or filters that can be applied to the request.
 // @todo Add examples once the `get_*` API has been settled
@@ -114,6 +116,7 @@ impl Resource {
     /// # Examples
     ///
     /// ```
+    /// # use url::Url;
     /// use f1_data::ergast::resource::{Resource, Filters};
     ///
     /// let request = Resource::DriverInfo(Filters {
@@ -123,10 +126,10 @@ impl Resource {
     ///
     /// assert_eq!(
     ///     request.to_url(),
-    ///     "http://ergast.com/api/f1/drivers/leclerc.json".to_string()
+    ///     Url::parse("http://ergast.com/api/f1/drivers/leclerc.json").unwrap()
     /// );
     /// ```
-    pub fn to_url(&self) -> String {
+    pub fn to_url(&self) -> Url {
         let (resource_key, filters) = match self {
             Self::SeasonList(f) => ("/seasons", f),
             Self::DriverInfo(f) => ("/drivers", f),
@@ -154,7 +157,7 @@ impl Resource {
 
         filters.push(resource);
 
-        format!(
+        Url::parse(&format!(
             "{}{}.json",
             Resource::ERGAST_BASE_URL,
             filters
@@ -163,7 +166,8 @@ impl Resource {
                 .map(|(key, val)| format!("{}{}", key, val))
                 .collect::<Vec<_>>()
                 .join("")
-        )
+        ))
+        .unwrap()
     }
 }
 
@@ -324,8 +328,8 @@ mod tests {
         assert_eq!(Resource::ERGAST_BASE_URL, "http://ergast.com/api/f1")
     }
 
-    fn url(tail: &str) -> String {
-        format!("{}{}", Resource::ERGAST_BASE_URL, tail)
+    fn url(tail: &str) -> Url {
+        Url::parse(&format!("{}{}", Resource::ERGAST_BASE_URL, tail)).unwrap()
     }
 
     #[test]
