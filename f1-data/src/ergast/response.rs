@@ -143,7 +143,7 @@ pub struct Race {
     #[serde(rename = "SprintResults")]
     pub sprint_results: Option<Vec<SprintResult>>,
     #[serde(rename = "Results")]
-    pub results: Option<Vec<Result>>,
+    pub results: Option<Vec<RaceResult>>,
 }
 
 #[serde_as]
@@ -194,7 +194,7 @@ pub struct SprintResult {
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct Result {
+pub struct RaceResult {
     #[serde_as(as = "DisplayFromStr")]
     pub number: u32,
     #[serde_as(as = "DisplayFromStr")]
@@ -364,34 +364,34 @@ mod tests {
     }
 
     #[test]
-    fn result() {
-        let from_str = |result_str| serde_json::from_str::<Result>(result_str).unwrap();
+    fn race_result() {
+        let from_str = |result_str| serde_json::from_str::<RaceResult>(result_str).unwrap();
 
-        assert_eq!(from_str(RESULT_2003_4_P1_STR), *RESULT_2003_4_P1);
-        assert_eq!(from_str(RESULT_2003_4_P2_STR), *RESULT_2003_4_P2);
-        assert_eq!(from_str(RESULT_2003_4_P19_STR), *RESULT_2003_4_P19);
+        assert_eq!(from_str(RACE_RESULT_2003_4_P1_STR), *RACE_RESULT_2003_4_P1);
+        assert_eq!(from_str(RACE_RESULT_2003_4_P2_STR), *RACE_RESULT_2003_4_P2);
+        assert_eq!(from_str(RACE_RESULT_2003_4_P19_STR), *RACE_RESULT_2003_4_P19);
 
-        assert_eq!(from_str(RESULT_2023_4_P1_STR), *RESULT_2023_4_P1);
-        assert_eq!(from_str(RESULT_2023_4_P2_STR), *RESULT_2023_4_P2);
-        assert_eq!(from_str(RESULT_2023_4_P20_STR), *RESULT_2023_4_P20);
+        assert_eq!(from_str(RACE_RESULT_2023_4_P1_STR), *RACE_RESULT_2023_4_P1);
+        assert_eq!(from_str(RACE_RESULT_2023_4_P2_STR), *RACE_RESULT_2023_4_P2);
+        assert_eq!(from_str(RACE_RESULT_2023_4_P20_STR), *RACE_RESULT_2023_4_P20);
     }
 
     #[test]
-    fn results() {
+    fn race_results() {
         {
-            let race: Race = serde_json::from_str(RACE_2003_4_RESULTS_STR).unwrap();
+            let race: Race = serde_json::from_str(RACE_2003_4_RACE_RESULTS_STR).unwrap();
 
             assert!(race.results.is_some());
             assert!(!race.results.as_ref().unwrap().is_empty());
-            assert_eq!(race, *RACE_2003_4_RESULTS);
+            assert_eq!(race, *RACE_2003_4_RACE_RESULTS);
         }
 
         {
-            let race: Race = serde_json::from_str(RACE_2023_4_RESULTS_STR).unwrap();
+            let race: Race = serde_json::from_str(RACE_2023_4_RACE_RESULTS_STR).unwrap();
 
             assert!(race.results.is_some());
             assert!(!race.results.as_ref().unwrap().is_empty());
-            assert_eq!(race, *RACE_2023_4_RESULTS);
+            assert_eq!(race, *RACE_2023_4_RACE_RESULTS);
         }
     }
 }

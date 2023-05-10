@@ -1153,7 +1153,7 @@ pub static RACE_2023_4_SPRINT_RESULTS: Lazy<Race> = Lazy::new(|| Race {
 // http://ergast.com/mrd/methods/results/
 // --------------------------------------
 
-pub const RESULT_2003_4_P1_STR: &str = formatcp!(
+pub const RACE_RESULT_2003_4_P1_STR: &str = formatcp!(
     r#"{{
     "number": "1",
     "position": "1",
@@ -1171,7 +1171,7 @@ pub const RESULT_2003_4_P1_STR: &str = formatcp!(
   }}"#
 );
 
-pub const RESULT_2003_4_P2_STR: &str = formatcp!(
+pub const RACE_RESULT_2003_4_P2_STR: &str = formatcp!(
     r#"{{
     "number": "6",
     "position": "2",
@@ -1189,7 +1189,7 @@ pub const RESULT_2003_4_P2_STR: &str = formatcp!(
   }}"#
 );
 
-pub const RESULT_2003_4_P19_STR: &str = formatcp!(
+pub const RACE_RESULT_2003_4_P19_STR: &str = formatcp!(
     r#"{{
     "number": "18",
     "position": "19",
@@ -1203,7 +1203,7 @@ pub const RESULT_2003_4_P19_STR: &str = formatcp!(
   }}"#
 );
 
-pub const RESULT_2023_4_P1_STR: &str = formatcp!(
+pub const RACE_RESULT_2023_4_P1_STR: &str = formatcp!(
     r#"{{
     "number": "11",
     "position": "1",
@@ -1232,7 +1232,7 @@ pub const RESULT_2023_4_P1_STR: &str = formatcp!(
   }}"#
 );
 
-pub const RESULT_2023_4_P2_STR: &str = formatcp!(
+pub const RACE_RESULT_2023_4_P2_STR: &str = formatcp!(
     r#"{{
     "number": "1",
     "position": "2",
@@ -1261,7 +1261,7 @@ pub const RESULT_2023_4_P2_STR: &str = formatcp!(
   }}"#
 );
 
-pub const RESULT_2023_4_P20_STR: &str = formatcp!(
+pub const RACE_RESULT_2023_4_P20_STR: &str = formatcp!(
     r#"{{
     "number": "21",
     "position": "20",
@@ -1286,7 +1286,7 @@ pub const RESULT_2023_4_P20_STR: &str = formatcp!(
   }}"#
 );
 
-pub const RESULT_2003_4_P1: Lazy<Result> = Lazy::new(|| Result {
+pub const RACE_RESULT_2003_4_P1: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     number: 1,
     position: 1,
     position_text: "1".to_string(),
@@ -1303,7 +1303,7 @@ pub const RESULT_2003_4_P1: Lazy<Result> = Lazy::new(|| Result {
     fastest_lap: None,
 });
 
-pub const RESULT_2003_4_P2: Lazy<Result> = Lazy::new(|| Result {
+pub const RACE_RESULT_2003_4_P2: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     number: 6,
     position: 2,
     position_text: "2".to_string(),
@@ -1320,7 +1320,7 @@ pub const RESULT_2003_4_P2: Lazy<Result> = Lazy::new(|| Result {
     fastest_lap: None,
 });
 
-pub const RESULT_2003_4_P19: Lazy<Result> = Lazy::new(|| Result {
+pub const RACE_RESULT_2003_4_P19: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     number: 18,
     position: 19,
     position_text: "R".to_string(),
@@ -1334,7 +1334,7 @@ pub const RESULT_2003_4_P19: Lazy<Result> = Lazy::new(|| Result {
     fastest_lap: None,
 });
 
-pub const RESULT_2023_4_P1: Lazy<Result> = Lazy::new(|| Result {
+pub const RACE_RESULT_2023_4_P1: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     number: 11,
     position: 1,
     position_text: "1".to_string(),
@@ -1362,7 +1362,7 @@ pub const RESULT_2023_4_P1: Lazy<Result> = Lazy::new(|| Result {
     }),
 });
 
-pub const RESULT_2023_4_P2: Lazy<Result> = Lazy::new(|| Result {
+pub const RACE_RESULT_2023_4_P2: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     number: 1,
     position: 2,
     position_text: "2".to_string(),
@@ -1390,7 +1390,7 @@ pub const RESULT_2023_4_P2: Lazy<Result> = Lazy::new(|| Result {
     }),
 });
 
-pub const RESULT_2023_4_P20: Lazy<Result> = Lazy::new(|| Result {
+pub const RACE_RESULT_2023_4_P20: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     number: 21,
     position: 20,
     position_text: "R".to_string(),
@@ -1415,42 +1415,42 @@ pub const RESULT_2023_4_P20: Lazy<Result> = Lazy::new(|| Result {
     }),
 });
 
-pub const RACE_2003_4_RESULTS_STR: &str = formatcp!(
+pub const RACE_2003_4_RACE_RESULTS_STR: &str = formatcp!(
     r#"{{
     {RACE_2003_4_STR},
     "Results": [
-        {RESULT_2003_4_P1_STR},
-        {RESULT_2003_4_P2_STR},
-        {RESULT_2003_4_P19_STR}
+        {RACE_RESULT_2003_4_P1_STR},
+        {RACE_RESULT_2003_4_P2_STR},
+        {RACE_RESULT_2003_4_P19_STR}
     ]
   }}"#
 );
 
-pub static RACE_2003_4_RESULTS: Lazy<Race> = Lazy::new(|| Race {
+pub static RACE_2003_4_RACE_RESULTS: Lazy<Race> = Lazy::new(|| Race {
     results: Some(vec![
-        RESULT_2003_4_P1.clone(),
-        RESULT_2003_4_P2.clone(),
-        RESULT_2003_4_P19.clone(),
+        RACE_RESULT_2003_4_P1.clone(),
+        RACE_RESULT_2003_4_P2.clone(),
+        RACE_RESULT_2003_4_P19.clone(),
     ]),
     ..RACE_2003_4.clone()
 });
 
-pub const RACE_2023_4_RESULTS_STR: &str = formatcp!(
+pub const RACE_2023_4_RACE_RESULTS_STR: &str = formatcp!(
     r#"{{
     {RACE_2023_4_STR},
     "Results": [
-        {RESULT_2023_4_P1_STR},
-        {RESULT_2023_4_P2_STR},
-        {RESULT_2023_4_P20_STR}
+        {RACE_RESULT_2023_4_P1_STR},
+        {RACE_RESULT_2023_4_P2_STR},
+        {RACE_RESULT_2023_4_P20_STR}
     ]
   }}"#
 );
 
-pub static RACE_2023_4_RESULTS: Lazy<Race> = Lazy::new(|| Race {
+pub static RACE_2023_4_RACE_RESULTS: Lazy<Race> = Lazy::new(|| Race {
     results: Some(vec![
-        RESULT_2023_4_P1.clone(),
-        RESULT_2023_4_P2.clone(),
-        RESULT_2023_4_P20.clone(),
+        RACE_RESULT_2023_4_P1.clone(),
+        RACE_RESULT_2023_4_P2.clone(),
+        RACE_RESULT_2023_4_P20.clone(),
     ]),
     ..RACE_2023_4.clone()
 });

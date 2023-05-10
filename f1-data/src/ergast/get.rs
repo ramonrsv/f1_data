@@ -274,7 +274,7 @@ mod tests {
         assert_eq!(resp.mr_data.race_table.as_ref().unwrap().races.len(), 1);
 
         let actual = &resp.mr_data.race_table.unwrap().races[0];
-        let expected = &RACE_2003_4_RESULTS;
+        let expected = &RACE_2003_4_RACE_RESULTS;
 
         assert_eq_race(actual, expected);
 
@@ -302,7 +302,7 @@ mod tests {
         assert_eq!(resp.mr_data.race_table.as_ref().unwrap().races.len(), 1);
 
         let actual = &resp.mr_data.race_table.unwrap().races[0];
-        let expected = &RACE_2023_4_RESULTS;
+        let expected = &RACE_2023_4_RACE_RESULTS;
 
         assert_eq_race(actual, expected);
 
