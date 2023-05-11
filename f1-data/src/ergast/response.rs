@@ -319,14 +319,11 @@ impl LapTime {
 
             let matches = LAP_TIME_PARSE_REGEX.captures(time).unwrap();
 
-            let minutes = if matches.get(2).is_some() {
-                matches[2].parse::<i64>().unwrap()
-            } else {
-                0
-            };
+            let parse = |val: &str| val.parse().unwrap();
 
-            let seconds = matches[3].parse::<i64>().unwrap();
-            let milliseconds = matches[4].parse::<i64>().unwrap();
+            let minutes = parse(if matches.get(2).is_some() { &matches[2] } else { "0" });
+            let seconds = parse(&matches[3]);
+            let milliseconds = parse(&matches[4]);
 
             LapTime::from(minutes, seconds, milliseconds)
         }
