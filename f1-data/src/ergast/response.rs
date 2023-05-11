@@ -272,10 +272,23 @@ pub struct FastestLap {
     pub rank: Option<u32>,
     #[serde_as(as = "DisplayFromStr")]
     pub lap: u32,
-    #[serde(rename = "Time")]
-    pub time: Time,
+    #[serde(rename = "Time", deserialize_with = "extract_nested_lap_time")]
+    pub time: LapTime,
     #[serde(rename = "AverageSpeed")]
     pub average_speed: Option<AverageSpeed>,
+}
+
+fn extract_nested_lap_time<'de, D>(deserializer: D) -> Result<LapTime, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    #[serde_as]
+    #[derive(Deserialize)]
+    struct Time {
+        #[serde_as(as = "DisplayFromStr")]
+        time: LapTime,
+    }
+    Time::deserialize(deserializer).map(|t| t.time)
 }
 
 #[serde_as]

@@ -1126,10 +1126,7 @@ pub const SPRINT_RESULT_2023_4_P1: Lazy<SprintResult> = Lazy::new(|| SprintResul
     fastest_lap: Some(FastestLap {
         rank: None,
         lap: 11,
-        time: Time {
-            millis: None,
-            time: "1:43.616".to_string(),
-        },
+        time: LapTime::from(1, 43, 616),
         average_speed: None,
     }),
 });
@@ -1349,10 +1346,7 @@ pub const RACE_RESULT_2023_4_P1: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     fastest_lap: Some(FastestLap {
         rank: Some(5),
         lap: 50,
-        time: Time {
-            millis: None,
-            time: "1:44.589".to_string(),
-        },
+        time: LapTime::from(1, 44, 589),
         average_speed: Some(AverageSpeed {
             units: "kph".to_string(),
             speed: 206.625,
@@ -1377,10 +1371,7 @@ pub const RACE_RESULT_2023_4_P2: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     fastest_lap: Some(FastestLap {
         rank: Some(2),
         lap: 51,
-        time: Time {
-            millis: None,
-            time: "1:44.232".to_string(),
-        },
+        time: LapTime::from(1, 44, 232),
         average_speed: Some(AverageSpeed {
             units: "kph".to_string(),
             speed: 207.333,
@@ -1402,10 +1393,7 @@ pub const RACE_RESULT_2023_4_P20: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     fastest_lap: Some(FastestLap {
         rank: Some(20),
         lap: 4,
-        time: Time {
-            millis: None,
-            time: "1:48.781".to_string(),
-        },
+        time: LapTime::from(1, 48, 781),
         average_speed: Some(AverageSpeed {
             units: "kph".to_string(),
             speed: 198.663,
