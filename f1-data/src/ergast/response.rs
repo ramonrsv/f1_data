@@ -1,6 +1,12 @@
+use std::str::FromStr;
+
+use once_cell::sync::Lazy;
+use regex::Regex;
 use serde::Deserialize;
 use serde_with::{serde_as, DisplayFromStr};
+use time::Duration;
 use url::Url;
+use void::Void;
 
 pub const GRID_PIT_LANE: u32 = 0;
 
@@ -158,11 +164,14 @@ pub struct QualifyingResult {
     #[serde(rename = "Constructor")]
     pub constructor: Constructor,
     #[serde(rename = "Q1")]
-    pub q1: Option<String>,
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    pub q1: Option<LapTime>,
     #[serde(rename = "Q2")]
-    pub q2: Option<String>,
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    pub q2: Option<LapTime>,
     #[serde(rename = "Q3")]
-    pub q3: Option<String>,
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    pub q3: Option<LapTime>,
 }
 
 #[serde_as]
@@ -242,6 +251,12 @@ pub struct DateTime {
     pub time: Option<String>,
 }
 
+#[derive(PartialEq, Clone, Debug)]
+pub enum LapTime {
+    LapTime(Duration),
+    NoTimeSet,
+}
+
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct Time {
@@ -269,6 +284,55 @@ pub struct AverageSpeed {
     pub units: String,
     #[serde_as(as = "DisplayFromStr")]
     pub speed: f32,
+}
+
+impl LapTime {
+    pub fn from(minutes: i64, seconds: i64, milliseconds: i64) -> Self {
+        LapTime::LapTime(Duration::minutes(minutes) + Duration::seconds(seconds) + Duration::milliseconds(milliseconds))
+    }
+
+    pub fn has_time(&self) -> bool {
+        matches!(self, LapTime::LapTime(_))
+    }
+
+    pub fn no_time_set(&self) -> bool {
+        matches!(self, LapTime::NoTimeSet)
+    }
+
+    pub fn time(&self) -> &time::Duration {
+        match &self {
+            LapTime::LapTime(time) => time,
+            _ => panic!("Cannot get time of NoTimeSet"),
+        }
+    }
+}
+
+impl FromStr for LapTime {
+    type Err = Void;
+
+    // @todo Implement a proper Err for parsing failures, instead of panics
+    fn from_str(time: &str) -> Result<Self, Self::Err> {
+        let re = Lazy::new(|| Regex::new(r"^((\d):)?([0-5]?\d)\.(\d{3})$").unwrap());
+
+        if time.is_empty() {
+            Ok(LapTime::NoTimeSet)
+        } else {
+            assert!(re.is_match(time));
+
+            let matches = re.captures(time).unwrap();
+
+            let minutes = if matches.get(2).is_some() {
+                matches[2].parse::<i64>().unwrap()
+            } else {
+                0
+            };
+
+            let seconds = matches[3].parse::<i64>().unwrap();
+            let milliseconds = matches[4].parse::<i64>().unwrap();
+
+            Ok(LapTime::from(minutes, seconds, milliseconds))
+        }
+    }
 }
 
 #[cfg(test)]
@@ -393,5 +457,59 @@ mod tests {
             assert!(!race.results.as_ref().unwrap().is_empty());
             assert_eq!(race, *RACE_2023_4_RACE_RESULTS);
         }
+    }
+
+    #[test]
+    fn lap_time_from() {
+        let lap = LapTime::from(1, 23, 456);
+
+        assert!(matches!(lap, LapTime::LapTime(_)));
+        assert!(lap.has_time());
+        assert!(!lap.no_time_set());
+
+        let ctime = lap.time().clone();
+
+        if let LapTime::LapTime(time) = lap {
+            assert_eq!(time, ctime);
+
+            assert_eq!(time.whole_minutes(), 1);
+            assert_eq!(time.whole_seconds() - 60, 23);
+            assert_eq!(time.subsec_milliseconds(), 456);
+        }
+    }
+
+    #[test]
+    #[should_panic]
+    fn lap_time_time_panics() {
+        let lap = LapTime::NoTimeSet;
+
+        assert!(matches!(lap, LapTime::NoTimeSet));
+        assert!(!lap.has_time());
+        assert!(lap.no_time_set());
+
+        lap.time();
+    }
+
+    #[test]
+    fn lap_time_from_str() {
+        assert_eq!(LapTime::from_str("1:22.327").unwrap(), LapTime::from(1, 22, 327));
+        assert_eq!(LapTime::from_str("1:41.269").unwrap(), LapTime::from(1, 41, 269));
+
+        assert_eq!(LapTime::from_str("59.037").unwrap(), LapTime::from(0, 59, 037));
+
+        assert_eq!(LapTime::from_str("2:01.341").unwrap(), LapTime::from(2, 1, 341));
+
+        assert!(matches!(LapTime::from_str("").unwrap(), LapTime::NoTimeSet));
+    }
+
+    #[test]
+    #[should_panic]
+    fn lap_time_from_str_panics() {
+        assert!(std::panic::catch_unwind(|| LapTime::from_str("90.203").unwrap()).is_err());
+        assert!(std::panic::catch_unwind(|| LapTime::from_str("10.1").unwrap()).is_err());
+        assert!(std::panic::catch_unwind(|| LapTime::from_str("10.1").unwrap()).is_err());
+
+        // To satisfy should_panic, itself to indicate that this test checks panics
+        LapTime::from_str("1").unwrap();
     }
 }
