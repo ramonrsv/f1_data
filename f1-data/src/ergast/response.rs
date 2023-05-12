@@ -238,10 +238,13 @@ pub struct Status {
     pub status: String,
 }
 
+#[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct Location {
-    pub lat: String,
-    pub long: String,
+    #[serde_as(as = "DisplayFromStr")]
+    pub lat: f64,
+    #[serde_as(as = "DisplayFromStr")]
+    pub long: f64,
     pub locality: String,
     pub country: String,
 }
