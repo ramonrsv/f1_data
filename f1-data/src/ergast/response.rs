@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use std::str::FromStr;
 
 use once_cell::sync::Lazy;
@@ -165,13 +166,13 @@ pub struct QualifyingResult {
     pub constructor: Constructor,
     #[serde(rename = "Q1")]
     #[serde_as(as = "Option<DisplayFromStr>")]
-    pub q1: Option<LapTime>,
+    pub q1: Option<QualifyingTime>,
     #[serde(rename = "Q2")]
     #[serde_as(as = "Option<DisplayFromStr>")]
-    pub q2: Option<LapTime>,
+    pub q2: Option<QualifyingTime>,
     #[serde(rename = "Q3")]
     #[serde_as(as = "Option<DisplayFromStr>")]
-    pub q3: Option<LapTime>,
+    pub q3: Option<QualifyingTime>,
 }
 
 #[serde_as]
@@ -251,12 +252,6 @@ pub struct DateTime {
     pub time: Option<String>,
 }
 
-#[derive(PartialEq, Clone, Debug)]
-pub enum LapTime {
-    LapTime(Duration),
-    NoTimeSet,
-}
-
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct Time {
@@ -282,13 +277,11 @@ fn extract_nested_lap_time<'de, D>(deserializer: D) -> Result<LapTime, D::Error>
 where
     D: serde::de::Deserializer<'de>,
 {
-    #[serde_as]
     #[derive(Deserialize)]
     struct Time {
-        #[serde_as(as = "DisplayFromStr")]
-        time: LapTime,
+        time: String,
     }
-    Time::deserialize(deserializer).map(|t| t.time)
+    Time::deserialize(deserializer).map(|t| LapTime::parse(&t.time))
 }
 
 #[serde_as]
@@ -299,47 +292,31 @@ pub struct AverageSpeed {
     pub speed: f32,
 }
 
+#[derive(PartialEq, Clone, Debug)]
+pub struct LapTime(Duration);
+
 impl LapTime {
-    pub const PARSE_REGEX_STR: &str = r"^((\d):)?([0-5]?\d)\.(\d{3})$";
+    pub const FORMAT_REGEX_STR: &str = r"^((\d):)?([0-5]?\d)\.(\d{3})$";
 
     pub fn from(minutes: i64, seconds: i64, milliseconds: i64) -> Self {
-        LapTime::LapTime(Duration::minutes(minutes) + Duration::seconds(seconds) + Duration::milliseconds(milliseconds))
-    }
-
-    pub fn has_time(&self) -> bool {
-        matches!(self, LapTime::LapTime(_))
-    }
-
-    pub fn no_time_set(&self) -> bool {
-        matches!(self, LapTime::NoTimeSet)
-    }
-
-    pub fn time(&self) -> &time::Duration {
-        match &self {
-            LapTime::LapTime(time) => time,
-            _ => panic!("Cannot get time of NoTimeSet"),
-        }
+        LapTime(Duration::minutes(minutes) + Duration::seconds(seconds) + Duration::milliseconds(milliseconds))
     }
 
     // @todo Implement a proper Err for parsing failures, instead of panics
     pub fn parse(time: &str) -> Self {
-        static LAP_TIME_PARSE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(LapTime::PARSE_REGEX_STR).unwrap());
+        static RE: Lazy<Regex> = Lazy::new(|| Regex::new(LapTime::FORMAT_REGEX_STR).unwrap());
 
-        if time.is_empty() {
-            LapTime::NoTimeSet
-        } else {
-            assert!(LAP_TIME_PARSE_REGEX.is_match(time));
+        assert!(RE.is_match(time));
 
-            let matches = LAP_TIME_PARSE_REGEX.captures(time).unwrap();
+        let matches = RE.captures(time).unwrap();
 
-            let parse = |val: &str| val.parse().unwrap();
+        let parse = |val: &str| val.parse().unwrap();
 
-            let minutes = parse(if matches.get(2).is_some() { &matches[2] } else { "0" });
-            let seconds = parse(&matches[3]);
-            let milliseconds = parse(&matches[4]);
+        let minutes = parse(if matches.get(2).is_some() { &matches[2] } else { "0" });
+        let seconds = parse(&matches[3]);
+        let milliseconds = parse(&matches[4]);
 
-            LapTime::from(minutes, seconds, milliseconds)
-        }
+        LapTime::from(minutes, seconds, milliseconds)
     }
 }
 
@@ -348,6 +325,55 @@ impl FromStr for LapTime {
 
     fn from_str(time: &str) -> Result<Self, Self::Err> {
         Ok(LapTime::parse(time))
+    }
+}
+
+impl Deref for LapTime {
+    type Target = Duration;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+#[derive(PartialEq, Clone, Debug)]
+pub enum QualifyingTime {
+    LapTime(LapTime),
+    NoTimeSet,
+}
+
+impl QualifyingTime {
+    pub fn has_time(&self) -> bool {
+        matches!(self, Self::LapTime(_))
+    }
+
+    pub fn no_time_set(&self) -> bool {
+        matches!(self, Self::NoTimeSet)
+    }
+
+    pub fn time(&self) -> &LapTime {
+        match &self {
+            Self::LapTime(time) => time,
+            _ => panic!("Cannot get time of NoTimeSet"),
+        }
+    }
+}
+
+impl From<LapTime> for QualifyingTime {
+    fn from(lap: LapTime) -> QualifyingTime {
+        QualifyingTime::LapTime(lap)
+    }
+}
+
+impl FromStr for QualifyingTime {
+    type Err = Void;
+
+    fn from_str(time: &str) -> Result<Self, Self::Err> {
+        if !time.is_empty() {
+            Ok(QualifyingTime::from(LapTime::parse(time)))
+        } else {
+            Ok(QualifyingTime::NoTimeSet)
+        }
     }
 }
 
@@ -476,34 +502,12 @@ mod tests {
     }
 
     #[test]
-    fn lap_time_from() {
+    fn lap_time_from_m_s_ms() {
         let lap = LapTime::from(1, 23, 456);
 
-        assert!(matches!(lap, LapTime::LapTime(_)));
-        assert!(lap.has_time());
-        assert!(!lap.no_time_set());
-
-        let ctime = lap.time().clone();
-
-        if let LapTime::LapTime(time) = lap {
-            assert_eq!(time, ctime);
-
-            assert_eq!(time.whole_minutes(), 1);
-            assert_eq!(time.whole_seconds() - 60, 23);
-            assert_eq!(time.subsec_milliseconds(), 456);
-        }
-    }
-
-    #[test]
-    #[should_panic]
-    fn lap_time_time_panics() {
-        let lap = LapTime::NoTimeSet;
-
-        assert!(matches!(lap, LapTime::NoTimeSet));
-        assert!(!lap.has_time());
-        assert!(lap.no_time_set());
-
-        lap.time();
+        assert_eq!(lap.whole_minutes(), 1);
+        assert_eq!(lap.whole_seconds() - 60, 23);
+        assert_eq!(lap.subsec_milliseconds(), 456);
     }
 
     #[test]
@@ -514,18 +518,61 @@ mod tests {
         assert_eq!(LapTime::parse("59.037"), LapTime::from(0, 59, 037));
 
         assert_eq!(LapTime::parse("2:01.341"), LapTime::from(2, 1, 341));
-
-        assert!(matches!(LapTime::parse(""), LapTime::NoTimeSet));
     }
 
     #[test]
     #[should_panic]
-    fn lap_time_from_str_panics() {
+    fn lap_time_parse_panics() {
         assert!(std::panic::catch_unwind(|| LapTime::parse("90.203")).is_err());
         assert!(std::panic::catch_unwind(|| LapTime::parse("10.1")).is_err());
-        assert!(std::panic::catch_unwind(|| LapTime::parse("10.1")).is_err());
+        assert!(std::panic::catch_unwind(|| LapTime::parse("40.1111")).is_err());
 
         // To satisfy should_panic, itself to indicate that this test checks panics
-        LapTime::parse("1");
+        LapTime::parse("");
+    }
+
+    #[test]
+    fn qualifying_time_from_lap_time() {
+        let quali = QualifyingTime::from(LapTime::from(1, 23, 456));
+
+        assert!(matches!(quali, QualifyingTime::LapTime(_)));
+        assert!(quali.has_time());
+        assert!(!quali.no_time_set());
+
+        let cloned_lap = quali.time().clone();
+
+        if let QualifyingTime::LapTime(lap) = quali {
+            assert_eq!(lap, cloned_lap);
+            assert_eq!(lap, LapTime::from(1, 23, 456));
+        }
+    }
+
+    #[test]
+    fn qualifying_time_from_str() {
+        {
+            let quali = QualifyingTime::from_str("1:23.456").unwrap();
+            assert!(quali.has_time());
+            assert!(!quali.no_time_set());
+            assert_eq!(quali.time(), &LapTime::from(1, 23, 456));
+        }
+
+        {
+            let quali = QualifyingTime::from_str("").unwrap();
+            assert!(!quali.has_time());
+            assert!(quali.no_time_set());
+            assert!(matches!(quali, QualifyingTime::NoTimeSet));
+        }
+    }
+
+    #[test]
+    #[should_panic]
+    fn qualifying_time_time_panics() {
+        let quali = QualifyingTime::NoTimeSet;
+
+        assert!(matches!(quali, QualifyingTime::NoTimeSet));
+        assert!(!quali.has_time());
+        assert!(quali.no_time_set());
+
+        quali.time();
     }
 }

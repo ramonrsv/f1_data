@@ -987,7 +987,7 @@ pub const QUALIFYING_RESULT_2003_4_P1: Lazy<QualifyingResult> = Lazy::new(|| Qua
     position: 1,
     driver: DRIVER_MICHAEL.clone(),
     constructor: CONSTRUCTOR_FERRARI.clone(),
-    q1: Some(LapTime::from(1, 22, 327)),
+    q1: Some(QualifyingTime::from(LapTime::from(1, 22, 327))),
     q2: None,
     q3: None,
 });
@@ -997,7 +997,7 @@ pub const QUALIFYING_RESULT_2003_4_P2: Lazy<QualifyingResult> = Lazy::new(|| Qua
     position: 2,
     driver: DRIVER_RALF.clone(),
     constructor: CONSTRUCTOR_WILLIAMS.clone(),
-    q1: Some(LapTime::from(1, 22, 341)),
+    q1: Some(QualifyingTime::from(LapTime::from(1, 22, 341))),
     q2: None,
     q3: None,
 });
@@ -1007,7 +1007,7 @@ pub const QUALIFYING_RESULT_2003_4_P20: Lazy<QualifyingResult> = Lazy::new(|| Qu
     position: 20,
     driver: DRIVER_JOS.clone(),
     constructor: CONSTRUCTOR_MINARDI.clone(),
-    q1: Some(LapTime::NoTimeSet),
+    q1: Some(QualifyingTime::NoTimeSet),
     q2: None,
     q3: None,
 });
@@ -1017,9 +1017,9 @@ pub const QUALIFYING_RESULT_2023_4_P1: Lazy<QualifyingResult> = Lazy::new(|| Qua
     position: 1,
     driver: DRIVER_LECLERC.clone(),
     constructor: CONSTRUCTOR_FERRARI.clone(),
-    q1: Some(LapTime::from(1, 41, 269)),
-    q2: Some(LapTime::from(1, 41, 037)),
-    q3: Some(LapTime::from(1, 40, 203)),
+    q1: Some(QualifyingTime::from(LapTime::from(1, 41, 269))),
+    q2: Some(QualifyingTime::from(LapTime::from(1, 41, 037))),
+    q3: Some(QualifyingTime::from(LapTime::from(1, 40, 203))),
 });
 
 pub const QUALIFYING_RESULT_2023_4_P2: Lazy<QualifyingResult> = Lazy::new(|| QualifyingResult {
@@ -1027,9 +1027,9 @@ pub const QUALIFYING_RESULT_2023_4_P2: Lazy<QualifyingResult> = Lazy::new(|| Qua
     position: 2,
     driver: DRIVER_MAX.clone(),
     constructor: CONSTRUCTOR_RED_BULL.clone(),
-    q1: Some(LapTime::from(1, 41, 398)),
-    q2: Some(LapTime::from(1, 40, 822)),
-    q3: Some(LapTime::from(1, 40, 391)),
+    q1: Some(QualifyingTime::from(LapTime::from(1, 41, 398))),
+    q2: Some(QualifyingTime::from(LapTime::from(1, 40, 822))),
+    q3: Some(QualifyingTime::from(LapTime::from(1, 40, 391))),
 });
 
 pub const QUALIFYING_RESULT_2023_4_P3: Lazy<QualifyingResult> = Lazy::new(|| QualifyingResult {
@@ -1037,9 +1037,9 @@ pub const QUALIFYING_RESULT_2023_4_P3: Lazy<QualifyingResult> = Lazy::new(|| Qua
     position: 3,
     driver: DRIVER_PEREZ.clone(),
     constructor: CONSTRUCTOR_RED_BULL.clone(),
-    q1: Some(LapTime::from(1, 41, 756)),
-    q2: Some(LapTime::from(1, 41, 131)),
-    q3: Some(LapTime::from(1, 40, 495)),
+    q1: Some(QualifyingTime::from(LapTime::from(1, 41, 756))),
+    q2: Some(QualifyingTime::from(LapTime::from(1, 41, 131))),
+    q3: Some(QualifyingTime::from(LapTime::from(1, 40, 495))),
 });
 
 pub const RACE_2003_4_QUALIFYING_RESULTS_STR: &str = formatcp!(
