@@ -287,10 +287,16 @@ where
     Time::deserialize(deserializer).map(|t| LapTime::parse(&t.time))
 }
 
+#[derive(Deserialize, PartialEq, Clone, Debug)]
+pub enum SpeedUnits {
+    #[serde(rename = "kph")]
+    Kph,
+}
+
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct AverageSpeed {
-    pub units: String,
+    pub units: SpeedUnits,
     #[serde_as(as = "DisplayFromStr")]
     pub speed: f32,
 }
