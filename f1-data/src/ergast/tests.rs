@@ -1,5 +1,6 @@
 use const_format::formatcp;
 use once_cell::sync::Lazy;
+use time::macros::{date, time};
 use url::Url;
 
 use super::response::*;
@@ -659,7 +660,7 @@ pub const RACE_NONE: Lazy<Race> = Lazy::new(|| Race {
             country: "".to_string(),
         },
     },
-    date: "".to_string(),
+    date: time::Date::MIN,
     time: None,
     first_practice: None,
     second_practice: None,
@@ -677,7 +678,7 @@ pub const RACE_1950_1: Lazy<Race> = Lazy::new(|| Race {
     url: Url::parse("http://en.wikipedia.org/wiki/1950_British_Grand_Prix").unwrap(),
     race_name: "British Grand Prix".to_string(),
     circuit: CIRCUIT_SILVERSTONE.clone(),
-    date: "1950-05-13".to_string(),
+    date: date!(1950 - 05 - 13),
     ..RACE_NONE.clone()
 });
 
@@ -687,7 +688,7 @@ pub const RACE_2003_4: Lazy<Race> = Lazy::new(|| Race {
     url: Url::parse("http://en.wikipedia.org/wiki/2003_San_Marino_Grand_Prix").unwrap(),
     race_name: "San Marino Grand Prix".to_string(),
     circuit: CIRCUIT_IMOLA.clone(),
-    date: "2003-04-20".to_string(),
+    date: date!(2003 - 04 - 20),
     ..RACE_NONE.clone()
 });
 
@@ -697,8 +698,8 @@ pub const RACE_2015_11: Lazy<Race> = Lazy::new(|| Race {
     url: Url::parse("http://en.wikipedia.org/wiki/2015_Belgian_Grand_Prix").unwrap(),
     race_name: "Belgian Grand Prix".to_string(),
     circuit: CIRCUIT_SPA.clone(),
-    date: "2015-08-23".to_string(),
-    time: Some("12:00:00Z".to_string()),
+    date: date!(2015 - 08 - 23),
+    time: Some(time!(12:00:00)),
     ..RACE_NONE.clone()
 });
 
@@ -708,8 +709,8 @@ pub const RACE_2021_12: Lazy<Race> = Lazy::new(|| Race {
     url: Url::parse("http://en.wikipedia.org/wiki/2021_Belgian_Grand_Prix").unwrap(),
     race_name: "Belgian Grand Prix".to_string(),
     circuit: CIRCUIT_SPA.clone(),
-    date: "2021-08-29".to_string(),
-    time: Some("13:00:00Z".to_string()),
+    date: date!(2021 - 08 - 29),
+    time: Some(time!(13:00:00)),
     ..RACE_NONE.clone()
 });
 
@@ -719,8 +720,8 @@ pub const RACE_2022_4: Lazy<Race> = Lazy::new(|| Race {
     url: Url::parse("http://en.wikipedia.org/wiki/2022_Emilia_Romagna_Grand_Prix").unwrap(),
     race_name: "Emilia Romagna Grand Prix".to_string(),
     circuit: CIRCUIT_IMOLA.clone(),
-    date: "2022-04-24".to_string(),
-    time: Some("13:00:00Z".to_string()),
+    date: date!(2022 - 04 - 24),
+    time: Some(time!(13:00:00)),
     ..RACE_NONE.clone()
 });
 
@@ -730,8 +731,8 @@ pub const RACE_2023_4: Lazy<Race> = Lazy::new(|| Race {
     url: Url::parse("https://en.wikipedia.org/wiki/2023_Azerbaijan_Grand_Prix").unwrap(),
     race_name: "Azerbaijan Grand Prix".to_string(),
     circuit: CIRCUIT_BAKU.clone(),
-    date: "2023-04-30".to_string(),
-    time: Some("11:00:00Z".to_string()),
+    date: date!(2023 - 04 - 30),
+    time: Some(time!(11:00:00)),
     ..RACE_NONE.clone()
 });
 
@@ -832,19 +833,19 @@ pub const RACE_2015_11_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_2015_11
 
 pub const RACE_2021_12_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
     first_practice: Some(DateTime {
-        date: "2021-08-27".to_string(),
+        date: date!(2021 - 08 - 27),
         time: None,
     }),
     second_practice: Some(DateTime {
-        date: "2021-08-27".to_string(),
+        date: date!(2021 - 08 - 27),
         time: None,
     }),
     third_practice: Some(DateTime {
-        date: "2021-08-28".to_string(),
+        date: date!(2021 - 08 - 28),
         time: None,
     }),
     qualifying: Some(DateTime {
-        date: "2021-08-28".to_string(),
+        date: date!(2021 - 08 - 28),
         time: None,
     }),
     ..RACE_2021_12.clone()
@@ -852,40 +853,40 @@ pub const RACE_2021_12_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
 
 pub const RACE_2022_4_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
     first_practice: Some(DateTime {
-        date: "2022-04-22".to_string(),
-        time: Some("11:30:00Z".to_string()),
+        date: date!(2022 - 04 - 22),
+        time: Some(time!(11:30:00)),
     }),
     qualifying: Some(DateTime {
-        date: "2022-04-22".to_string(),
-        time: Some("15:00:00Z".to_string()),
+        date: date!(2022 - 04 - 22),
+        time: Some(time!(15:00:00)),
     }),
     second_practice: Some(DateTime {
-        date: "2022-04-23".to_string(),
-        time: Some("10:30:00Z".to_string()),
+        date: date!(2022 - 04 - 23),
+        time: Some(time!(10:30:00)),
     }),
     sprint: Some(DateTime {
-        date: "2022-04-23".to_string(),
-        time: Some("14:30:00Z".to_string()),
+        date: date!(2022 - 04 - 23),
+        time: Some(time!(14:30:00)),
     }),
     ..RACE_2022_4.clone()
 });
 
 pub const RACE_2023_4_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
     first_practice: Some(DateTime {
-        date: "2023-04-28".to_string(),
-        time: Some("09:30:00Z".to_string()),
+        date: date!(2023 - 04 - 28),
+        time: Some(time!(09:30:00)),
     }),
     qualifying: Some(DateTime {
-        date: "2023-04-28".to_string(),
-        time: Some("13:00:00Z".to_string()),
+        date: date!(2023 - 04 - 28),
+        time: Some(time!(13:00:00)),
     }),
     second_practice: Some(DateTime {
-        date: "2023-04-29".to_string(),
-        time: Some("09:30:00Z".to_string()),
+        date: date!(2023 - 04 - 29),
+        time: Some(time!(09:30:00)),
     }),
     sprint: Some(DateTime {
-        date: "2023-04-29".to_string(),
-        time: Some("13:30:00Z".to_string()),
+        date: date!(2023 - 04 - 29),
+        time: Some(time!(13:30:00)),
     }),
     ..RACE_2023_4.clone()
 });

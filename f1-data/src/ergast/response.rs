@@ -132,8 +132,10 @@ pub struct Race {
     pub race_name: String,
     #[serde(rename = "Circuit")]
     pub circuit: Circuit,
-    pub date: String,
-    pub time: Option<String>,
+    pub date: time::Date,
+    #[serde(default)]
+    #[serde(deserialize_with = "option_ergast_time")]
+    pub time: Option<time::Time>,
     #[serde(rename = "FirstPractice")]
     pub first_practice: Option<DateTime>,
     #[serde(rename = "SecondPractice")]
@@ -250,8 +252,23 @@ pub struct Location {
 
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct DateTime {
-    pub date: String,
-    pub time: Option<String>,
+    pub date: time::Date,
+    #[serde(default)]
+    #[serde(deserialize_with = "option_ergast_time")]
+    pub time: Option<time::Time>,
+}
+
+impl DateTime {
+    const TIME_FORMAT_DESCRIPTION: &'static [time::format_description::FormatItem<'static>] =
+        time::macros::format_description!("[hour]:[minute]:[second]Z");
+}
+
+fn option_ergast_time<'de, D>(deserializer: D) -> Result<Option<time::Time>, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    Option::<String>::deserialize(deserializer)
+        .map(|opt| opt.map(|t_str| time::Time::parse(&t_str, &DateTime::TIME_FORMAT_DESCRIPTION).unwrap()))
 }
 
 #[serde_as]
@@ -399,6 +416,8 @@ impl FromStr for QualifyingTime {
 
 #[cfg(test)]
 mod tests {
+    use time::macros::{date, time};
+
     use super::*;
     use crate::ergast::tests::*;
 
@@ -594,5 +613,28 @@ mod tests {
         assert!(quali.no_time_set());
 
         quali.time();
+    }
+
+    #[test]
+    fn date_time() {
+        let dt: DateTime = serde_json::from_str(
+            r#"{
+            "date": "2021-08-27"}"#,
+        )
+        .unwrap();
+
+        assert_eq!(dt.date, date!(2021 - 08 - 27));
+        assert!(dt.time.is_none());
+
+        let dt: DateTime = serde_json::from_str(
+            r#"{
+            "date": "2022-04-22",
+            "time": "11:30:00Z"}"#,
+        )
+        .unwrap();
+
+        assert_eq!(dt.date, date!(2022 - 04 - 22));
+        assert!(dt.time.is_some());
+        assert_eq!(dt.time.unwrap(), time!(11:30:00));
     }
 }
