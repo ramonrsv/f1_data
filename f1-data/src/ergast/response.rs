@@ -5,7 +5,6 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::Deserialize;
 use serde_with::{serde_as, DisplayFromStr};
-use time::Duration;
 use url::Url;
 use void::Void;
 
@@ -302,13 +301,17 @@ pub struct AverageSpeed {
 }
 
 #[derive(PartialEq, Clone, Debug)]
-pub struct LapTime(Duration);
+pub struct LapTime(time::Duration);
 
 impl LapTime {
     pub const FORMAT_REGEX_STR: &str = r"^((\d):)?([0-5]?\d)\.(\d{3})$";
 
     pub fn from_m_s_ms(minutes: i64, seconds: i64, milliseconds: i64) -> Self {
-        LapTime(Duration::minutes(minutes) + Duration::seconds(seconds) + Duration::milliseconds(milliseconds))
+        LapTime(
+            time::Duration::minutes(minutes)
+                + time::Duration::seconds(seconds)
+                + time::Duration::milliseconds(milliseconds),
+        )
     }
 
     // @todo Implement a proper Err for parsing failures, instead of panics
@@ -338,7 +341,7 @@ impl FromStr for LapTime {
 }
 
 impl Deref for LapTime {
-    type Target = Duration;
+    type Target = time::Duration;
 
     fn deref(&self) -> &Self::Target {
         &self.0
