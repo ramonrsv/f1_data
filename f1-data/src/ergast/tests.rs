@@ -987,7 +987,7 @@ pub const QUALIFYING_RESULT_2003_4_P1: Lazy<QualifyingResult> = Lazy::new(|| Qua
     position: 1,
     driver: DRIVER_MICHAEL.clone(),
     constructor: CONSTRUCTOR_FERRARI.clone(),
-    q1: Some(QualifyingTime::from(LapTime::from(1, 22, 327))),
+    q1: Some(QualifyingTime::from_m_s_ms(1, 22, 327)),
     q2: None,
     q3: None,
 });
@@ -997,7 +997,7 @@ pub const QUALIFYING_RESULT_2003_4_P2: Lazy<QualifyingResult> = Lazy::new(|| Qua
     position: 2,
     driver: DRIVER_RALF.clone(),
     constructor: CONSTRUCTOR_WILLIAMS.clone(),
-    q1: Some(QualifyingTime::from(LapTime::from(1, 22, 341))),
+    q1: Some(QualifyingTime::from_m_s_ms(1, 22, 341)),
     q2: None,
     q3: None,
 });
@@ -1017,9 +1017,9 @@ pub const QUALIFYING_RESULT_2023_4_P1: Lazy<QualifyingResult> = Lazy::new(|| Qua
     position: 1,
     driver: DRIVER_LECLERC.clone(),
     constructor: CONSTRUCTOR_FERRARI.clone(),
-    q1: Some(QualifyingTime::from(LapTime::from(1, 41, 269))),
-    q2: Some(QualifyingTime::from(LapTime::from(1, 41, 037))),
-    q3: Some(QualifyingTime::from(LapTime::from(1, 40, 203))),
+    q1: Some(QualifyingTime::from_m_s_ms(1, 41, 269)),
+    q2: Some(QualifyingTime::from_m_s_ms(1, 41, 037)),
+    q3: Some(QualifyingTime::from_m_s_ms(1, 40, 203)),
 });
 
 pub const QUALIFYING_RESULT_2023_4_P2: Lazy<QualifyingResult> = Lazy::new(|| QualifyingResult {
@@ -1027,9 +1027,9 @@ pub const QUALIFYING_RESULT_2023_4_P2: Lazy<QualifyingResult> = Lazy::new(|| Qua
     position: 2,
     driver: DRIVER_MAX.clone(),
     constructor: CONSTRUCTOR_RED_BULL.clone(),
-    q1: Some(QualifyingTime::from(LapTime::from(1, 41, 398))),
-    q2: Some(QualifyingTime::from(LapTime::from(1, 40, 822))),
-    q3: Some(QualifyingTime::from(LapTime::from(1, 40, 391))),
+    q1: Some(QualifyingTime::from_m_s_ms(1, 41, 398)),
+    q2: Some(QualifyingTime::from_m_s_ms(1, 40, 822)),
+    q3: Some(QualifyingTime::from_m_s_ms(1, 40, 391)),
 });
 
 pub const QUALIFYING_RESULT_2023_4_P3: Lazy<QualifyingResult> = Lazy::new(|| QualifyingResult {
@@ -1037,9 +1037,9 @@ pub const QUALIFYING_RESULT_2023_4_P3: Lazy<QualifyingResult> = Lazy::new(|| Qua
     position: 3,
     driver: DRIVER_PEREZ.clone(),
     constructor: CONSTRUCTOR_RED_BULL.clone(),
-    q1: Some(QualifyingTime::from(LapTime::from(1, 41, 756))),
-    q2: Some(QualifyingTime::from(LapTime::from(1, 41, 131))),
-    q3: Some(QualifyingTime::from(LapTime::from(1, 40, 495))),
+    q1: Some(QualifyingTime::from_m_s_ms(1, 41, 756)),
+    q2: Some(QualifyingTime::from_m_s_ms(1, 41, 131)),
+    q3: Some(QualifyingTime::from_m_s_ms(1, 40, 495)),
 });
 
 pub const RACE_2003_4_QUALIFYING_RESULTS_STR: &str = formatcp!(
@@ -1126,7 +1126,7 @@ pub const SPRINT_RESULT_2023_4_P1: Lazy<SprintResult> = Lazy::new(|| SprintResul
     fastest_lap: Some(FastestLap {
         rank: None,
         lap: 11,
-        time: LapTime::from(1, 43, 616),
+        time: LapTime::from_m_s_ms(1, 43, 616),
         average_speed: None,
     }),
 });
@@ -1346,7 +1346,7 @@ pub const RACE_RESULT_2023_4_P1: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     fastest_lap: Some(FastestLap {
         rank: Some(5),
         lap: 50,
-        time: LapTime::from(1, 44, 589),
+        time: LapTime::from_m_s_ms(1, 44, 589),
         average_speed: Some(AverageSpeed {
             units: "kph".to_string(),
             speed: 206.625,
@@ -1371,7 +1371,7 @@ pub const RACE_RESULT_2023_4_P2: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     fastest_lap: Some(FastestLap {
         rank: Some(2),
         lap: 51,
-        time: LapTime::from(1, 44, 232),
+        time: LapTime::from_m_s_ms(1, 44, 232),
         average_speed: Some(AverageSpeed {
             units: "kph".to_string(),
             speed: 207.333,
@@ -1393,7 +1393,7 @@ pub const RACE_RESULT_2023_4_P20: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     fastest_lap: Some(FastestLap {
         rank: Some(20),
         lap: 4,
-        time: LapTime::from(1, 48, 781),
+        time: LapTime::from_m_s_ms(1, 48, 781),
         average_speed: Some(AverageSpeed {
             units: "kph".to_string(),
             speed: 198.663,

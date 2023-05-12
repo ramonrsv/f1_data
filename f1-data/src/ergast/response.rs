@@ -298,7 +298,7 @@ pub struct LapTime(Duration);
 impl LapTime {
     pub const FORMAT_REGEX_STR: &str = r"^((\d):)?([0-5]?\d)\.(\d{3})$";
 
-    pub fn from(minutes: i64, seconds: i64, milliseconds: i64) -> Self {
+    pub fn from_m_s_ms(minutes: i64, seconds: i64, milliseconds: i64) -> Self {
         LapTime(Duration::minutes(minutes) + Duration::seconds(seconds) + Duration::milliseconds(milliseconds))
     }
 
@@ -316,7 +316,7 @@ impl LapTime {
         let seconds = parse(&matches[3]);
         let milliseconds = parse(&matches[4]);
 
-        LapTime::from(minutes, seconds, milliseconds)
+        LapTime::from_m_s_ms(minutes, seconds, milliseconds)
     }
 }
 
@@ -343,6 +343,18 @@ pub enum QualifyingTime {
 }
 
 impl QualifyingTime {
+    pub fn from_m_s_ms(minutes: i64, seconds: i64, milliseconds: i64) -> Self {
+        Self::LapTime(LapTime::from_m_s_ms(minutes, seconds, milliseconds))
+    }
+
+    pub fn parse(time: &str) -> Self {
+        if !time.is_empty() {
+            <Self as From<LapTime>>::from(LapTime::parse(time))
+        } else {
+            QualifyingTime::NoTimeSet
+        }
+    }
+
     pub fn has_time(&self) -> bool {
         matches!(self, Self::LapTime(_))
     }
@@ -369,11 +381,7 @@ impl FromStr for QualifyingTime {
     type Err = Void;
 
     fn from_str(time: &str) -> Result<Self, Self::Err> {
-        if !time.is_empty() {
-            Ok(QualifyingTime::from(LapTime::parse(time)))
-        } else {
-            Ok(QualifyingTime::NoTimeSet)
-        }
+        Ok(Self::parse(time))
     }
 }
 
@@ -503,7 +511,7 @@ mod tests {
 
     #[test]
     fn lap_time_from_m_s_ms() {
-        let lap = LapTime::from(1, 23, 456);
+        let lap = LapTime::from_m_s_ms(1, 23, 456);
 
         assert_eq!(lap.whole_minutes(), 1);
         assert_eq!(lap.whole_seconds() - 60, 23);
@@ -512,12 +520,12 @@ mod tests {
 
     #[test]
     fn lap_time_parse() {
-        assert_eq!(LapTime::parse("1:22.327"), LapTime::from(1, 22, 327));
-        assert_eq!(LapTime::parse("1:41.269"), LapTime::from(1, 41, 269));
+        assert_eq!(LapTime::parse("1:22.327"), LapTime::from_m_s_ms(1, 22, 327));
+        assert_eq!(LapTime::parse("1:41.269"), LapTime::from_m_s_ms(1, 41, 269));
 
-        assert_eq!(LapTime::parse("59.037"), LapTime::from(0, 59, 037));
+        assert_eq!(LapTime::parse("59.037"), LapTime::from_m_s_ms(0, 59, 037));
 
-        assert_eq!(LapTime::parse("2:01.341"), LapTime::from(2, 1, 341));
+        assert_eq!(LapTime::parse("2:01.341"), LapTime::from_m_s_ms(2, 1, 341));
     }
 
     #[test]
@@ -533,7 +541,7 @@ mod tests {
 
     #[test]
     fn qualifying_time_from_lap_time() {
-        let quali = QualifyingTime::from(LapTime::from(1, 23, 456));
+        let quali = QualifyingTime::from(LapTime::from_m_s_ms(1, 23, 456));
 
         assert!(matches!(quali, QualifyingTime::LapTime(_)));
         assert!(quali.has_time());
@@ -543,7 +551,7 @@ mod tests {
 
         if let QualifyingTime::LapTime(lap) = quali {
             assert_eq!(lap, cloned_lap);
-            assert_eq!(lap, LapTime::from(1, 23, 456));
+            assert_eq!(lap, LapTime::from_m_s_ms(1, 23, 456));
         }
     }
 
@@ -553,7 +561,7 @@ mod tests {
             let quali = QualifyingTime::from_str("1:23.456").unwrap();
             assert!(quali.has_time());
             assert!(!quali.no_time_set());
-            assert_eq!(quali.time(), &LapTime::from(1, 23, 456));
+            assert_eq!(quali.time(), &LapTime::from_m_s_ms(1, 23, 456));
         }
 
         {
