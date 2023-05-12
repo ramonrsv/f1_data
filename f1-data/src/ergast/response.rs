@@ -97,7 +97,7 @@ pub struct Driver {
     pub url: Url,
     pub given_name: String,
     pub family_name: String,
-    pub date_of_birth: String,
+    pub date_of_birth: time::Date,
     pub nationality: String,
 }
 

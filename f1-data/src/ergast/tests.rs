@@ -195,7 +195,7 @@ pub static DRIVER_ABATE: Lazy<Driver> = Lazy::new(|| Driver {
     url: Url::parse("http://en.wikipedia.org/wiki/Carlo_Mario_Abate").unwrap(),
     given_name: "Carlo".to_string(),
     family_name: "Abate".to_string(),
-    date_of_birth: "1932-07-10".to_string(),
+    date_of_birth: date!(1932 - 07 - 10),
     nationality: "Italian".to_string(),
 });
 
@@ -206,7 +206,7 @@ pub static DRIVER_MICHAEL: Lazy<Driver> = Lazy::new(|| Driver {
     url: Url::parse("http://en.wikipedia.org/wiki/Michael_Schumacher").unwrap(),
     given_name: "Michael".to_string(),
     family_name: "Schumacher".to_string(),
-    date_of_birth: "1969-01-03".to_string(),
+    date_of_birth: date!(1969 - 01 - 03),
     nationality: "German".to_string(),
 });
 
@@ -217,7 +217,7 @@ pub static DRIVER_JOS: Lazy<Driver> = Lazy::new(|| Driver {
     url: Url::parse("http://en.wikipedia.org/wiki/Jos_Verstappen").unwrap(),
     given_name: "Jos".to_string(),
     family_name: "Verstappen".to_string(),
-    date_of_birth: "1972-03-04".to_string(),
+    date_of_birth: date!(1972 - 03 - 04),
     nationality: "Dutch".to_string(),
 });
 
@@ -228,7 +228,7 @@ pub static DRIVER_RALF: Lazy<Driver> = Lazy::new(|| Driver {
     url: Url::parse("http://en.wikipedia.org/wiki/Ralf_Schumacher").unwrap(),
     given_name: "Ralf".to_string(),
     family_name: "Schumacher".to_string(),
-    date_of_birth: "1975-06-30".to_string(),
+    date_of_birth: date!(1975 - 06 - 30),
     nationality: "German".to_string(),
 });
 
@@ -239,7 +239,7 @@ pub static DRIVER_WILSON: Lazy<Driver> = Lazy::new(|| Driver {
     url: Url::parse("http://en.wikipedia.org/wiki/Justin_Wilson_(racing_driver)").unwrap(),
     given_name: "Justin".to_string(),
     family_name: "Wilson".to_string(),
-    date_of_birth: "1978-07-31".to_string(),
+    date_of_birth: date!(1978 - 07 - 31),
     nationality: "British".to_string(),
 });
 
@@ -250,7 +250,7 @@ pub static DRIVER_KIMI: Lazy<Driver> = Lazy::new(|| Driver {
     url: Url::parse("http://en.wikipedia.org/wiki/Kimi_R%C3%A4ikk%C3%B6nen").unwrap(),
     given_name: "Kimi".to_string(),
     family_name: "Räikkönen".to_string(),
-    date_of_birth: "1979-10-17".to_string(),
+    date_of_birth: date!(1979 - 10 - 17),
     nationality: "Finnish".to_string(),
 });
 
@@ -261,7 +261,7 @@ pub static DRIVER_ALONSO: Lazy<Driver> = Lazy::new(|| Driver {
     url: Url::parse("http://en.wikipedia.org/wiki/Fernando_Alonso").unwrap(),
     given_name: "Fernando".to_string(),
     family_name: "Alonso".to_string(),
-    date_of_birth: "1981-07-29".to_string(),
+    date_of_birth: date!(1981 - 07 - 29),
     nationality: "Spanish".to_string(),
 });
 
@@ -272,7 +272,7 @@ pub static DRIVER_PEREZ: Lazy<Driver> = Lazy::new(|| Driver {
     url: Url::parse("http://en.wikipedia.org/wiki/Sergio_P%C3%A9rez").unwrap(),
     given_name: "Sergio".to_string(),
     family_name: "Pérez".to_string(),
-    date_of_birth: "1990-01-26".to_string(),
+    date_of_birth: date!(1990 - 01 - 26),
     nationality: "Mexican".to_string(),
 });
 
@@ -283,7 +283,7 @@ pub static DRIVER_DE_VRIES: Lazy<Driver> = Lazy::new(|| Driver {
     url: Url::parse("http://en.wikipedia.org/wiki/Nyck_de_Vries").unwrap(),
     given_name: "Nyck".to_string(),
     family_name: "de Vries".to_string(),
-    date_of_birth: "1995-02-06".to_string(),
+    date_of_birth: date!(1995 - 02 - 06),
     nationality: "Dutch".to_string(),
 });
 
@@ -294,7 +294,7 @@ pub static DRIVER_MAX: Lazy<Driver> = Lazy::new(|| Driver {
     url: Url::parse("http://en.wikipedia.org/wiki/Max_Verstappen").unwrap(),
     given_name: "Max".to_string(),
     family_name: "Verstappen".to_string(),
-    date_of_birth: "1997-09-30".to_string(),
+    date_of_birth: date!(1997 - 09 - 30),
     nationality: "Dutch".to_string(),
 });
 
@@ -305,7 +305,7 @@ pub static DRIVER_LECLERC: Lazy<Driver> = Lazy::new(|| Driver {
     url: Url::parse("http://en.wikipedia.org/wiki/Charles_Leclerc").unwrap(),
     given_name: "Charles".to_string(),
     family_name: "Leclerc".to_string(),
-    date_of_birth: "1997-10-16".to_string(),
+    date_of_birth: date!(1997 - 10 - 16),
     nationality: "Monegasque".to_string(),
 });
 
