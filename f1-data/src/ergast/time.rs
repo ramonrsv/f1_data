@@ -25,12 +25,17 @@ pub struct Duration(time::Duration);
 impl Duration {
     pub const FORMAT_REGEX_STR: &str = r"^((\d):)?([0-5]?\d)\.(\d{3})$";
 
-    pub fn from_m_s_ms(minutes: i64, seconds: i64, milliseconds: i64) -> Self {
+    pub fn from_hms_ms(hours: i64, minutes: i64, seconds: i64, milliseconds: i64) -> Self {
         Self(
-            time::Duration::minutes(minutes)
+            time::Duration::hours(hours)
+                + time::Duration::minutes(minutes)
                 + time::Duration::seconds(seconds)
                 + time::Duration::milliseconds(milliseconds),
         )
+    }
+
+    pub fn from_m_s_ms(minutes: i64, seconds: i64, milliseconds: i64) -> Self {
+        Self::from_hms_ms(0, minutes, seconds, milliseconds)
     }
 
     pub fn parse(time: &str) -> Result<Self, ParseError> {
@@ -71,6 +76,16 @@ impl Deref for Duration {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn duration_from_hms_ms() {
+        let lap = Duration::from_hms_ms(1, 2, 34, 567);
+
+        assert_eq!(lap.whole_hours(), 1);
+        assert_eq!(lap.whole_minutes() - 60, 2);
+        assert_eq!(lap.whole_seconds() - (60_i64.pow(2) * 1) - (60 * 2), 34);
+        assert_eq!(lap.subsec_milliseconds(), 567);
+    }
 
     #[test]
     fn duration_from_m_s_ms() {
