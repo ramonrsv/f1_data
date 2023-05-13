@@ -1,10 +1,13 @@
-use ::time::macros::date;
 use const_format::formatcp;
 use once_cell::sync::Lazy;
 use url::Url;
 
 use super::response::*;
-use super::time::macros::time;
+
+use super::time::{
+    macros::{date, time},
+    Date,
+};
 
 // http://ergast.com/mrd/methods/seasons/
 // --------------------------------------
@@ -661,7 +664,7 @@ pub const RACE_NONE: Lazy<Race> = Lazy::new(|| Race {
             country: "".to_string(),
         },
     },
-    date: time::Date::MIN,
+    date: Date::MIN,
     time: None,
     first_practice: None,
     second_practice: None,

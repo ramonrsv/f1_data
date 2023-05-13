@@ -5,7 +5,7 @@ use serde_with::{serde_as, DisplayFromStr};
 use url::Url;
 use void::Void;
 
-use crate::ergast::time::{Duration, Time};
+use crate::ergast::time::{Date, Duration, Time};
 
 pub const GRID_PIT_LANE: u32 = 0;
 
@@ -96,7 +96,7 @@ pub struct Driver {
     pub url: Url,
     pub given_name: String,
     pub family_name: String,
-    pub date_of_birth: time::Date,
+    pub date_of_birth: Date,
     pub nationality: String,
 }
 
@@ -131,7 +131,7 @@ pub struct Race {
     pub race_name: String,
     #[serde(rename = "Circuit")]
     pub circuit: Circuit,
-    pub date: time::Date,
+    pub date: Date,
     pub time: Option<Time>,
     #[serde(rename = "FirstPractice")]
     pub first_practice: Option<DateTime>,
@@ -249,7 +249,7 @@ pub struct Location {
 
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct DateTime {
-    pub date: time::Date,
+    pub date: Date,
     pub time: Option<Time>,
 }
 
@@ -349,9 +349,7 @@ impl FromStr for QualifyingTime {
 
 #[cfg(test)]
 mod tests {
-    use time::macros::date;
-
-    use crate::ergast::time::macros::time;
+    use crate::ergast::time::macros::{date, time};
 
     use super::*;
     use crate::ergast::tests::*;

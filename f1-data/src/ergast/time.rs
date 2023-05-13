@@ -126,6 +126,8 @@ impl Deref for Time {
     }
 }
 
+pub type Date = time::Date;
+
 pub mod macros {
     #[macro_export]
     macro_rules! time {
@@ -134,6 +136,7 @@ pub mod macros {
     }
 }
 
+    pub use ::time::macros::date;
     pub use time;
 }
 
