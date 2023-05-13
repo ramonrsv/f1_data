@@ -1,9 +1,10 @@
+use ::time::macros::date;
 use const_format::formatcp;
 use once_cell::sync::Lazy;
-use time::macros::{date, time};
 use url::Url;
 
 use super::response::*;
+use super::time::macros::time;
 
 // http://ergast.com/mrd/methods/seasons/
 // --------------------------------------
@@ -1120,7 +1121,7 @@ pub const SPRINT_RESULT_2023_4_P1: Lazy<SprintResult> = Lazy::new(|| SprintResul
     grid: 2,
     laps: 17,
     status: "Finished".to_string(),
-    time: Some(Time {
+    time: Some(RaceTime {
         millis: Some(1997667),
         time: "33:17.667".to_string(),
     }),
@@ -1292,7 +1293,7 @@ pub const RACE_RESULT_2003_4_P1: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     grid: 1,
     laps: 62,
     status: "Finished".to_string(),
-    time: Some(Time {
+    time: Some(RaceTime {
         millis: Some(5292058),
         time: "1:28:12.058".to_string(),
     }),
@@ -1309,7 +1310,7 @@ pub const RACE_RESULT_2003_4_P2: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     grid: 6,
     laps: 62,
     status: "Finished".to_string(),
-    time: Some(Time {
+    time: Some(RaceTime {
         millis: Some(5293940),
         time: "+1.882".to_string(),
     }),
@@ -1340,7 +1341,7 @@ pub const RACE_RESULT_2023_4_P1: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     grid: 3,
     laps: 51,
     status: "Finished".to_string(),
-    time: Some(Time {
+    time: Some(RaceTime {
         millis: Some(5562436),
         time: "1:32:42.436".to_string(),
     }),
@@ -1365,7 +1366,7 @@ pub const RACE_RESULT_2023_4_P2: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     grid: 2,
     laps: 51,
     status: "Finished".to_string(),
-    time: Some(Time {
+    time: Some(RaceTime {
         millis: Some(5564573),
         time: "+2.137".to_string(),
     }),

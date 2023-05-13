@@ -1,11 +1,11 @@
 use std::str::FromStr;
 
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 use serde_with::{serde_as, DisplayFromStr};
 use url::Url;
 use void::Void;
 
-use crate::ergast::time::Duration;
+use crate::ergast::time::{Duration, Time};
 
 pub const GRID_PIT_LANE: u32 = 0;
 
@@ -132,9 +132,7 @@ pub struct Race {
     #[serde(rename = "Circuit")]
     pub circuit: Circuit,
     pub date: time::Date,
-    #[serde(default)]
-    #[serde(deserialize_with = "option_ergast_time")]
-    pub time: Option<time::Time>,
+    pub time: Option<Time>,
     #[serde(rename = "FirstPractice")]
     pub first_practice: Option<DateTime>,
     #[serde(rename = "SecondPractice")]
@@ -196,7 +194,7 @@ pub struct SprintResult {
     pub laps: u32,
     pub status: String,
     #[serde(rename = "Time")]
-    pub time: Option<Time>,
+    pub time: Option<RaceTime>,
     #[serde(rename = "FastestLap")]
     pub fastest_lap: Option<FastestLap>,
 }
@@ -222,7 +220,7 @@ pub struct RaceResult {
     pub laps: u32,
     pub status: String,
     #[serde(rename = "Time")]
-    pub time: Option<Time>,
+    pub time: Option<RaceTime>,
     #[serde(rename = "FastestLap")]
     pub fastest_lap: Option<FastestLap>,
 }
@@ -252,27 +250,12 @@ pub struct Location {
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct DateTime {
     pub date: time::Date,
-    #[serde(default)]
-    #[serde(deserialize_with = "option_ergast_time")]
-    pub time: Option<time::Time>,
-}
-
-impl DateTime {
-    const TIME_FORMAT_DESCRIPTION: &'static [time::format_description::FormatItem<'static>] =
-        time::macros::format_description!("[hour]:[minute]:[second]Z");
-}
-
-fn option_ergast_time<'de, D>(deserializer: D) -> Result<Option<time::Time>, D::Error>
-where
-    D: serde::de::Deserializer<'de>,
-{
-    Option::<String>::deserialize(deserializer)
-        .map(|opt| opt.map(|t_str| time::Time::parse(&t_str, &DateTime::TIME_FORMAT_DESCRIPTION).unwrap()))
+    pub time: Option<Time>,
 }
 
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
-pub struct Time {
+pub struct RaceTime {
     #[serde_as(as = "Option<DisplayFromStr>")]
     pub millis: Option<u32>,
     pub time: String,
@@ -291,10 +274,7 @@ pub struct FastestLap {
     pub average_speed: Option<AverageSpeed>,
 }
 
-fn extract_nested_lap_time<'de, D>(deserializer: D) -> Result<LapTime, D::Error>
-where
-    D: serde::de::Deserializer<'de>,
-{
+fn extract_nested_lap_time<'de, D: Deserializer<'de>>(deserializer: D) -> Result<LapTime, D::Error> {
     #[derive(Deserialize)]
     struct Time {
         time: LapTime,
@@ -369,7 +349,9 @@ impl FromStr for QualifyingTime {
 
 #[cfg(test)]
 mod tests {
-    use time::macros::{date, time};
+    use time::macros::date;
+
+    use crate::ergast::time::macros::time;
 
     use super::*;
     use crate::ergast::tests::*;

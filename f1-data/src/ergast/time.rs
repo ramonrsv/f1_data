@@ -8,7 +8,8 @@ use serde::de::{Deserialize, Deserializer};
 
 #[derive(Debug)]
 pub enum ParseError {
-    NoMatch(String),
+    InvalidDuration(String),
+    InvalidTime(String),
 }
 
 impl std::fmt::Display for ParseError {
@@ -41,7 +42,7 @@ impl Duration {
     pub fn parse(time: &str) -> Result<Self, ParseError> {
         static RE: Lazy<Regex> = Lazy::new(|| Regex::new(Duration::FORMAT_REGEX_STR).unwrap());
 
-        let matches = RE.captures(time).ok_or(ParseError::NoMatch(time.to_string()))?;
+        let matches = RE.captures(time).ok_or(ParseError::InvalidDuration(time.to_string()))?;
 
         let minutes = matches.get(2).map_or("0", |m| m.as_str()).parse().unwrap();
         let seconds = matches[3].parse().unwrap();
@@ -65,12 +66,71 @@ impl FromStr for Duration {
     }
 }
 
+impl From<time::Duration> for Duration {
+    fn from(dur: time::Duration) -> Self {
+        Self(dur)
+    }
+}
+
 impl Deref for Duration {
     type Target = time::Duration;
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
+}
+
+#[derive(PartialEq, Clone, Debug)]
+pub struct Time(time::Time);
+
+impl Time {
+    const TIME_FORMAT_DESCRIPTION: &'static [time::format_description::FormatItem<'static>] =
+        time::macros::format_description!("[hour]:[minute]:[second]Z");
+
+    pub fn parse(time: &str) -> Result<Self, ParseError> {
+        time::Time::parse(time, &Self::TIME_FORMAT_DESCRIPTION)
+            .map(Time)
+            .map_err(|err| ParseError::InvalidTime(format!("'{time}': {err}")))
+    }
+}
+
+impl<'de> Deserialize<'de> for Time {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        Time::parse(&String::deserialize(deserializer)?).map_err(|err| serde::de::Error::custom(err.to_string()))
+    }
+}
+
+impl FromStr for Time {
+    type Err = ParseError;
+
+    fn from_str(time: &str) -> Result<Self, Self::Err> {
+        Time::parse(time)
+    }
+}
+
+impl From<time::Time> for Time {
+    fn from(time: time::Time) -> Self {
+        Self(time)
+    }
+}
+
+impl Deref for Time {
+    type Target = time::Time;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+pub mod macros {
+    #[macro_export]
+    macro_rules! time {
+    ($($l:tt)*) => {
+        $crate::ergast::time::Time::from(time::macros::time!($($l)*))
+    }
+}
+
+    pub use time;
 }
 
 #[cfg(test)]
@@ -106,10 +166,10 @@ mod tests {
 
     #[test]
     fn duration_parse_err() {
-        assert!(matches!(Duration::parse("90.203").unwrap_err(), ParseError::NoMatch(_)));
-        assert!(matches!(Duration::parse("10.1").unwrap_err(), ParseError::NoMatch(_)));
-        assert!(matches!(Duration::parse("40.1111").unwrap_err(), ParseError::NoMatch(_)));
-        assert!(matches!(Duration::parse("").unwrap_err(), ParseError::NoMatch(_)));
+        assert!(matches!(Duration::parse("90.203").unwrap_err(), ParseError::InvalidDuration(_)));
+        assert!(matches!(Duration::parse("10.1").unwrap_err(), ParseError::InvalidDuration(_)));
+        assert!(matches!(Duration::parse("40.1111").unwrap_err(), ParseError::InvalidDuration(_)));
+        assert!(matches!(Duration::parse("").unwrap_err(), ParseError::InvalidDuration(_)));
     }
 
     #[test]
