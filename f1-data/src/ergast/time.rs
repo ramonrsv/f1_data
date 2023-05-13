@@ -87,6 +87,10 @@ impl Time {
     const TIME_FORMAT_DESCRIPTION: &'static [time::format_description::FormatItem<'static>] =
         time::macros::format_description!("[hour]:[minute]:[second]Z");
 
+    pub fn from_hms(hour: u8, minute: u8, second: u8) -> Result<Self, time::error::ComponentRange> {
+        Ok(Self(time::Time::from_hms(hour, minute, second)?))
+    }
+
     pub fn parse(time: &str) -> Result<Self, ParseError> {
         time::Time::parse(time, &Self::TIME_FORMAT_DESCRIPTION)
             .map(Time)
@@ -175,5 +179,28 @@ mod tests {
     #[test]
     fn duration_deserialize() {
         assert_eq!(serde_json::from_str::<Duration>(r#""1:22.327""#).unwrap(), Duration::from_m_s_ms(1, 22, 327));
+    }
+
+    #[test]
+    fn time_from_hms() {
+        assert_eq!(Time::from_hms(1, 2, 3).unwrap().0, time::Time::from_hms(1, 2, 3).unwrap());
+    }
+
+    #[test]
+    fn time_parse() {
+        assert_eq!(Time::parse("12:00:00Z").unwrap(), Time::from_hms(12, 0, 0).unwrap());
+        assert_eq!(Time::parse("11:30:00Z").unwrap(), Time::from_hms(11, 30, 0).unwrap());
+        assert_eq!(Time::parse("15:00:00Z").unwrap(), Time::from_hms(15, 0, 0).unwrap());
+        assert_eq!(Time::parse("10:30:00Z").unwrap(), Time::from_hms(10, 30, 0).unwrap());
+    }
+
+    #[test]
+    fn time_macro() {
+        assert_eq!(Time::from_hms(11, 30, 0).unwrap(), macros::time!(11:30:00));
+    }
+
+    #[test]
+    fn time_deserialize() {
+        assert_eq!(serde_json::from_str::<Time>(r#""11:30:00Z""#).unwrap(), Time::from_hms(11, 30, 0).unwrap());
     }
 }
