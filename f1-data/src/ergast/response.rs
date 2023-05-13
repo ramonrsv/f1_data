@@ -297,9 +297,9 @@ where
 {
     #[derive(Deserialize)]
     struct Time {
-        time: String,
+        time: LapTime,
     }
-    LapTime::parse(&Time::deserialize(deserializer)?.time).map_err(|err| serde::de::Error::custom(err.to_string()))
+    Ok(Time::deserialize(deserializer)?.time)
 }
 
 #[derive(Deserialize, PartialEq, Clone, Debug)]
