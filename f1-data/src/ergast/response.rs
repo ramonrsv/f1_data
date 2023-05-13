@@ -1,12 +1,11 @@
-use std::ops::Deref;
 use std::str::FromStr;
 
-use once_cell::sync::Lazy;
-use regex::Regex;
 use serde::Deserialize;
 use serde_with::{serde_as, DisplayFromStr};
 use url::Url;
 use void::Void;
+
+use crate::ergast::time::Duration;
 
 pub const GRID_PIT_LANE: u32 = 0;
 
@@ -300,7 +299,7 @@ where
     struct Time {
         time: String,
     }
-    Time::deserialize(deserializer).map(|t| LapTime::parse(&t.time))
+    LapTime::parse(&Time::deserialize(deserializer)?.time).map_err(|err| serde::de::Error::custom(err.to_string()))
 }
 
 #[derive(Deserialize, PartialEq, Clone, Debug)]
@@ -317,75 +316,29 @@ pub struct AverageSpeed {
     pub speed: f32,
 }
 
-#[derive(PartialEq, Clone, Debug)]
-pub struct LapTime(time::Duration);
-
-impl LapTime {
-    pub const FORMAT_REGEX_STR: &str = r"^((\d):)?([0-5]?\d)\.(\d{3})$";
-
-    pub fn from_m_s_ms(minutes: i64, seconds: i64, milliseconds: i64) -> Self {
-        LapTime(
-            time::Duration::minutes(minutes)
-                + time::Duration::seconds(seconds)
-                + time::Duration::milliseconds(milliseconds),
-        )
-    }
-
-    // @todo Implement a proper Err for parsing failures, instead of panics
-    pub fn parse(time: &str) -> Self {
-        static RE: Lazy<Regex> = Lazy::new(|| Regex::new(LapTime::FORMAT_REGEX_STR).unwrap());
-
-        assert!(RE.is_match(time));
-
-        let matches = RE.captures(time).unwrap();
-
-        let parse = |val: &str| val.parse().unwrap();
-
-        let minutes = parse(if matches.get(2).is_some() { &matches[2] } else { "0" });
-        let seconds = parse(&matches[3]);
-        let milliseconds = parse(&matches[4]);
-
-        LapTime::from_m_s_ms(minutes, seconds, milliseconds)
-    }
-}
-
-impl FromStr for LapTime {
-    type Err = Void;
-
-    fn from_str(time: &str) -> Result<Self, Self::Err> {
-        Ok(LapTime::parse(time))
-    }
-}
-
-impl Deref for LapTime {
-    type Target = time::Duration;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
+pub type LapTime = Duration;
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum QualifyingTime {
-    LapTime(LapTime),
+    Time(LapTime),
     NoTimeSet,
 }
 
 impl QualifyingTime {
     pub fn from_m_s_ms(minutes: i64, seconds: i64, milliseconds: i64) -> Self {
-        Self::LapTime(LapTime::from_m_s_ms(minutes, seconds, milliseconds))
+        Self::Time(LapTime::from_m_s_ms(minutes, seconds, milliseconds))
     }
 
     pub fn parse(time: &str) -> Self {
         if !time.is_empty() {
-            <Self as From<LapTime>>::from(LapTime::parse(time))
+            <Self as From<LapTime>>::from(LapTime::parse(time).unwrap())
         } else {
             QualifyingTime::NoTimeSet
         }
     }
 
     pub fn has_time(&self) -> bool {
-        matches!(self, Self::LapTime(_))
+        matches!(self, Self::Time(_))
     }
 
     pub fn no_time_set(&self) -> bool {
@@ -394,7 +347,7 @@ impl QualifyingTime {
 
     pub fn time(&self) -> &LapTime {
         match &self {
-            Self::LapTime(time) => time,
+            Self::Time(time) => time,
             _ => panic!("Cannot get time of NoTimeSet"),
         }
     }
@@ -402,7 +355,7 @@ impl QualifyingTime {
 
 impl From<LapTime> for QualifyingTime {
     fn from(lap: LapTime) -> QualifyingTime {
-        QualifyingTime::LapTime(lap)
+        QualifyingTime::Time(lap)
     }
 }
 
@@ -541,46 +494,16 @@ mod tests {
     }
 
     #[test]
-    fn lap_time_from_m_s_ms() {
-        let lap = LapTime::from_m_s_ms(1, 23, 456);
-
-        assert_eq!(lap.whole_minutes(), 1);
-        assert_eq!(lap.whole_seconds() - 60, 23);
-        assert_eq!(lap.subsec_milliseconds(), 456);
-    }
-
-    #[test]
-    fn lap_time_parse() {
-        assert_eq!(LapTime::parse("1:22.327"), LapTime::from_m_s_ms(1, 22, 327));
-        assert_eq!(LapTime::parse("1:41.269"), LapTime::from_m_s_ms(1, 41, 269));
-
-        assert_eq!(LapTime::parse("59.037"), LapTime::from_m_s_ms(0, 59, 037));
-
-        assert_eq!(LapTime::parse("2:01.341"), LapTime::from_m_s_ms(2, 1, 341));
-    }
-
-    #[test]
-    #[should_panic]
-    fn lap_time_parse_panics() {
-        assert!(std::panic::catch_unwind(|| LapTime::parse("90.203")).is_err());
-        assert!(std::panic::catch_unwind(|| LapTime::parse("10.1")).is_err());
-        assert!(std::panic::catch_unwind(|| LapTime::parse("40.1111")).is_err());
-
-        // To satisfy should_panic, itself to indicate that this test checks panics
-        LapTime::parse("");
-    }
-
-    #[test]
     fn qualifying_time_from_lap_time() {
         let quali = QualifyingTime::from(LapTime::from_m_s_ms(1, 23, 456));
 
-        assert!(matches!(quali, QualifyingTime::LapTime(_)));
+        assert!(matches!(quali, QualifyingTime::Time(_)));
         assert!(quali.has_time());
         assert!(!quali.no_time_set());
 
         let cloned_lap = quali.time().clone();
 
-        if let QualifyingTime::LapTime(lap) = quali {
+        if let QualifyingTime::Time(lap) = quali {
             assert_eq!(lap, cloned_lap);
             assert_eq!(lap, LapTime::from_m_s_ms(1, 23, 456));
         }
