@@ -38,7 +38,7 @@ impl Duration {
 
         let matches = RE.captures(time).ok_or(ParseError::NoMatch(time.to_string()))?;
 
-        let minutes = matches.get(2).map(|m| m.as_str()).unwrap_or("0").parse().unwrap();
+        let minutes = matches.get(2).map_or("0", |m| m.as_str()).parse().unwrap();
         let seconds = matches[3].parse().unwrap();
         let milliseconds = matches[4].parse().unwrap();
 
