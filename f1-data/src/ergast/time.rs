@@ -38,10 +38,12 @@ impl Duration {
         Self::from_hms_ms(0, minutes, seconds, milliseconds)
     }
 
-    pub fn parse(time: &str) -> Result<Self, ParseError> {
+    pub fn parse(d_str: &str) -> Result<Self, ParseError> {
         static RE: Lazy<Regex> = Lazy::new(|| Regex::new(Duration::FORMAT_REGEX_STR).unwrap());
 
-        let matches = RE.captures(time).ok_or(ParseError::InvalidDuration(time.to_string()))?;
+        let matches = RE
+            .captures(d_str)
+            .ok_or(ParseError::InvalidDuration(d_str.to_string()))?;
 
         let minutes = matches.get(2).map_or("0", |m| m.as_str()).parse().unwrap();
         let seconds = matches[3].parse().unwrap();
@@ -60,8 +62,8 @@ impl<'de> Deserialize<'de> for Duration {
 impl FromStr for Duration {
     type Err = ParseError;
 
-    fn from_str(time: &str) -> Result<Self, Self::Err> {
-        Duration::parse(time)
+    fn from_str(d_str: &str) -> Result<Self, Self::Err> {
+        Duration::parse(d_str)
     }
 }
 
@@ -90,10 +92,10 @@ impl Time {
         Ok(Self(time::Time::from_hms(hour, minute, second)?))
     }
 
-    pub fn parse(time: &str) -> Result<Self, ParseError> {
-        time::Time::parse(time, &Self::TIME_FORMAT_DESCRIPTION)
+    pub fn parse(t_str: &str) -> Result<Self, ParseError> {
+        time::Time::parse(t_str, &Self::TIME_FORMAT_DESCRIPTION)
             .map(Time)
-            .map_err(|err| ParseError::InvalidTime(format!("'{time}': {err}")))
+            .map_err(|err| ParseError::InvalidTime(format!("'{t_str}': {err}")))
     }
 }
 
@@ -106,8 +108,8 @@ impl<'de> Deserialize<'de> for Time {
 impl FromStr for Time {
     type Err = ParseError;
 
-    fn from_str(time: &str) -> Result<Self, Self::Err> {
-        Time::parse(time)
+    fn from_str(t_str: &str) -> Result<Self, Self::Err> {
+        Time::parse(t_str)
     }
 }
 
@@ -145,21 +147,21 @@ mod tests {
 
     #[test]
     fn duration_from_hms_ms() {
-        let lap = Duration::from_hms_ms(1, 2, 34, 567);
+        let dur = Duration::from_hms_ms(1, 2, 34, 567);
 
-        assert_eq!(lap.whole_hours(), 1);
-        assert_eq!(lap.whole_minutes() - 60, 2);
-        assert_eq!(lap.whole_seconds() - (60_i64.pow(2) * 1) - (60 * 2), 34);
-        assert_eq!(lap.subsec_milliseconds(), 567);
+        assert_eq!(dur.whole_hours(), 1);
+        assert_eq!(dur.whole_minutes() - 60, 2);
+        assert_eq!(dur.whole_seconds() - (60_i64.pow(2) * 1) - (60 * 2), 34);
+        assert_eq!(dur.subsec_milliseconds(), 567);
     }
 
     #[test]
     fn duration_from_m_s_ms() {
-        let lap = Duration::from_m_s_ms(1, 23, 456);
+        let dur = Duration::from_m_s_ms(1, 23, 456);
 
-        assert_eq!(lap.whole_minutes(), 1);
-        assert_eq!(lap.whole_seconds() - 60, 23);
-        assert_eq!(lap.subsec_milliseconds(), 456);
+        assert_eq!(dur.whole_minutes(), 1);
+        assert_eq!(dur.whole_seconds() - 60, 23);
+        assert_eq!(dur.subsec_milliseconds(), 456);
     }
 
     #[test]

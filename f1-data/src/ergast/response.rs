@@ -300,9 +300,9 @@ impl QualifyingTime {
         Self::Time(LapTime::from_m_s_ms(minutes, seconds, milliseconds))
     }
 
-    pub fn parse(time: &str) -> Result<Self, ParseError> {
-        if !time.is_empty() {
-            LapTime::parse(time).map(QualifyingTime::Time)
+    pub fn parse(t_str: &str) -> Result<Self, ParseError> {
+        if !t_str.is_empty() {
+            LapTime::parse(t_str).map(QualifyingTime::Time)
         } else {
             Ok(QualifyingTime::NoTimeSet)
         }
@@ -325,16 +325,16 @@ impl QualifyingTime {
 }
 
 impl From<LapTime> for QualifyingTime {
-    fn from(lap: LapTime) -> QualifyingTime {
-        QualifyingTime::Time(lap)
+    fn from(lap_time: LapTime) -> QualifyingTime {
+        QualifyingTime::Time(lap_time)
     }
 }
 
 impl FromStr for QualifyingTime {
     type Err = ParseError;
 
-    fn from_str(time: &str) -> Result<Self, Self::Err> {
-        Self::parse(time)
+    fn from_str(t_str: &str) -> Result<Self, Self::Err> {
+        Self::parse(t_str)
     }
 }
 
@@ -503,11 +503,11 @@ mod tests {
         assert!(quali.has_time());
         assert!(!quali.no_time_set());
 
-        let cloned_lap = quali.time().clone();
+        let cloned_lap_time = quali.time().clone();
 
-        if let QualifyingTime::Time(lap) = quali {
-            assert_eq!(lap, cloned_lap);
-            assert_eq!(lap, LapTime::from_m_s_ms(1, 23, 456));
+        if let QualifyingTime::Time(lap_time) = quali {
+            assert_eq!(lap_time, cloned_lap_time);
+            assert_eq!(lap_time, LapTime::from_m_s_ms(1, 23, 456));
         }
     }
 
