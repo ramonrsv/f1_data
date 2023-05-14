@@ -1,5 +1,4 @@
 use std::ops::Deref;
-use std::result::Result;
 use std::str::FromStr;
 
 use once_cell::sync::Lazy;

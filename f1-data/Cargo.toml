@@ -17,4 +17,3 @@ serde_with = "3.0"
 url = { version = "2.3", features = ["serde"] }
 time = { version = "0.3", features = ["serde-human-readable", "macros"] }
 regex = "1.8"
-void = "1.0"

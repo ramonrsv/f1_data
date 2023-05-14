@@ -3,9 +3,8 @@ use std::str::FromStr;
 use serde::{Deserialize, Deserializer};
 use serde_with::{serde_as, DisplayFromStr};
 use url::Url;
-use void::Void;
 
-use crate::ergast::time::{Date, Duration, Time};
+use crate::ergast::time::{Date, Duration, ParseError, Time};
 
 pub const GRID_PIT_LANE: u32 = 0;
 
@@ -255,14 +254,6 @@ pub struct DateTime {
 
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
-pub struct RaceTime {
-    #[serde_as(as = "Option<DisplayFromStr>")]
-    pub millis: Option<u32>,
-    pub time: String,
-}
-
-#[serde_as]
-#[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct FastestLap {
     #[serde_as(as = "Option<DisplayFromStr>")]
     pub rank: Option<u32>,
@@ -282,18 +273,18 @@ fn extract_nested_lap_time<'de, D: Deserializer<'de>>(deserializer: D) -> Result
     Ok(Time::deserialize(deserializer)?.time)
 }
 
-#[derive(Deserialize, PartialEq, Clone, Debug)]
-pub enum SpeedUnits {
-    #[serde(rename = "kph")]
-    Kph,
-}
-
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct AverageSpeed {
     pub units: SpeedUnits,
     #[serde_as(as = "DisplayFromStr")]
     pub speed: f32,
+}
+
+#[derive(Deserialize, PartialEq, Clone, Debug)]
+pub enum SpeedUnits {
+    #[serde(rename = "kph")]
+    Kph,
 }
 
 pub type LapTime = Duration;
@@ -309,11 +300,11 @@ impl QualifyingTime {
         Self::Time(LapTime::from_m_s_ms(minutes, seconds, milliseconds))
     }
 
-    pub fn parse(time: &str) -> Self {
+    pub fn parse(time: &str) -> Result<Self, ParseError> {
         if !time.is_empty() {
-            <Self as From<LapTime>>::from(LapTime::parse(time).unwrap())
+            LapTime::parse(time).map(QualifyingTime::Time)
         } else {
-            QualifyingTime::NoTimeSet
+            Ok(QualifyingTime::NoTimeSet)
         }
     }
 
@@ -340,11 +331,19 @@ impl From<LapTime> for QualifyingTime {
 }
 
 impl FromStr for QualifyingTime {
-    type Err = Void;
+    type Err = ParseError;
 
     fn from_str(time: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parse(time))
+        Self::parse(time)
     }
+}
+
+#[serde_as]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
+pub struct RaceTime {
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    pub millis: Option<u32>,
+    pub time: String,
 }
 
 #[cfg(test)]
@@ -474,51 +473,6 @@ mod tests {
     }
 
     #[test]
-    fn qualifying_time_from_lap_time() {
-        let quali = QualifyingTime::from(LapTime::from_m_s_ms(1, 23, 456));
-
-        assert!(matches!(quali, QualifyingTime::Time(_)));
-        assert!(quali.has_time());
-        assert!(!quali.no_time_set());
-
-        let cloned_lap = quali.time().clone();
-
-        if let QualifyingTime::Time(lap) = quali {
-            assert_eq!(lap, cloned_lap);
-            assert_eq!(lap, LapTime::from_m_s_ms(1, 23, 456));
-        }
-    }
-
-    #[test]
-    fn qualifying_time_from_str() {
-        {
-            let quali = QualifyingTime::from_str("1:23.456").unwrap();
-            assert!(quali.has_time());
-            assert!(!quali.no_time_set());
-            assert_eq!(quali.time(), &LapTime::from_m_s_ms(1, 23, 456));
-        }
-
-        {
-            let quali = QualifyingTime::from_str("").unwrap();
-            assert!(!quali.has_time());
-            assert!(quali.no_time_set());
-            assert!(matches!(quali, QualifyingTime::NoTimeSet));
-        }
-    }
-
-    #[test]
-    #[should_panic]
-    fn qualifying_time_time_panics() {
-        let quali = QualifyingTime::NoTimeSet;
-
-        assert!(matches!(quali, QualifyingTime::NoTimeSet));
-        assert!(!quali.has_time());
-        assert!(quali.no_time_set());
-
-        quali.time();
-    }
-
-    #[test]
     fn date_time() {
         let dt: DateTime = serde_json::from_str(
             r#"{
@@ -539,5 +493,55 @@ mod tests {
         assert_eq!(dt.date, date!(2022 - 04 - 22));
         assert!(dt.time.is_some());
         assert_eq!(dt.time.unwrap(), time!(11:30:00));
+    }
+
+    #[test]
+    fn qualifying_time_from_lap_time() {
+        let quali = QualifyingTime::from(LapTime::from_m_s_ms(1, 23, 456));
+
+        assert!(matches!(quali, QualifyingTime::Time(_)));
+        assert!(quali.has_time());
+        assert!(!quali.no_time_set());
+
+        let cloned_lap = quali.time().clone();
+
+        if let QualifyingTime::Time(lap) = quali {
+            assert_eq!(lap, cloned_lap);
+            assert_eq!(lap, LapTime::from_m_s_ms(1, 23, 456));
+        }
+    }
+
+    #[test]
+    fn qualifying_time_parse() {
+        {
+            let quali = QualifyingTime::parse("1:23.456").unwrap();
+            assert!(quali.has_time());
+            assert!(!quali.no_time_set());
+            assert_eq!(quali.time(), &LapTime::from_m_s_ms(1, 23, 456));
+        }
+
+        {
+            let quali = QualifyingTime::parse("").unwrap();
+            assert!(!quali.has_time());
+            assert!(quali.no_time_set());
+            assert!(matches!(quali, QualifyingTime::NoTimeSet));
+        }
+    }
+
+    #[test]
+    fn qualifying_time_parse_err() {
+        assert!(QualifyingTime::parse("1").is_err());
+    }
+
+    #[test]
+    #[should_panic]
+    fn qualifying_time_time_panics() {
+        let quali = QualifyingTime::NoTimeSet;
+
+        assert!(matches!(quali, QualifyingTime::NoTimeSet));
+        assert!(!quali.has_time());
+        assert!(quali.no_time_set());
+
+        quali.time();
     }
 }
