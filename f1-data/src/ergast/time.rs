@@ -199,6 +199,14 @@ mod tests {
     }
 
     #[test]
+    fn time_parse_err() {
+        assert!(Time::parse("12:00:00").is_err());
+        assert!(Time::parse("12:00:0Z").is_err());
+        assert!(Time::parse("25:00:00Z").is_err());
+        assert!(Time::parse("12:00Z").is_err());
+    }
+
+    #[test]
     fn time_macro() {
         assert_eq!(Time::from_hms(11, 30, 0).unwrap(), macros::time!(11:30:00));
     }
