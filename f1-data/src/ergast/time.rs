@@ -213,7 +213,16 @@ mod tests {
 
     #[test]
     fn duration_parse_err() {
-        let bad_dur_strings = Vec::from(["90.203", "40.1111", ""]);
+        let bad_dur_strings = Vec::from([
+            "90.203",
+            "40.1111",
+            "",
+            ":",
+            ":2.100",
+            "1::2.100",
+            "1:61.100",
+            "1:60:30.100",
+        ]);
 
         for bad_dur_str in bad_dur_strings {
             assert!(matches!(Duration::parse(bad_dur_str).unwrap_err(), ParseError::InvalidDuration(_)));
