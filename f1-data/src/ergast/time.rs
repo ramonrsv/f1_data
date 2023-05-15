@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::ops::{Deref, Sub};
 use std::str::FromStr;
 
 use once_cell::sync::Lazy;
@@ -9,6 +9,7 @@ use serde::de::{Deserialize, Deserializer};
 pub enum ParseError {
     InvalidDuration(String),
     InvalidTime(String),
+    InvalidRaceTime(String),
 }
 
 impl std::fmt::Display for ParseError {
@@ -19,11 +20,15 @@ impl std::fmt::Display for ParseError {
 
 impl std::error::Error for ParseError {}
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
 pub struct Duration(time::Duration);
 
 impl Duration {
-    const FORMAT_REGEX_STR: &str = r"^((?:\d:)?(?:[0-5]?\d:)?)(?:([0-5]?\d)\.)(\d{1,3})$";
+    pub const ZERO: Self = Self(time::Duration::ZERO);
+
+    pub const fn milliseconds(milliseconds: i64) -> Self {
+        Self(time::Duration::milliseconds(milliseconds))
+    }
 
     pub fn from_hms_ms(hours: i64, minutes: i64, seconds: i64, milliseconds: i64) -> Self {
         Self(
@@ -55,7 +60,9 @@ impl Duration {
     }
 
     pub fn parse(d_str: &str) -> Result<Self, ParseError> {
-        static RE: Lazy<Regex> = Lazy::new(|| Regex::new(Duration::FORMAT_REGEX_STR).unwrap());
+        const FORMAT_REGEX_STR: &str = r"^((?:\d:)?(?:[0-5]?\d:)?)(?:([0-5]?\d)\.)(\d{1,3})$";
+
+        static RE: Lazy<Regex> = Lazy::new(|| Regex::new(FORMAT_REGEX_STR).unwrap());
 
         let matches = RE
             .captures(d_str)
@@ -102,7 +109,15 @@ impl Deref for Duration {
     }
 }
 
-#[derive(PartialEq, Clone, Debug)]
+impl Sub for Duration {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self(self.0.sub(rhs.0))
+    }
+}
+
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
 pub struct Time(time::Time);
 
 impl Time {

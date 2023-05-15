@@ -339,11 +339,91 @@ impl FromStr for QualifyingTime {
 }
 
 #[serde_as]
-#[derive(Deserialize, PartialEq, Clone, Debug)]
-pub struct RaceTime {
-    #[serde_as(as = "Option<DisplayFromStr>")]
-    pub millis: Option<u32>,
+#[derive(Deserialize, Debug)]
+struct RaceTimeProxy {
+    #[serde_as(as = "DisplayFromStr")]
+    pub millis: u32,
     pub time: String,
+}
+
+#[derive(PartialEq, Clone, Debug)]
+pub struct RaceTime {
+    total: Duration,
+    delta: Duration,
+}
+
+impl RaceTime {
+    pub fn lead(total: Duration) -> RaceTime {
+        RaceTime {
+            total,
+            delta: Duration::ZERO,
+        }
+    }
+
+    pub fn with_delta(total: Duration, delta: Duration) -> RaceTime {
+        assert!(delta < total);
+
+        RaceTime { total, delta }
+    }
+
+    pub fn is_lead(&self) -> bool {
+        self.delta == Duration::ZERO
+    }
+
+    pub fn total(&self) -> &Duration {
+        &self.total
+    }
+
+    pub fn delta(&self) -> &Duration {
+        &self.delta
+    }
+
+    fn parse_from_proxy(proxy: &RaceTimeProxy) -> Result<Self, ParseError> {
+        let total = Duration::milliseconds(proxy.millis as i64);
+
+        if proxy.time.is_empty() {
+            return Err(ParseError::InvalidRaceTime("Unexpected empty Time.time".to_string()));
+        }
+
+        let has_delta = proxy.time.starts_with('+');
+
+        let delta = Duration::parse(if has_delta { &proxy.time[1..] } else { &proxy.time })?;
+
+        if !has_delta && (total != delta) {
+            return Err(ParseError::InvalidRaceTime(format!(
+                "Non-delta Time.time must match Time.millis: {:?}",
+                proxy
+            )));
+        }
+
+        if delta > total {
+            return Err(ParseError::InvalidRaceTime(format!(
+                "Delta Time.time must be less than Time.millis: {:?}",
+                proxy
+            )));
+        }
+
+        Ok(if has_delta {
+            Self::with_delta(total, delta)
+        } else {
+            Self::lead(total)
+        })
+    }
+}
+
+impl TryFrom<RaceTimeProxy> for RaceTime {
+    type Error = ParseError;
+
+    fn try_from(proxy: RaceTimeProxy) -> Result<Self, Self::Error> {
+        RaceTime::parse_from_proxy(&proxy)
+    }
+}
+
+impl<'de> Deserialize<'de> for RaceTime {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        RaceTime::parse_from_proxy(&RaceTimeProxy::deserialize(deserializer)?)
+            .map_err(|err| serde::de::Error::custom(err.to_string()))
+    }
 }
 
 #[cfg(test)]
@@ -543,5 +623,94 @@ mod tests {
         assert!(quali.no_time_set());
 
         quali.time();
+    }
+
+    #[test]
+    fn race_time_construction() {
+        let p1 = RaceTime::lead(Duration::milliseconds(5562436));
+        assert!(p1.is_lead());
+        assert_eq!(p1.total(), &Duration::from_hms_ms(1, 32, 42, 436));
+        assert_eq!(p1.delta(), &Duration::ZERO);
+
+        let p2 = RaceTime::with_delta(Duration::milliseconds(5564573), Duration::from_m_s_ms(0, 2, 137));
+        assert!(!p2.is_lead());
+        assert_eq!(p2.total(), &Duration::from_hms_ms(1, 32, 42 + 2, 436 + 137));
+        assert_eq!(p2.delta(), &Duration::from_m_s_ms(0, 2, 137));
+
+        assert_eq!(p2.total().clone() - p1.total().clone(), p2.delta().clone());
+    }
+
+    #[test]
+    fn race_time_parse_from_proxy() {
+        {
+            let p1 = RaceTime::parse_from_proxy(&RaceTimeProxy {
+                millis: 7373700,
+                time: "2:02:53.7".to_string(),
+            })
+            .unwrap();
+            assert!(p1.is_lead());
+            assert_eq!(p1.total(), &Duration::from_hms_ms(2, 2, 53, 700));
+            assert_eq!(p1.delta(), &Duration::ZERO);
+
+            let p2 = RaceTime::parse_from_proxy(&RaceTimeProxy {
+                millis: 7374100,
+                time: "+0.4".to_string(),
+            })
+            .unwrap();
+            assert!(!p2.is_lead());
+            assert_eq!(p2.total(), &Duration::from_hms_ms(2, 2, 54, 100));
+            assert_eq!(p2.delta(), &Duration::from_m_s_ms(0, 0, 400));
+
+            assert_eq!(p2.total().clone() - p1.total().clone(), p2.delta().clone());
+        }
+
+        {
+            let p1 = RaceTime::parse_from_proxy(&RaceTimeProxy {
+                millis: 5562436,
+                time: "1:32:42.436".to_string(),
+            })
+            .unwrap();
+            assert!(p1.is_lead());
+            assert_eq!(p1.total(), &Duration::from_hms_ms(1, 32, 42, 436));
+            assert_eq!(p1.delta(), &Duration::ZERO);
+
+            let p2 = RaceTime::parse_from_proxy(&RaceTimeProxy {
+                millis: 5564573,
+                time: "+2.137".to_string(),
+            })
+            .unwrap();
+            assert!(!p2.is_lead());
+            assert_eq!(p2.total(), &Duration::from_hms_ms(1, 32, 42 + 2, 436 + 137));
+            assert_eq!(p2.delta(), &Duration::from_m_s_ms(0, 2, 137));
+
+            assert_eq!(p2.total().clone() - p1.total().clone(), p2.delta().clone());
+        }
+    }
+
+    #[test]
+    fn race_time_deserialize() {
+        let p1: RaceTime = serde_json::from_str(
+            r#"{
+                "millis": "5562436",
+                "time": "1:32:42.436"
+            }"#,
+        )
+        .unwrap();
+        assert!(p1.is_lead());
+        assert_eq!(p1.total(), &Duration::from_hms_ms(1, 32, 42, 436));
+        assert_eq!(p1.delta(), &Duration::ZERO);
+
+        let p2: RaceTime = serde_json::from_str(
+            r#"{
+                "millis": "5564573",
+                "time": "+2.137"
+            }"#,
+        )
+        .unwrap();
+        assert!(!p2.is_lead());
+        assert_eq!(p2.total(), &Duration::from_hms_ms(1, 32, 42 + 2, 436 + 137));
+        assert_eq!(p2.delta(), &Duration::from_m_s_ms(0, 2, 137));
+
+        assert_eq!(p2.total().clone() - p1.total().clone(), p2.delta().clone());
     }
 }

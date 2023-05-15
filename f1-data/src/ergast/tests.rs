@@ -6,7 +6,7 @@ use super::response::*;
 
 use super::time::{
     macros::{date, time},
-    Date,
+    Date, Duration,
 };
 
 // http://ergast.com/mrd/methods/seasons/
@@ -1124,10 +1124,7 @@ pub const SPRINT_RESULT_2023_4_P1: Lazy<SprintResult> = Lazy::new(|| SprintResul
     grid: 2,
     laps: 17,
     status: "Finished".to_string(),
-    time: Some(RaceTime {
-        millis: Some(1997667),
-        time: "33:17.667".to_string(),
-    }),
+    time: Some(RaceTime::lead(Duration::milliseconds(1997667))),
     fastest_lap: Some(FastestLap {
         rank: None,
         lap: 11,
@@ -1296,10 +1293,7 @@ pub const RACE_RESULT_2003_4_P1: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     grid: 1,
     laps: 62,
     status: "Finished".to_string(),
-    time: Some(RaceTime {
-        millis: Some(5292058),
-        time: "1:28:12.058".to_string(),
-    }),
+    time: Some(RaceTime::lead(Duration::milliseconds(5292058))),
     fastest_lap: None,
 });
 
@@ -1313,10 +1307,7 @@ pub const RACE_RESULT_2003_4_P2: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     grid: 6,
     laps: 62,
     status: "Finished".to_string(),
-    time: Some(RaceTime {
-        millis: Some(5293940),
-        time: "+1.882".to_string(),
-    }),
+    time: Some(RaceTime::with_delta(Duration::milliseconds(5293940), Duration::from_m_s_ms(0, 1, 882))),
     fastest_lap: None,
 });
 
@@ -1344,10 +1335,7 @@ pub const RACE_RESULT_2023_4_P1: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     grid: 3,
     laps: 51,
     status: "Finished".to_string(),
-    time: Some(RaceTime {
-        millis: Some(5562436),
-        time: "1:32:42.436".to_string(),
-    }),
+    time: Some(RaceTime::lead(Duration::milliseconds(5562436))),
     fastest_lap: Some(FastestLap {
         rank: Some(5),
         lap: 50,
@@ -1369,10 +1357,7 @@ pub const RACE_RESULT_2023_4_P2: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     grid: 2,
     laps: 51,
     status: "Finished".to_string(),
-    time: Some(RaceTime {
-        millis: Some(5564573),
-        time: "+2.137".to_string(),
-    }),
+    time: Some(RaceTime::with_delta(Duration::milliseconds(5564573), Duration::from_m_s_ms(0, 2, 137))),
     fastest_lap: Some(FastestLap {
         rank: Some(2),
         lap: 51,
