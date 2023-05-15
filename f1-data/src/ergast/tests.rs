@@ -1087,6 +1087,108 @@ pub static RACE_2023_4_QUALIFYING_RESULTS: Lazy<Race> = Lazy::new(|| Race {
     ..RACE_2023_4.clone()
 });
 
+// RacesTimes, used in print, results
+// ----------------------------------
+
+pub const RACE_TIME_1950_4_P1_STR: &str = r#"{
+    "millis": "7373700",
+    "time": "2:02:53.7"
+  }"#;
+
+pub const RACE_TIME_1950_4_P2_STR: &str = r#"{
+    "millis": "7374100",
+    "time": "+0.4"
+  }"#;
+
+pub const RACE_TIME_2003_4_P1_STR: &str = r#"{
+    "millis": "5292058",
+    "time": "1:28:12.058"
+  }"#;
+
+pub const RACE_TIME_2003_4_P2_STR: &str = r#"{
+    "millis": "5293940",
+    "time": "+1.882"
+  }"#;
+
+pub const RACE_TIME_2003_4_P3_STR: &str = r#"{
+    "millis": "5294349",
+    "time": "+2.291"
+  }"#;
+
+pub const RACE_TIME_2023_4_P1_STR: &str = r#"{
+    "millis": "5562436",
+    "time": "1:32:42.436"
+  }"#;
+
+pub const RACE_TIME_2023_4_P2_STR: &str = r#"{
+    "millis": "5564573",
+    "time": "+2.137"
+  }"#;
+
+pub const RACE_TIME_2023_4_P3_STR: &str = r#"{
+    "millis": "5583653",
+    "time": "+21.217"
+  }"#;
+
+pub const RACE_TIME_1950_4_P1: Lazy<RaceTime> = Lazy::new(|| RaceTime::lead(Duration::milliseconds(7373700)));
+
+pub const RACE_TIME_1950_4_P2: Lazy<RaceTime> =
+    Lazy::new(|| RaceTime::with_delta(Duration::milliseconds(7374100), Duration::milliseconds(400)));
+
+pub const RACE_TIME_2003_4_P1: Lazy<RaceTime> = Lazy::new(|| RaceTime::lead(Duration::milliseconds(5292058)));
+
+pub const RACE_TIME_2003_4_P2: Lazy<RaceTime> =
+    Lazy::new(|| RaceTime::with_delta(Duration::milliseconds(5293940), Duration::from_m_s_ms(0, 1, 882)));
+
+pub const RACE_TIME_2003_4_P3: Lazy<RaceTime> =
+    Lazy::new(|| RaceTime::with_delta(Duration::milliseconds(5294349), Duration::from_m_s_ms(0, 2, 291)));
+
+pub const RACE_TIME_2023_4_P1: Lazy<RaceTime> = Lazy::new(|| RaceTime::lead(Duration::milliseconds(5562436)));
+
+pub const RACE_TIME_2023_4_P2: Lazy<RaceTime> =
+    Lazy::new(|| RaceTime::with_delta(Duration::milliseconds(5564573), Duration::from_m_s_ms(0, 2, 137)));
+
+pub const RACE_TIME_2023_4_P3: Lazy<RaceTime> =
+    Lazy::new(|| RaceTime::with_delta(Duration::milliseconds(5583653), Duration::from_m_s_ms(0, 21, 217)));
+
+pub static RACE_TIMES_1950_4_STR: Lazy<Vec<&str>> =
+    Lazy::new(|| vec![RACE_TIME_1950_4_P1_STR, RACE_TIME_1950_4_P2_STR]);
+
+pub static RACE_TIMES_1950_4: Lazy<Vec<RaceTime>> =
+    Lazy::new(|| vec![RACE_TIME_1950_4_P1.clone(), RACE_TIME_1950_4_P2.clone()]);
+
+pub static RACE_TIMES_2003_4_STR: Lazy<Vec<&str>> = Lazy::new(|| {
+    vec![
+        RACE_TIME_2003_4_P1_STR,
+        RACE_TIME_2003_4_P2_STR,
+        RACE_TIME_2003_4_P3_STR,
+    ]
+});
+
+pub static RACE_TIMES_2003_4: Lazy<Vec<RaceTime>> = Lazy::new(|| {
+    vec![
+        RACE_TIME_2003_4_P1.clone(),
+        RACE_TIME_2003_4_P2.clone(),
+        RACE_TIME_2003_4_P3.clone(),
+    ]
+});
+
+pub static RACE_TIMES_2023_4_STR: Lazy<Vec<&str>> = Lazy::new(|| {
+    vec![
+        RACE_TIME_2023_4_P1_STR,
+        RACE_TIME_2023_4_P2_STR,
+        RACE_TIME_2023_4_P3_STR,
+    ]
+});
+
+pub static RACE_TIMES_2023_4: Lazy<Vec<RaceTime>> = Lazy::new(|| {
+    vec![
+        RACE_TIME_2023_4_P1.clone(),
+        RACE_TIME_2023_4_P2.clone(),
+        RACE_TIME_2023_4_P3.clone(),
+    ]
+});
+
 // http://ergast.com/mrd/methods/sprint/
 // -------------------------------------
 
@@ -1161,10 +1263,7 @@ pub const RACE_RESULT_2003_4_P1_STR: &str = formatcp!(
     "grid": "1",
     "laps": "62",
     "status": "Finished",
-    "Time": {{
-        "millis": "5292058",
-        "time": "1:28:12.058"
-    }}
+    "Time": {RACE_TIME_2003_4_P1_STR}
   }}"#
 );
 
@@ -1179,10 +1278,7 @@ pub const RACE_RESULT_2003_4_P2_STR: &str = formatcp!(
     "grid": "6",
     "laps": "62",
     "status": "Finished",
-    "Time": {{
-        "millis": "5293940",
-        "time": "+1.882"
-    }}
+    "Time": {RACE_TIME_2003_4_P2_STR}
   }}"#
 );
 
@@ -1211,10 +1307,7 @@ pub const RACE_RESULT_2023_4_P1_STR: &str = formatcp!(
     "grid": "3",
     "laps": "51",
     "status": "Finished",
-    "Time": {{
-        "millis": "5562436",
-        "time": "1:32:42.436"
-    }},
+    "Time": {RACE_TIME_2023_4_P1_STR},
     "FastestLap": {{
         "rank": "5",
         "lap": "50",
@@ -1240,10 +1333,7 @@ pub const RACE_RESULT_2023_4_P2_STR: &str = formatcp!(
     "grid": "2",
     "laps": "51",
     "status": "Finished",
-    "Time": {{
-        "millis": "5564573",
-        "time": "+2.137"
-    }},
+    "Time": {RACE_TIME_2023_4_P2_STR},
     "FastestLap": {{
         "rank": "2",
         "lap": "51",
@@ -1293,7 +1383,7 @@ pub const RACE_RESULT_2003_4_P1: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     grid: 1,
     laps: 62,
     status: "Finished".to_string(),
-    time: Some(RaceTime::lead(Duration::milliseconds(5292058))),
+    time: Some(RACE_TIME_2003_4_P1.clone()),
     fastest_lap: None,
 });
 
@@ -1307,7 +1397,7 @@ pub const RACE_RESULT_2003_4_P2: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     grid: 6,
     laps: 62,
     status: "Finished".to_string(),
-    time: Some(RaceTime::with_delta(Duration::milliseconds(5293940), Duration::from_m_s_ms(0, 1, 882))),
+    time: Some(RACE_TIME_2003_4_P2.clone()),
     fastest_lap: None,
 });
 
@@ -1335,7 +1425,7 @@ pub const RACE_RESULT_2023_4_P1: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     grid: 3,
     laps: 51,
     status: "Finished".to_string(),
-    time: Some(RaceTime::lead(Duration::milliseconds(5562436))),
+    time: Some(RACE_TIME_2023_4_P1.clone()),
     fastest_lap: Some(FastestLap {
         rank: Some(5),
         lap: 50,
@@ -1357,7 +1447,7 @@ pub const RACE_RESULT_2023_4_P2: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     grid: 2,
     laps: 51,
     status: "Finished".to_string(),
-    time: Some(RaceTime::with_delta(Duration::milliseconds(5564573), Duration::from_m_s_ms(0, 2, 137))),
+    time: Some(RACE_TIME_2023_4_P2.clone()),
     fastest_lap: Some(FastestLap {
         rank: Some(2),
         lap: 51,

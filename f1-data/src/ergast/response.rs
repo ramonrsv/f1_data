@@ -638,79 +638,91 @@ mod tests {
         assert_eq!(p2.delta(), &Duration::from_m_s_ms(0, 2, 137));
 
         assert_eq!(p2.total().clone() - p1.total().clone(), p2.delta().clone());
+
+        assert_eq!(p1, *RACE_TIME_2023_4_P1);
+        assert_eq!(p2, *RACE_TIME_2023_4_P2);
     }
 
     #[test]
     fn race_time_parse_from_proxy() {
-        {
-            let p1 = RaceTime::parse_from_proxy(&RaceTimeProxy {
-                millis: 7373700,
-                time: "2:02:53.7".to_string(),
-            })
-            .unwrap();
-            assert!(p1.is_lead());
-            assert_eq!(p1.total(), &Duration::from_hms_ms(2, 2, 53, 700));
-            assert_eq!(p1.delta(), &Duration::ZERO);
+        let proxy_race_time_pairs = vec![
+            (
+                RaceTimeProxy {
+                    millis: 7373700,
+                    time: "2:02:53.7".to_string(),
+                },
+                RACE_TIME_1950_4_P1.clone(),
+            ),
+            (
+                RaceTimeProxy {
+                    millis: 7374100,
+                    time: "+0.4".to_string(),
+                },
+                RACE_TIME_1950_4_P2.clone(),
+            ),
+            (
+                RaceTimeProxy {
+                    millis: 5562436,
+                    time: "1:32:42.436".to_string(),
+                },
+                RACE_TIME_2023_4_P1.clone(),
+            ),
+            (
+                RaceTimeProxy {
+                    millis: 5564573,
+                    time: "+2.137".to_string(),
+                },
+                RACE_TIME_2023_4_P2.clone(),
+            ),
+        ];
 
-            let p2 = RaceTime::parse_from_proxy(&RaceTimeProxy {
-                millis: 7374100,
-                time: "+0.4".to_string(),
-            })
-            .unwrap();
-            assert!(!p2.is_lead());
-            assert_eq!(p2.total(), &Duration::from_hms_ms(2, 2, 54, 100));
-            assert_eq!(p2.delta(), &Duration::from_m_s_ms(0, 0, 400));
-
-            assert_eq!(p2.total().clone() - p1.total().clone(), p2.delta().clone());
-        }
-
-        {
-            let p1 = RaceTime::parse_from_proxy(&RaceTimeProxy {
-                millis: 5562436,
-                time: "1:32:42.436".to_string(),
-            })
-            .unwrap();
-            assert!(p1.is_lead());
-            assert_eq!(p1.total(), &Duration::from_hms_ms(1, 32, 42, 436));
-            assert_eq!(p1.delta(), &Duration::ZERO);
-
-            let p2 = RaceTime::parse_from_proxy(&RaceTimeProxy {
-                millis: 5564573,
-                time: "+2.137".to_string(),
-            })
-            .unwrap();
-            assert!(!p2.is_lead());
-            assert_eq!(p2.total(), &Duration::from_hms_ms(1, 32, 42 + 2, 436 + 137));
-            assert_eq!(p2.delta(), &Duration::from_m_s_ms(0, 2, 137));
-
-            assert_eq!(p2.total().clone() - p1.total().clone(), p2.delta().clone());
+        for (proxy, race_time) in proxy_race_time_pairs.iter() {
+            assert_eq!(RaceTime::parse_from_proxy(&proxy).unwrap(), race_time.clone());
         }
     }
 
     #[test]
     fn race_time_deserialize() {
-        let p1: RaceTime = serde_json::from_str(
-            r#"{
-                "millis": "5562436",
-                "time": "1:32:42.436"
-            }"#,
-        )
-        .unwrap();
-        assert!(p1.is_lead());
-        assert_eq!(p1.total(), &Duration::from_hms_ms(1, 32, 42, 436));
-        assert_eq!(p1.delta(), &Duration::ZERO);
+        let deserialize_and_assert_eq = |race_time_strings: &[&str], race_times: &[RaceTime]| {
+            let deserialized_race_times: Vec<_> = race_time_strings
+                .iter()
+                .map(|race_time_str| serde_json::from_str::<RaceTime>(race_time_str).unwrap())
+                .collect();
 
-        let p2: RaceTime = serde_json::from_str(
-            r#"{
-                "millis": "5564573",
-                "time": "+2.137"
-            }"#,
-        )
-        .unwrap();
-        assert!(!p2.is_lead());
-        assert_eq!(p2.total(), &Duration::from_hms_ms(1, 32, 42 + 2, 436 + 137));
-        assert_eq!(p2.delta(), &Duration::from_m_s_ms(0, 2, 137));
+            assert!(!deserialized_race_times.is_empty());
+            assert_eq!(deserialized_race_times.len(), race_times.len());
 
-        assert_eq!(p2.total().clone() - p1.total().clone(), p2.delta().clone());
+            for (des_race_time, ref_race_time) in deserialized_race_times.iter().zip(race_times.iter()) {
+                assert_eq!(des_race_time, ref_race_time);
+            }
+        };
+
+        deserialize_and_assert_eq(&RACE_TIMES_1950_4_STR[..], &RACE_TIMES_1950_4[..]);
+        deserialize_and_assert_eq(&RACE_TIMES_2003_4_STR[..], &RACE_TIMES_2003_4[..]);
+        deserialize_and_assert_eq(&RACE_TIMES_2023_4_STR[..], &RACE_TIMES_2023_4[..]);
+    }
+
+    #[test]
+    fn race_time_validate_assets() {
+        let validate_race_times = |race_times: &[RaceTime]| {
+            assert!(race_times.len() >= 2);
+
+            let lead = race_times.first().unwrap();
+            let others = &race_times[1..];
+
+            assert!(lead.is_lead());
+            assert_eq!(lead.delta(), &Duration::ZERO);
+
+            for other in others.iter() {
+                assert!(!other.is_lead());
+                assert!(other.delta() > &Duration::ZERO);
+                assert!(other.total().clone() > lead.total().clone());
+                assert_eq!(other.total().clone() - lead.total().clone(), other.delta().clone());
+            }
+        };
+
+        validate_race_times(&RACE_TIMES_1950_4[..]);
+        validate_race_times(&RACE_TIMES_2003_4[..]);
+        validate_race_times(&RACE_TIMES_2023_4[..]);
     }
 }
