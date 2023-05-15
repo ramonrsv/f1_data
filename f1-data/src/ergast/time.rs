@@ -23,7 +23,7 @@ impl std::error::Error for ParseError {}
 pub struct Duration(time::Duration);
 
 impl Duration {
-    pub const FORMAT_REGEX_STR: &str = r"^((\d):)?([0-5]?\d)\.(\d{3})$";
+    const FORMAT_REGEX_STR: &str = r"^((?:\d:)?(?:[0-5]?\d:)?)(?:([0-5]?\d)\.)(\d{1,3})$";
 
     pub fn from_hms_ms(hours: i64, minutes: i64, seconds: i64, milliseconds: i64) -> Self {
         Self(
@@ -38,6 +38,22 @@ impl Duration {
         Self::from_hms_ms(0, minutes, seconds, milliseconds)
     }
 
+    fn parse_hm(hm_str: &str) -> (i64, i64) {
+        let hm: Vec<&str> = hm_str.split_at(hm_str.len() - 1).0.split(':').collect();
+        debug_assert!(!hm.is_empty() && hm.len() <= 2);
+
+        let hours = if hm.len() == 2 { hm[0].parse().unwrap() } else { 0 };
+        let minutes = hm.last().unwrap().parse().unwrap();
+
+        (hours, minutes)
+    }
+
+    fn parse_milli(milli_str: &str) -> i64 {
+        debug_assert!(!milli_str.is_empty() && milli_str.len() <= 3);
+
+        milli_str.parse::<i64>().unwrap() * (10_i64.pow(3_u32 - milli_str.len() as u32))
+    }
+
     pub fn parse(d_str: &str) -> Result<Self, ParseError> {
         static RE: Lazy<Regex> = Lazy::new(|| Regex::new(Duration::FORMAT_REGEX_STR).unwrap());
 
@@ -45,11 +61,16 @@ impl Duration {
             .captures(d_str)
             .ok_or(ParseError::InvalidDuration(d_str.to_string()))?;
 
-        let minutes = matches.get(2).map_or("0", |m| m.as_str()).parse().unwrap();
-        let seconds = matches[3].parse().unwrap();
-        let milliseconds = matches[4].parse().unwrap();
+        let (hours, minutes) = if matches[1].is_empty() {
+            (0, 0)
+        } else {
+            Self::parse_hm(&matches[1])
+        };
 
-        Ok(Self::from_m_s_ms(minutes, seconds, milliseconds))
+        let seconds = matches[2].parse().unwrap();
+        let milliseconds = Self::parse_milli(&matches[3]);
+
+        Ok(Self::from_hms_ms(hours, minutes, seconds, milliseconds))
     }
 }
 
@@ -166,18 +187,37 @@ mod tests {
 
     #[test]
     fn duration_parse() {
-        assert_eq!(Duration::parse("1:22.327").unwrap(), Duration::from_m_s_ms(1, 22, 327));
-        assert_eq!(Duration::parse("1:41.269").unwrap(), Duration::from_m_s_ms(1, 41, 269));
-        assert_eq!(Duration::parse("59.037").unwrap(), Duration::from_m_s_ms(0, 59, 037));
-        assert_eq!(Duration::parse("2:01.341").unwrap(), Duration::from_m_s_ms(2, 1, 341));
+        let m_s_ms = |m, s, ms| Duration::from_m_s_ms(m, s, ms);
+        let hms_ms = |h, m, s, ms| Duration::from_hms_ms(h, m, s, ms);
+
+        let pairs = Vec::from([
+            ("1:22.327", m_s_ms(1, 22, 327)),
+            ("1:41.269", m_s_ms(1, 41, 269)),
+            ("59.037", m_s_ms(0, 59, 037)),
+            ("2:01.341", m_s_ms(2, 1, 341)),
+            ("10.1", m_s_ms(0, 10, 100)),
+            ("1:22.327", m_s_ms(1, 22, 327)),
+            ("1:28:12.058", hms_ms(1, 28, 12, 58)),
+            ("33:17.667", m_s_ms(33, 17, 667)),
+            ("2:02:53.7", hms_ms(2, 2, 53, 700)),
+            ("0.4", m_s_ms(0, 0, 400)),
+            ("1.882", m_s_ms(0, 1, 882)),
+            ("1:08.436", m_s_ms(1, 8, 436)),
+            ("40.111", m_s_ms(0, 40, 111)),
+        ]);
+
+        for (dur_str, dur) in pairs.iter() {
+            assert_eq!(&Duration::parse(dur_str).unwrap(), dur);
+        }
     }
 
     #[test]
     fn duration_parse_err() {
-        assert!(matches!(Duration::parse("90.203").unwrap_err(), ParseError::InvalidDuration(_)));
-        assert!(matches!(Duration::parse("10.1").unwrap_err(), ParseError::InvalidDuration(_)));
-        assert!(matches!(Duration::parse("40.1111").unwrap_err(), ParseError::InvalidDuration(_)));
-        assert!(matches!(Duration::parse("").unwrap_err(), ParseError::InvalidDuration(_)));
+        let bad_dur_strings = Vec::from(["90.203", "40.1111", ""]);
+
+        for bad_dur_str in bad_dur_strings {
+            assert!(matches!(Duration::parse(bad_dur_str).unwrap_err(), ParseError::InvalidDuration(_)));
+        }
     }
 
     #[test]
