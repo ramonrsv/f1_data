@@ -379,28 +379,21 @@ impl RaceTime {
     }
 
     fn parse_from_proxy(proxy: &RaceTimeProxy) -> Result<Self, ParseError> {
-        let total = Duration::milliseconds(proxy.millis as i64);
-
         if proxy.time.is_empty() {
-            return Err(ParseError::InvalidRaceTime("Unexpected empty Time.time".to_string()));
+            return Err(ParseError::InvalidRaceTime("Unexpected empty 'time'".to_string()));
         }
 
         let has_delta = proxy.time.starts_with('+');
 
+        let total = Duration::milliseconds(proxy.millis as i64);
         let delta = Duration::parse(if has_delta { &proxy.time[1..] } else { &proxy.time })?;
 
         if !has_delta && (total != delta) {
-            return Err(ParseError::InvalidRaceTime(format!(
-                "Non-delta Time.time must match Time.millis: {:?}",
-                proxy
-            )));
+            return Err(ParseError::InvalidRaceTime(format!("Non-delta 'time' must match 'millis': {:?}", proxy)));
         }
 
         if delta > total {
-            return Err(ParseError::InvalidRaceTime(format!(
-                "Delta Time.time must be less than Time.millis: {:?}",
-                proxy
-            )));
+            return Err(ParseError::InvalidRaceTime(format!("Delta 'time' must be less than 'millis': {:?}", proxy)));
         }
 
         Ok(if has_delta {
