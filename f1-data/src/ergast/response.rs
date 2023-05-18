@@ -21,7 +21,7 @@ pub struct MrData {
     pub series: String,
     pub url: Url,
     #[serde(flatten)]
-    pub page: Page,
+    pub pagination: Pagination,
     #[serde(rename = "SeasonTable")]
     pub season_table: Option<SeasonTable>,
     #[serde(rename = "DriverTable")]
@@ -38,7 +38,7 @@ pub struct MrData {
 
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
-pub struct Page {
+pub struct Pagination {
     #[serde_as(as = "DisplayFromStr")]
     pub limit: u32,
     #[serde_as(as = "DisplayFromStr")]
@@ -553,15 +553,15 @@ mod tests {
     }
 
     #[test]
-    fn page_deserialize() {
-        const REF_PAGE: Page = Page {
+    fn pagination_deserialize() {
+        const REF_PAGINATION: Pagination = Pagination {
             limit: 30,
             offset: 0,
             total: 16,
         };
 
         assert_eq!(
-            serde_json::from_str::<Page>(
+            serde_json::from_str::<Pagination>(
                 r#"{
                 "limit": "30",
                 "offset": "0",
@@ -569,7 +569,7 @@ mod tests {
               }"#
             )
             .unwrap(),
-            REF_PAGE
+            REF_PAGINATION
         );
 
         assert_eq!(
@@ -585,8 +585,8 @@ mod tests {
               }"#
             )
             .unwrap()
-            .page,
-            REF_PAGE
+            .pagination,
+            REF_PAGINATION
         );
     }
 
