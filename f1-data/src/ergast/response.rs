@@ -20,12 +20,8 @@ pub struct MrData {
     pub xmlns: String,
     pub series: String,
     pub url: Url,
-    #[serde_as(as = "DisplayFromStr")]
-    pub limit: u32,
-    #[serde_as(as = "DisplayFromStr")]
-    pub offset: u32,
-    #[serde_as(as = "DisplayFromStr")]
-    pub total: u32,
+    #[serde(flatten)]
+    pub page: Page,
     #[serde(rename = "SeasonTable")]
     pub season_table: Option<SeasonTable>,
     #[serde(rename = "DriverTable")]
@@ -38,6 +34,17 @@ pub struct MrData {
     pub race_table: Option<RaceTable>,
     #[serde(rename = "StatusTAble")]
     pub status_table: Option<StatusTable>,
+}
+
+#[serde_as]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
+pub struct Page {
+    #[serde_as(as = "DisplayFromStr")]
+    pub limit: u32,
+    #[serde_as(as = "DisplayFromStr")]
+    pub offset: u32,
+    #[serde_as(as = "DisplayFromStr")]
+    pub total: u32,
 }
 
 #[derive(Deserialize, PartialEq, Clone, Debug)]
@@ -543,6 +550,44 @@ mod tests {
             assert!(!race.results.as_ref().unwrap().is_empty());
             assert_eq!(race, *RACE_2023_4_RACE_RESULTS);
         }
+    }
+
+    #[test]
+    fn page_deserialize() {
+        const REF_PAGE: Page = Page {
+            limit: 30,
+            offset: 0,
+            total: 16,
+        };
+
+        assert_eq!(
+            serde_json::from_str::<Page>(
+                r#"{
+                "limit": "30",
+                "offset": "0",
+                "total": "16"
+              }"#
+            )
+            .unwrap(),
+            REF_PAGE
+        );
+
+        assert_eq!(
+            serde_json::from_str::<MrData>(
+                r#"{
+                "xmlns": "http://ergast.com/mrd/1.5",
+                "series": "f1",
+                "url": "http://ergast.com/api/f1/races.json",
+                "limit": "30",
+                "offset": "0",
+                "total": "16",
+                "RaceTable": { "Races": [] }
+              }"#
+            )
+            .unwrap()
+            .page,
+            REF_PAGE
+        );
     }
 
     #[test]
