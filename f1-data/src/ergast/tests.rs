@@ -1087,8 +1087,8 @@ pub static RACE_2023_4_QUALIFYING_RESULTS: Lazy<Race> = Lazy::new(|| Race {
     ..RACE_2023_4.clone()
 });
 
-// RacesTimes, used in print, results
-// ----------------------------------
+// RacesTimes, used in sprint, results
+// -----------------------------------
 
 pub const RACE_TIME_1950_4_P1_STR: &str = r#"{
     "millis": "7373700",
