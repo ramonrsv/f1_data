@@ -22,18 +22,8 @@ pub struct MrData {
     pub url: Url,
     #[serde(flatten)]
     pub pagination: Pagination,
-    #[serde(rename = "SeasonTable")]
-    pub season_table: Option<SeasonTable>,
-    #[serde(rename = "DriverTable")]
-    pub driver_table: Option<DriverTable>,
-    #[serde(rename = "ConstructorTable")]
-    pub constructor_table: Option<ConstructorTable>,
-    #[serde(rename = "CircuitTable")]
-    pub circuit_table: Option<CircuitTable>,
-    #[serde(rename = "RaceTable")]
-    pub race_table: Option<RaceTable>,
-    #[serde(rename = "StatusTable")]
-    pub status_table: Option<StatusTable>,
+    #[serde(flatten)]
+    pub table: Table,
 }
 
 #[serde_as]
@@ -64,6 +54,15 @@ impl Pagination {
     }
 }
 
+#[derive(Deserialize, PartialEq, Clone, Debug)]
+pub enum Table {
+    SeasonTable(SeasonTable),
+    DriverTable(DriverTable),
+    ConstructorTable(ConstructorTable),
+    CircuitTable(CircuitTable),
+    RaceTable(RaceTable),
+    StatusTable(StatusTable),
+}
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct SeasonTable {
     #[serde(rename = "Seasons")]
