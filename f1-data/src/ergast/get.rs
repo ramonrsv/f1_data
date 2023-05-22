@@ -325,6 +325,25 @@ mod tests {
         assert_eq!(actual_results[19], expected_results[2]);
     }
 
+    // Resource::FinishingStatus
+    // -------------------------
+
+    #[test]
+    fn get_finishing_status_2022() {
+        let resp: Response = get_into_json(Resource::FinishingStatus(Filters {
+            year: Some(2022),
+            ..Filters::none()
+        }));
+
+        assert!(resp.mr_data.status_table.is_some());
+        assert!(!resp.mr_data.status_table.as_ref().unwrap().status.is_empty());
+
+        assert_eq!(
+            resp.mr_data.status_table.as_ref().unwrap().status[0..STATUS_TABLE_2022.status.len()],
+            STATUS_TABLE_2022.status[..]
+        );
+    }
+
     // Pagination
     // ----------
 

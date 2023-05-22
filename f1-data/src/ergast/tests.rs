@@ -1520,3 +1520,83 @@ pub static RACE_2023_4_RACE_RESULTS: Lazy<Race> = Lazy::new(|| Race {
     ]),
     ..RACE_2023_4.clone()
 });
+
+// http://ergast.com/mrd/methods/status/
+// -------------------------------------
+
+pub const STATUS_2022_FINISHED_STR: &str = formatcp!(
+    r#"{{
+    "statusId": "1",
+    "count": "279",
+    "status": "Finished"
+  }}"#
+);
+
+pub const STATUS_2022_ACCIDENT_STR: &str = formatcp!(
+    r#"{{
+    "statusId": "3",
+    "count": "8",
+    "status": "Accident"
+  }}"#
+);
+
+pub const STATUS_2022_COLLISION_STR: &str = formatcp!(
+    r#"{{
+    "statusId": "4",
+    "count": "10",
+    "status": "Collision"
+  }}"#
+);
+
+pub const STATUS_2022_ENGINE_STR: &str = formatcp!(
+    r#"{{
+    "statusId": "5",
+    "count": "7",
+    "status": "Engine"
+  }}"#
+);
+
+pub const STATUS_2022_FINISHED: Lazy<Status> = Lazy::new(|| Status {
+    status_id: 1,
+    count: 279,
+    status: "Finished".to_string(),
+});
+
+pub const STATUS_2022_ACCIDENT: Lazy<Status> = Lazy::new(|| Status {
+    status_id: 3,
+    count: 8,
+    status: "Accident".to_string(),
+});
+
+pub const STATUS_2022_COLLISION: Lazy<Status> = Lazy::new(|| Status {
+    status_id: 4,
+    count: 10,
+    status: "Collision".to_string(),
+});
+
+pub const STATUS_2022_ENGINE: Lazy<Status> = Lazy::new(|| Status {
+    status_id: 5,
+    count: 7,
+    status: "Engine".to_string(),
+});
+
+pub const STATUS_TABLE_2022_STR: &str = formatcp!(
+    r#"{{
+    "season": "2022",
+    "Status": [
+        {STATUS_2022_FINISHED_STR},
+        {STATUS_2022_ACCIDENT_STR},
+        {STATUS_2022_COLLISION_STR},
+        {STATUS_2022_ENGINE_STR}
+    ]
+  }}"#
+);
+
+pub static STATUS_TABLE_2022: Lazy<StatusTable> = Lazy::new(|| StatusTable {
+    status: vec![
+        STATUS_2022_FINISHED.clone(),
+        STATUS_2022_ACCIDENT.clone(),
+        STATUS_2022_COLLISION.clone(),
+        STATUS_2022_ENGINE.clone(),
+    ],
+});

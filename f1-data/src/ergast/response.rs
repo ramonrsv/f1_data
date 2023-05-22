@@ -32,7 +32,7 @@ pub struct MrData {
     pub circuit_table: Option<CircuitTable>,
     #[serde(rename = "RaceTable")]
     pub race_table: Option<RaceTable>,
-    #[serde(rename = "StatusTAble")]
+    #[serde(rename = "StatusTable")]
     pub status_table: Option<StatusTable>,
 }
 
@@ -567,6 +567,14 @@ mod tests {
             assert!(!race.results.as_ref().unwrap().is_empty());
             assert_eq!(race, *RACE_2023_4_RACE_RESULTS);
         }
+    }
+
+    #[test]
+    fn finishing_status() {
+        let status_table: StatusTable = serde_json::from_str(STATUS_TABLE_2022_STR).unwrap();
+
+        assert!(!status_table.status.is_empty());
+        assert_eq!(&status_table.status, &STATUS_TABLE_2022.status);
     }
 
     #[test]
