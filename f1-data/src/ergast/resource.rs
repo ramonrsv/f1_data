@@ -5,7 +5,7 @@ use crate::ergast::response::Pagination;
 /// Each variant of the [`Resource`] enumeration represents a given resource that can be requested
 /// from the Ergast API, and it contains any options or filters that can be applied to the request.
 // @todo Add examples once the `get_*` API has been settled
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Resource {
     /// Get a list of seasons currently supported by the API. Each season listed in a response is
     /// uniquely identified by the year it took place in, returned in
@@ -207,7 +207,7 @@ impl Resource {
 ///         /* ... */
 /// );
 /// ```
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Filters {
     /// Restrict responses to a given championship season, identified by the year it took place in,
     /// e.g. `2023` for the _2023 Formula One World Championship_. See [`Resource::SeasonList`] to

@@ -1,10 +1,18 @@
 use serde::de::DeserializeOwned;
 use ureq;
 
-use crate::ergast::resource::Resource;
+use crate::ergast::resource::{Page, Resource};
 
 fn get_into_json<T: DeserializeOwned>(request: Resource) -> T {
     ureq::request_url("GET", &request.to_url())
+        .call()
+        .unwrap()
+        .into_json()
+        .unwrap()
+}
+
+fn get_into_json_with<T: DeserializeOwned>(request: Resource, page: Page) -> T {
+    ureq::request_url("GET", &request.to_url_with(page))
         .call()
         .unwrap()
         .into_json()
@@ -315,5 +323,70 @@ mod tests {
 
         assert_eq!(actual_results[0..1], expected_results[0..1]);
         assert_eq!(actual_results[19], expected_results[2]);
+    }
+
+    // Pagination
+    // ----------
+
+    #[test]
+    #[ignore]
+    fn pagination() {
+        let req = Resource::RaceResults(Filters {
+            year: Some(2023),
+            round: Some(4),
+            ..Filters::none()
+        });
+
+        let expected = &RACE_2023_4_RACE_RESULTS;
+        let expected_results = expected.results.as_ref().unwrap();
+
+        let get_actual_results = |resp: &Response| {
+            resp.mr_data.race_table.as_ref().unwrap().races[0]
+                .results
+                .as_ref()
+                .unwrap()
+                .clone()
+        };
+
+        {
+            let resp: Response = get_into_json(req.clone());
+            assert!(resp.mr_data.pagination.is_last_page());
+            assert_eq!(resp.mr_data.pagination.limit, 30);
+            assert_eq!(resp.mr_data.pagination.offset, 0);
+            assert_eq!(resp.mr_data.pagination.total, 20);
+
+            let actual_results = get_actual_results(&resp);
+
+            assert_eq!(actual_results.len(), 20);
+            assert_eq!(actual_results[0..1], expected_results[0..1]);
+            assert_eq!(actual_results[19], expected_results[2]);
+        }
+
+        {
+            let mut resp: Response = get_into_json_with(req.clone(), Page::with_limit(5));
+            assert!(!resp.mr_data.pagination.is_last_page());
+
+            let actual_results = get_actual_results(&resp);
+            assert_eq!(actual_results[0..1], expected_results[0..1]);
+
+            let mut current_offset: u32 = 0;
+
+            while !resp.mr_data.pagination.is_last_page() {
+                assert_eq!(resp.mr_data.pagination.limit, 5);
+                assert_eq!(resp.mr_data.pagination.offset, current_offset);
+                assert_eq!(resp.mr_data.pagination.total, 20);
+
+                assert_eq!(get_actual_results(&resp).len(), 5);
+
+                resp = get_into_json_with(req.clone(), resp.mr_data.pagination.next_page().unwrap().into());
+
+                current_offset += 5;
+            }
+
+            let actual_results = get_actual_results(&resp);
+            assert_eq!(actual_results[4], expected_results[2]);
+
+            assert!(resp.mr_data.pagination.next_page().is_none());
+        }
     }
 }
