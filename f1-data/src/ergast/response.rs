@@ -47,6 +47,23 @@ pub struct Pagination {
     pub total: u32,
 }
 
+impl Pagination {
+    pub fn is_last_page(&self) -> bool {
+        (self.offset + self.limit) >= self.total
+    }
+
+    pub fn next_page(&self) -> Option<Self> {
+        if self.is_last_page() {
+            None
+        } else {
+            Some(Self {
+                offset: self.offset + self.limit,
+                ..*self
+            })
+        }
+    }
+}
+
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct SeasonTable {
     #[serde(rename = "Seasons")]
@@ -550,6 +567,56 @@ mod tests {
             assert!(!race.results.as_ref().unwrap().is_empty());
             assert_eq!(race, *RACE_2023_4_RACE_RESULTS);
         }
+    }
+
+    #[test]
+    fn pagination_is_last_page() {
+        assert!(Pagination {
+            limit: 30,
+            offset: 0,
+            total: 16
+        }
+        .is_last_page());
+
+        assert!(Pagination {
+            limit: 10,
+            offset: 5,
+            total: 15
+        }
+        .is_last_page());
+
+        assert!(!Pagination {
+            limit: 10,
+            offset: 4,
+            total: 15
+        }
+        .is_last_page());
+    }
+
+    #[test]
+    fn pagination_next_page() {
+        assert_eq!(
+            Pagination {
+                limit: 10,
+                offset: 0,
+                total: 15
+            }
+            .next_page()
+            .unwrap(),
+            Pagination {
+                limit: 10,
+                offset: 10,
+                total: 15
+            }
+        );
+
+        assert!(Pagination {
+            limit: 10,
+            offset: 10,
+            total: 15
+        }
+        .next_page()
+        .is_none());
     }
 
     #[test]

@@ -1,5 +1,7 @@
 use url::Url;
 
+use crate::ergast::response::Pagination;
+
 /// Each variant of the [`Resource`] enumeration represents a given resource that can be requested
 /// from the Ergast API, and it contains any options or filters that can be applied to the request.
 // @todo Add examples once the `get_*` API has been settled
@@ -169,6 +171,15 @@ impl Resource {
         ))
         .unwrap()
     }
+
+    pub fn to_url_with(&self, page: Page) -> Url {
+        let mut url = self.to_url();
+
+        url.query_pairs_mut()
+            .extend_pairs([("limit", page.limit.to_string()), ("offset", page.offset.to_string())]);
+
+        url
+    }
 }
 
 /// Can be used to filter a given [`Resource`] for the Ergast API by a number of fields, all of
@@ -319,6 +330,57 @@ impl Filters {
     }
 }
 
+#[derive(PartialEq, Debug)]
+pub struct Page {
+    limit: u32,
+    offset: u32,
+}
+
+impl Page {
+    const DEFAULT_LIMIT: u32 = 30;
+    const MAX_LIMIT: u32 = 1000;
+
+    pub fn with(limit: u32, offset: u32) -> Self {
+        assert!(limit <= Self::MAX_LIMIT);
+
+        Self { limit, offset }
+    }
+
+    pub fn with_offset(offset: u32) -> Self {
+        Self::with(Self::DEFAULT_LIMIT, offset)
+    }
+
+    pub fn with_limit(limit: u32) -> Self {
+        Self::with(limit, 0)
+    }
+
+    pub fn with_max_limit() -> Self {
+        Self::with_limit(Self::MAX_LIMIT)
+    }
+
+    pub fn limit(&self) -> u32 {
+        self.limit
+    }
+
+    pub fn offset(&self) -> u32 {
+        self.offset
+    }
+
+    pub fn next(&self) -> Self {
+        Self {
+            offset: self.offset + self.limit,
+            ..*self
+        }
+    }
+}
+
+impl From<Pagination> for Page {
+    /// Create an instance of [`Page`] from one of [`Pagination`]
+    fn from(pagination: Pagination) -> Self {
+        Self::with(pagination.limit, pagination.offset)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -455,6 +517,24 @@ mod tests {
     }
 
     #[test]
+    fn to_url_with_page() {
+        assert_eq!(
+            Resource::DriverInfo(Filters::none()).to_url_with(Page::with(10, 5)),
+            url("/drivers.json?limit=10&offset=5")
+        );
+
+        assert_eq!(
+            Resource::DriverInfo(Filters::none()).to_url_with(Page::with_offset(10)),
+            url("/drivers.json?limit=30&offset=10")
+        );
+
+        assert_eq!(
+            Resource::DriverInfo(Filters::none()).to_url_with(Page::with_max_limit()),
+            url("/drivers.json?limit=1000&offset=0")
+        );
+    }
+
+    #[test]
     #[should_panic]
     fn resource_to_url_round_without_year_filter_panics() {
         Resource::RaceSchedule(Filters {
@@ -510,5 +590,51 @@ mod tests {
 
         assert!(!formatted_pairs.is_empty());
         assert_eq!(formatted_pairs[0].0, "");
+    }
+
+    #[test]
+    fn page_construction() {
+        assert_eq!(Page::with(20, 5), Page { limit: 20, offset: 5 });
+        assert_eq!(Page::with_limit(20), Page { limit: 20, offset: 0 });
+
+        assert_eq!(
+            Page::with_offset(5),
+            Page {
+                limit: Page::DEFAULT_LIMIT,
+                offset: 5
+            }
+        );
+
+        assert_eq!(
+            Page::with_max_limit(),
+            Page {
+                limit: Page::MAX_LIMIT,
+                offset: 0
+            }
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn page_construction_panics() {
+        Page::with_limit(2000);
+    }
+
+    #[test]
+    fn page_next() {
+        assert_eq!(Page::with(30, 0).next(), Page::with(30, 30));
+        assert_eq!(Page::with(30, 10).next(), Page::with(30, 40));
+    }
+
+    #[test]
+    fn page_from_pagination() {
+        assert_eq!(
+            Page::from(Pagination {
+                limit: 30,
+                offset: 10,
+                total: 100
+            }),
+            Page::with(30, 10)
+        );
     }
 }
