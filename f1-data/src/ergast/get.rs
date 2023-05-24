@@ -375,13 +375,18 @@ mod tests {
             ..Filters::none()
         }));
 
-        match resp.mr_data.table {
-            Table::StatusTable(status_table) => {
-                assert!(!status_table.status.is_empty());
-                assert_eq!(status_table.status[0..STATUS_TABLE_2022.status.len()], STATUS_TABLE_2022.status[..]);
-            }
-            _ => assert!(false, "Expected StatusTable variant"),
-        }
+        let actual_status_table = match resp.mr_data.table {
+            Table::StatusTable(status_table) => status_table,
+            _ => panic!("Expected StatusTable variant"),
+        };
+
+        let expected_status_table = match &*STATUS_TABLE_2022 {
+            Table::StatusTable(ref status_table) => status_table,
+            _ => panic!("Expected StatusTable variant"),
+        };
+
+        assert!(!actual_status_table.status.is_empty());
+        assert_eq!(actual_status_table.status[0..expected_status_table.status.len()], expected_status_table.status[..]);
     }
 
     // Pagination

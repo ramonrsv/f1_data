@@ -54,21 +54,25 @@ pub static SEASON_2023: Lazy<Season> = Lazy::new(|| Season {
 
 pub const SEASON_TABLE_STR: &str = formatcp!(
     r#"{{
-    "Seasons": [
-        {SEASON_1950_STR},
-        {SEASON_1979_STR},
-        {SEASON_2000_STR},
-        {SEASON_2023_STR}
-    ]}}"#
+    "SeasonTable": {{
+        "Seasons": [
+            {SEASON_1950_STR},
+            {SEASON_1979_STR},
+            {SEASON_2000_STR},
+            {SEASON_2023_STR}
+        ]
+    }}}}"#
 );
 
-pub static SEASON_TABLE: Lazy<SeasonTable> = Lazy::new(|| SeasonTable {
-    seasons: vec![
-        SEASON_1950.clone(),
-        SEASON_1979.clone(),
-        SEASON_2000.clone(),
-        SEASON_2023.clone(),
-    ],
+pub static SEASON_TABLE: Lazy<Table> = Lazy::new(|| {
+    Table::SeasonTable(SeasonTable {
+        seasons: vec![
+            SEASON_1950.clone(),
+            SEASON_1979.clone(),
+            SEASON_2000.clone(),
+            SEASON_2023.clone(),
+        ],
+    })
 });
 
 // http://ergast.com/mrd/methods/drivers/
@@ -315,35 +319,39 @@ pub static DRIVER_LECLERC: Lazy<Driver> = Lazy::new(|| Driver {
 
 pub const DRIVER_TABLE_STR: &str = formatcp!(
     r#"{{
-    "Drivers": [
-        {DRIVER_ABATE_STR},
-        {DRIVER_MICHAEL_STR},
-        {DRIVER_JOS_STR},
-        {DRIVER_RALF_STR},
-        {DRIVER_WILSON_STR},
-        {DRIVER_KIMI_STR},
-        {DRIVER_ALONSO_STR},
-        {DRIVER_PEREZ_STR},
-        {DRIVER_DE_VRIES_STR},
-        {DRIVER_MAX_STR},
-        {DRIVER_LECLERC_STR}
-    ]}}"#
+    "DriverTable": {{
+        "Drivers": [
+            {DRIVER_ABATE_STR},
+            {DRIVER_MICHAEL_STR},
+            {DRIVER_JOS_STR},
+            {DRIVER_RALF_STR},
+            {DRIVER_WILSON_STR},
+            {DRIVER_KIMI_STR},
+            {DRIVER_ALONSO_STR},
+            {DRIVER_PEREZ_STR},
+            {DRIVER_DE_VRIES_STR},
+            {DRIVER_MAX_STR},
+            {DRIVER_LECLERC_STR}
+        ]
+    }}}}"#
 );
 
-pub static DRIVER_TABLE: Lazy<DriverTable> = Lazy::new(|| DriverTable {
-    drivers: vec![
-        DRIVER_ABATE.clone(),
-        DRIVER_MICHAEL.clone(),
-        DRIVER_JOS.clone(),
-        DRIVER_RALF.clone(),
-        DRIVER_WILSON.clone(),
-        DRIVER_KIMI.clone(),
-        DRIVER_ALONSO.clone(),
-        DRIVER_PEREZ.clone(),
-        DRIVER_DE_VRIES.clone(),
-        DRIVER_MAX.clone(),
-        DRIVER_LECLERC.clone(),
-    ],
+pub static DRIVER_TABLE: Lazy<Table> = Lazy::new(|| {
+    Table::DriverTable(DriverTable {
+        drivers: vec![
+            DRIVER_ABATE.clone(),
+            DRIVER_MICHAEL.clone(),
+            DRIVER_JOS.clone(),
+            DRIVER_RALF.clone(),
+            DRIVER_WILSON.clone(),
+            DRIVER_KIMI.clone(),
+            DRIVER_ALONSO.clone(),
+            DRIVER_PEREZ.clone(),
+            DRIVER_DE_VRIES.clone(),
+            DRIVER_MAX.clone(),
+            DRIVER_LECLERC.clone(),
+        ],
+    })
 });
 
 // http://ergast.com/mrd/methods/constructors/
@@ -435,25 +443,29 @@ pub static CONSTRUCTOR_RED_BULL: Lazy<Constructor> = Lazy::new(|| Constructor {
 
 pub const CONSTRUCTOR_TABLE_STR: &str = formatcp!(
     r#"{{
-    "Constructors": [
-        {CONSTRUCTOR_MCLAREN_STR},
-        {CONSTRUCTOR_FERRARI_STR},
-        {CONSTRUCTOR_WILLIAMS_STR},
-        {CONSTRUCTOR_MINARDI_STR},
-        {CONSTRUCTOR_ALPHA_TAURI_STR},
-        {CONSTRUCTOR_RED_BULL_STR}
-    ]}}"#
+    "ConstructorTable": {{
+        "Constructors": [
+            {CONSTRUCTOR_MCLAREN_STR},
+            {CONSTRUCTOR_FERRARI_STR},
+            {CONSTRUCTOR_WILLIAMS_STR},
+            {CONSTRUCTOR_MINARDI_STR},
+            {CONSTRUCTOR_ALPHA_TAURI_STR},
+            {CONSTRUCTOR_RED_BULL_STR}
+        ]
+    }}}}"#
 );
 
-pub static CONSTRUCTOR_TABLE: Lazy<ConstructorTable> = Lazy::new(|| ConstructorTable {
-    constructors: vec![
-        CONSTRUCTOR_MCLAREN.clone(),
-        CONSTRUCTOR_FERRARI.clone(),
-        CONSTRUCTOR_WILLIAMS.clone(),
-        CONSTRUCTOR_MINARDI.clone(),
-        CONSTRUCTOR_ALPHA_TAURI.clone(),
-        CONSTRUCTOR_RED_BULL.clone(),
-    ],
+pub static CONSTRUCTOR_TABLE: Lazy<Table> = Lazy::new(|| {
+    Table::ConstructorTable(ConstructorTable {
+        constructors: vec![
+            CONSTRUCTOR_MCLAREN.clone(),
+            CONSTRUCTOR_FERRARI.clone(),
+            CONSTRUCTOR_WILLIAMS.clone(),
+            CONSTRUCTOR_MINARDI.clone(),
+            CONSTRUCTOR_ALPHA_TAURI.clone(),
+            CONSTRUCTOR_RED_BULL.clone(),
+        ],
+    })
 });
 
 // http://ergast.com/mrd/methods/circuits/
@@ -557,21 +569,25 @@ pub static CIRCUIT_BAKU: Lazy<Circuit> = Lazy::new(|| Circuit {
 
 pub const CIRCUIT_TABLE_STR: &str = formatcp!(
     r#"{{
-    "Circuits": [
-        {CIRCUIT_SPA_STR},
-        {CIRCUIT_SILVERSTONE_STR},
-        {CIRCUIT_IMOLA_STR},
-        {CIRCUIT_BAKU_STR}
-    ]}}"#
+    "CircuitTable": {{
+        "Circuits": [
+            {CIRCUIT_SPA_STR},
+            {CIRCUIT_SILVERSTONE_STR},
+            {CIRCUIT_IMOLA_STR},
+            {CIRCUIT_BAKU_STR}
+        ]
+    }}}}"#
 );
 
-pub static CIRCUIT_TABLE: Lazy<CircuitTable> = Lazy::new(|| CircuitTable {
-    circuits: vec![
-        CIRCUIT_SPA.clone(),
-        CIRCUIT_SILVERSTONE.clone(),
-        CIRCUIT_IMOLA.clone(),
-        CIRCUIT_BAKU.clone(),
-    ],
+pub static CIRCUIT_TABLE: Lazy<Table> = Lazy::new(|| {
+    Table::CircuitTable(CircuitTable {
+        circuits: vec![
+            CIRCUIT_SPA.clone(),
+            CIRCUIT_SILVERSTONE.clone(),
+            CIRCUIT_IMOLA.clone(),
+            CIRCUIT_BAKU.clone(),
+        ],
+    })
 });
 
 // Races, used in schedule, qualifying, sprint, results
@@ -897,25 +913,29 @@ pub const RACE_2023_4_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
 
 pub const RACE_TABLE_SCHEDULE_STR: &str = formatcp!(
     r#"{{
-    "Races": [
-        {RACE_1950_1_SCHEDULE_STR},
-        {RACE_2003_4_SCHEDULE_STR},
-        {RACE_2015_11_SCHEDULE_STR},
-        {RACE_2021_12_SCHEDULE_STR},
-        {RACE_2022_4_SCHEDULE_STR},
-        {RACE_2023_4_SCHEDULE_STR}
-    ]}}"#
+    "RaceTable": {{
+        "Races": [
+            {RACE_1950_1_SCHEDULE_STR},
+            {RACE_2003_4_SCHEDULE_STR},
+            {RACE_2015_11_SCHEDULE_STR},
+            {RACE_2021_12_SCHEDULE_STR},
+            {RACE_2022_4_SCHEDULE_STR},
+            {RACE_2023_4_SCHEDULE_STR}
+        ]
+    }}}}"#
 );
 
-pub static RACE_TABLE_SCHEDULE: Lazy<RaceTable> = Lazy::new(|| RaceTable {
-    races: vec![
-        RACE_1950_1_SCHEDULE.clone(),
-        RACE_2003_4_SCHEDULE.clone(),
-        RACE_2015_11_SCHEDULE.clone(),
-        RACE_2021_12_SCHEDULE.clone(),
-        RACE_2022_4_SCHEDULE.clone(),
-        RACE_2023_4_SCHEDULE.clone(),
-    ],
+pub static RACE_TABLE_SCHEDULE: Lazy<Table> = Lazy::new(|| {
+    Table::RaceTable(RaceTable {
+        races: vec![
+            RACE_1950_1_SCHEDULE.clone(),
+            RACE_2003_4_SCHEDULE.clone(),
+            RACE_2015_11_SCHEDULE.clone(),
+            RACE_2021_12_SCHEDULE.clone(),
+            RACE_2022_4_SCHEDULE.clone(),
+            RACE_2023_4_SCHEDULE.clone(),
+        ],
+    })
 });
 
 // http://ergast.com/mrd/methods/qualifying/
@@ -1582,21 +1602,23 @@ pub const STATUS_2022_ENGINE: Lazy<Status> = Lazy::new(|| Status {
 
 pub const STATUS_TABLE_2022_STR: &str = formatcp!(
     r#"{{
-    "season": "2022",
-    "Status": [
-        {STATUS_2022_FINISHED_STR},
-        {STATUS_2022_ACCIDENT_STR},
-        {STATUS_2022_COLLISION_STR},
-        {STATUS_2022_ENGINE_STR}
-    ]
-  }}"#
+    "StatusTable": {{
+        "Status": [
+            {STATUS_2022_FINISHED_STR},
+            {STATUS_2022_ACCIDENT_STR},
+            {STATUS_2022_COLLISION_STR},
+            {STATUS_2022_ENGINE_STR}
+        ]
+    }}}}"#
 );
 
-pub static STATUS_TABLE_2022: Lazy<StatusTable> = Lazy::new(|| StatusTable {
-    status: vec![
-        STATUS_2022_FINISHED.clone(),
-        STATUS_2022_ACCIDENT.clone(),
-        STATUS_2022_COLLISION.clone(),
-        STATUS_2022_ENGINE.clone(),
-    ],
+pub static STATUS_TABLE_2022: Lazy<Table> = Lazy::new(|| {
+    Table::StatusTable(StatusTable {
+        status: vec![
+            STATUS_2022_FINISHED.clone(),
+            STATUS_2022_ACCIDENT.clone(),
+            STATUS_2022_COLLISION.clone(),
+            STATUS_2022_ENGINE.clone(),
+        ],
+    })
 });
