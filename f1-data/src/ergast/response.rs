@@ -156,6 +156,18 @@ pub struct Race {
     pub circuit: Circuit,
     pub date: Date,
     pub time: Option<Time>,
+    #[serde(flatten)]
+    pub schedule: Schedule,
+    #[serde(rename = "QualifyingResults")]
+    pub qualifying_results: Option<Vec<QualifyingResult>>,
+    #[serde(rename = "SprintResults")]
+    pub sprint_results: Option<Vec<SprintResult>>,
+    #[serde(rename = "Results")]
+    pub results: Option<Vec<RaceResult>>,
+}
+
+#[derive(Deserialize, PartialEq, Clone, Debug)]
+pub struct Schedule {
     #[serde(rename = "FirstPractice")]
     pub first_practice: Option<DateTime>,
     #[serde(rename = "SecondPractice")]
@@ -166,12 +178,6 @@ pub struct Race {
     pub qualifying: Option<DateTime>,
     #[serde(rename = "Sprint")]
     pub sprint: Option<DateTime>,
-    #[serde(rename = "QualifyingResults")]
-    pub qualifying_results: Option<Vec<QualifyingResult>>,
-    #[serde(rename = "SprintResults")]
-    pub sprint_results: Option<Vec<SprintResult>>,
-    #[serde(rename = "Results")]
-    pub results: Option<Vec<RaceResult>>,
 }
 
 #[serde_as]

@@ -682,11 +682,13 @@ pub const RACE_NONE: Lazy<Race> = Lazy::new(|| Race {
     },
     date: Date::MIN,
     time: None,
-    first_practice: None,
-    second_practice: None,
-    third_practice: None,
-    qualifying: None,
-    sprint: None,
+    schedule: Schedule {
+        first_practice: None,
+        second_practice: None,
+        third_practice: None,
+        qualifying: None,
+        sprint: None,
+    },
     qualifying_results: None,
     sprint_results: None,
     results: None,
@@ -852,62 +854,71 @@ pub const RACE_2003_4_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_2003_4.c
 pub const RACE_2015_11_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_2015_11.clone() });
 
 pub const RACE_2021_12_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
-    first_practice: Some(DateTime {
-        date: date!(2021 - 08 - 27),
-        time: None,
-    }),
-    second_practice: Some(DateTime {
-        date: date!(2021 - 08 - 27),
-        time: None,
-    }),
-    third_practice: Some(DateTime {
-        date: date!(2021 - 08 - 28),
-        time: None,
-    }),
-    qualifying: Some(DateTime {
-        date: date!(2021 - 08 - 28),
-        time: None,
-    }),
+    schedule: Schedule {
+        first_practice: Some(DateTime {
+            date: date!(2021 - 08 - 27),
+            time: None,
+        }),
+        second_practice: Some(DateTime {
+            date: date!(2021 - 08 - 27),
+            time: None,
+        }),
+        third_practice: Some(DateTime {
+            date: date!(2021 - 08 - 28),
+            time: None,
+        }),
+        qualifying: Some(DateTime {
+            date: date!(2021 - 08 - 28),
+            time: None,
+        }),
+        ..RACE_NONE.schedule.clone()
+    },
     ..RACE_2021_12.clone()
 });
 
 pub const RACE_2022_4_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
-    first_practice: Some(DateTime {
-        date: date!(2022 - 04 - 22),
-        time: Some(time!(11:30:00)),
-    }),
-    qualifying: Some(DateTime {
-        date: date!(2022 - 04 - 22),
-        time: Some(time!(15:00:00)),
-    }),
-    second_practice: Some(DateTime {
-        date: date!(2022 - 04 - 23),
-        time: Some(time!(10:30:00)),
-    }),
-    sprint: Some(DateTime {
-        date: date!(2022 - 04 - 23),
-        time: Some(time!(14:30:00)),
-    }),
+    schedule: Schedule {
+        first_practice: Some(DateTime {
+            date: date!(2022 - 04 - 22),
+            time: Some(time!(11:30:00)),
+        }),
+        qualifying: Some(DateTime {
+            date: date!(2022 - 04 - 22),
+            time: Some(time!(15:00:00)),
+        }),
+        second_practice: Some(DateTime {
+            date: date!(2022 - 04 - 23),
+            time: Some(time!(10:30:00)),
+        }),
+        sprint: Some(DateTime {
+            date: date!(2022 - 04 - 23),
+            time: Some(time!(14:30:00)),
+        }),
+        ..RACE_NONE.schedule.clone()
+    },
     ..RACE_2022_4.clone()
 });
 
 pub const RACE_2023_4_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
-    first_practice: Some(DateTime {
-        date: date!(2023 - 04 - 28),
-        time: Some(time!(09:30:00)),
-    }),
-    qualifying: Some(DateTime {
-        date: date!(2023 - 04 - 28),
-        time: Some(time!(13:00:00)),
-    }),
-    second_practice: Some(DateTime {
-        date: date!(2023 - 04 - 29),
-        time: Some(time!(09:30:00)),
-    }),
-    sprint: Some(DateTime {
-        date: date!(2023 - 04 - 29),
-        time: Some(time!(13:30:00)),
-    }),
+    schedule: Schedule {
+        first_practice: Some(DateTime {
+            date: date!(2023 - 04 - 28),
+            time: Some(time!(09:30:00)),
+        }),
+        qualifying: Some(DateTime {
+            date: date!(2023 - 04 - 28),
+            time: Some(time!(13:00:00)),
+        }),
+        second_practice: Some(DateTime {
+            date: date!(2023 - 04 - 29),
+            time: Some(time!(09:30:00)),
+        }),
+        sprint: Some(DateTime {
+            date: date!(2023 - 04 - 29),
+            time: Some(time!(13:30:00)),
+        }),
+        ..RACE_NONE.schedule.clone()
+    },
     ..RACE_2023_4.clone()
 });
 
