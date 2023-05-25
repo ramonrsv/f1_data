@@ -158,12 +158,8 @@ pub struct Race {
     pub time: Option<Time>,
     #[serde(flatten)]
     pub schedule: Schedule,
-    #[serde(rename = "QualifyingResults")]
-    pub qualifying_results: Option<Vec<QualifyingResult>>,
-    #[serde(rename = "SprintResults")]
-    pub sprint_results: Option<Vec<SprintResult>>,
-    #[serde(rename = "Results")]
-    pub results: Option<Vec<RaceResult>>,
+    #[serde(flatten)]
+    pub results: Option<SessionResults>,
 }
 
 #[derive(Deserialize, PartialEq, Clone, Debug)]
@@ -178,6 +174,14 @@ pub struct Schedule {
     pub qualifying: Option<DateTime>,
     #[serde(rename = "Sprint")]
     pub sprint: Option<DateTime>,
+}
+
+#[derive(Deserialize, PartialEq, Clone, Debug)]
+pub enum SessionResults {
+    QualifyingResults(Vec<QualifyingResult>),
+    SprintResults(Vec<SprintResult>),
+    #[serde(rename = "Results")]
+    RaceResults(Vec<RaceResult>),
 }
 
 #[serde_as]
@@ -538,16 +542,26 @@ mod tests {
         {
             let race: Race = serde_json::from_str(RACE_2003_4_QUALIFYING_RESULTS_STR).unwrap();
 
-            assert!(race.qualifying_results.is_some());
-            assert!(!race.qualifying_results.as_ref().unwrap().is_empty());
+            let qualifying_results = match &race.results.as_ref().unwrap() {
+                SessionResults::QualifyingResults(qualifying_results) => qualifying_results,
+                _ => panic!("Expected QualifyingResults variant"),
+            };
+
+            assert!(!qualifying_results.is_empty());
+
             assert_eq!(race, *RACE_2003_4_QUALIFYING_RESULTS);
         }
 
         {
             let race: Race = serde_json::from_str(RACE_2023_4_QUALIFYING_RESULTS_STR).unwrap();
 
-            assert!(race.qualifying_results.is_some());
-            assert!(!race.qualifying_results.as_ref().unwrap().is_empty());
+            let qualifying_results = match &race.results.as_ref().unwrap() {
+                SessionResults::QualifyingResults(qualifying_results) => qualifying_results,
+                _ => panic!("Expected QualifyingResults variant"),
+            };
+
+            assert!(!qualifying_results.is_empty());
+
             assert_eq!(race, *RACE_2023_4_QUALIFYING_RESULTS);
         }
     }
@@ -563,8 +577,13 @@ mod tests {
     fn sprint_results() {
         let race: Race = serde_json::from_str(RACE_2023_4_SPRINT_RESULTS_STR).unwrap();
 
-        assert!(race.sprint_results.is_some());
-        assert!(!race.sprint_results.as_ref().unwrap().is_empty());
+        let sprint_results = match &race.results.as_ref().unwrap() {
+            SessionResults::SprintResults(sprint_results) => sprint_results,
+            _ => panic!("Expected SprintResults variant"),
+        };
+
+        assert!(!sprint_results.is_empty());
+
         assert_eq!(race, *RACE_2023_4_SPRINT_RESULTS);
     }
 
@@ -586,16 +605,26 @@ mod tests {
         {
             let race: Race = serde_json::from_str(RACE_2003_4_RACE_RESULTS_STR).unwrap();
 
-            assert!(race.results.is_some());
-            assert!(!race.results.as_ref().unwrap().is_empty());
+            let race_results = match &race.results.as_ref().unwrap() {
+                SessionResults::RaceResults(race_results) => race_results,
+                _ => panic!("Expected RaceResults variant"),
+            };
+
+            assert!(!race_results.is_empty());
+
             assert_eq!(race, *RACE_2003_4_RACE_RESULTS);
         }
 
         {
             let race: Race = serde_json::from_str(RACE_2023_4_RACE_RESULTS_STR).unwrap();
 
-            assert!(race.results.is_some());
-            assert!(!race.results.as_ref().unwrap().is_empty());
+            let race_results = match &race.results.as_ref().unwrap() {
+                SessionResults::RaceResults(race_results) => race_results,
+                _ => panic!("Expected RaceResults variant"),
+            };
+
+            assert!(!race_results.is_empty());
+
             assert_eq!(race, *RACE_2023_4_RACE_RESULTS);
         }
     }
