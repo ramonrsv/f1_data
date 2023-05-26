@@ -56,48 +56,36 @@ impl Pagination {
 
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub enum Table {
-    SeasonTable(SeasonTable),
-    DriverTable(DriverTable),
-    ConstructorTable(ConstructorTable),
-    CircuitTable(CircuitTable),
-    RaceTable(RaceTable),
-    StatusTable(StatusTable),
-}
-
-#[derive(Deserialize, PartialEq, Clone, Debug)]
-pub struct SeasonTable {
-    #[serde(rename = "Seasons")]
-    pub seasons: Vec<Season>,
-}
-
-#[derive(Deserialize, PartialEq, Clone, Debug)]
-pub struct DriverTable {
-    #[serde(rename = "Drivers")]
-    pub drivers: Vec<Driver>,
-}
-
-#[derive(Deserialize, PartialEq, Clone, Debug)]
-pub struct ConstructorTable {
-    #[serde(rename = "Constructors")]
-    pub constructors: Vec<Constructor>,
-}
-
-#[derive(Deserialize, PartialEq, Clone, Debug)]
-pub struct CircuitTable {
-    #[serde(rename = "Circuits")]
-    pub circuits: Vec<Circuit>,
-}
-
-#[derive(Deserialize, PartialEq, Clone, Debug)]
-pub struct RaceTable {
-    #[serde(rename = "Races")]
-    pub races: Vec<Race>,
-}
-
-#[derive(Deserialize, PartialEq, Clone, Debug)]
-pub struct StatusTable {
-    #[serde(rename = "Status")]
-    pub status: Vec<Status>,
+    #[serde(rename = "SeasonTable")]
+    Seasons {
+        #[serde(rename = "Seasons")]
+        seasons: Vec<Season>,
+    },
+    #[serde(rename = "DriverTable")]
+    Drivers {
+        #[serde(rename = "Drivers")]
+        drivers: Vec<Driver>,
+    },
+    #[serde(rename = "ConstructorTable")]
+    Constructors {
+        #[serde(rename = "Constructors")]
+        constructors: Vec<Constructor>,
+    },
+    #[serde(rename = "CircuitTable")]
+    Circuits {
+        #[serde(rename = "Circuits")]
+        circuits: Vec<Circuit>,
+    },
+    #[serde(rename = "RaceTable")]
+    Races {
+        #[serde(rename = "Races")]
+        races: Vec<Race>,
+    },
+    #[serde(rename = "StatusTable")]
+    Status {
+        #[serde(rename = "Status")]
+        status: Vec<Status>,
+    },
 }
 
 #[serde_as]
@@ -507,8 +495,8 @@ mod tests {
     fn season_table() {
         let table: Table = serde_json::from_str(SEASON_TABLE_STR).unwrap();
 
-        let Table::SeasonTable(ref season_table) = table else { panic!("Expected SeasonTable variant") };
-        assert!(!season_table.seasons.is_empty());
+        let Table::Seasons { ref seasons } = table else { panic!("Expected Seasons variant") };
+        assert!(!seasons.is_empty());
 
         assert_eq!(table, *SEASON_TABLE);
     }
@@ -517,8 +505,8 @@ mod tests {
     fn driver_table() {
         let table: Table = serde_json::from_str(DRIVER_TABLE_STR).unwrap();
 
-        let Table::DriverTable(ref driver_table) = table else { panic!("Expected DriverTable variant") };
-        assert!(!driver_table.drivers.is_empty());
+        let Table::Drivers { ref drivers } = table else { panic!("Expected Drivers variant") };
+        assert!(!drivers.is_empty());
 
         assert_eq!(table, *DRIVER_TABLE);
     }
@@ -527,8 +515,8 @@ mod tests {
     fn constructor_table() {
         let table: Table = serde_json::from_str(CONSTRUCTOR_TABLE_STR).unwrap();
 
-        let Table::ConstructorTable(ref constructor_table) = table else { panic!("Expected ConstructorTable variant") };
-        assert!(!constructor_table.constructors.is_empty());
+        let Table::Constructors { ref constructors } = table else { panic!("Expected Constructors variant") };
+        assert!(!constructors.is_empty());
 
         assert_eq!(table, *CONSTRUCTOR_TABLE);
     }
@@ -537,8 +525,8 @@ mod tests {
     fn circuit_table() {
         let table: Table = serde_json::from_str(CIRCUIT_TABLE_STR).unwrap();
 
-        let Table::CircuitTable(ref circuit_table) = table else { panic!("Expected CircuitTable variant") };
-        assert!(!circuit_table.circuits.is_empty());
+        let Table::Circuits{ ref circuits } = table else { panic!("Expected Circuits variant") };
+        assert!(!circuits.is_empty());
 
         assert_eq!(table, *CIRCUIT_TABLE);
     }
@@ -547,8 +535,8 @@ mod tests {
     fn race_table_schedule() {
         let table: Table = serde_json::from_str(RACE_TABLE_SCHEDULE_STR).unwrap();
 
-        let Table::RaceTable(ref race_table) = table else { panic!("Expected RaceTable variant") };
-        assert!(!race_table.races.is_empty());
+        let Table::Races{ ref races } = table else { panic!("Expected Races variant") };
+        assert!(!races.is_empty());
 
         assert_eq!(table, *RACE_TABLE_SCHEDULE);
     }
@@ -656,8 +644,8 @@ mod tests {
     fn finishing_status() {
         let table: Table = serde_json::from_str(STATUS_TABLE_2022_STR).unwrap();
 
-        let Table::StatusTable(ref status_table) = table else { panic!("Expected StatusTable variant") };
-        assert!(!status_table.status.is_empty());
+        let Table::Status{ ref status } = table else { panic!("Expected Status variant") };
+        assert!(!status.is_empty());
 
         assert_eq!(table, *STATUS_TABLE_2022);
     }
