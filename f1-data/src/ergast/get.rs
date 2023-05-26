@@ -202,12 +202,12 @@ mod tests {
 
                 assert_eq_race(actual, expected);
 
-                let actual_results = match &actual.results.as_ref().unwrap() {
+                let actual_results = match &actual.results {
                     SessionResults::QualifyingResults(qualifying_results) => qualifying_results,
                     _ => panic!("Expected QualifyingResults variant"),
                 };
 
-                let expected_results = match &expected.results.as_ref().unwrap() {
+                let expected_results = match &expected.results {
                     SessionResults::QualifyingResults(qualifying_results) => qualifying_results,
                     _ => panic!("Expected QualifyingResults variant"),
                 };
@@ -239,12 +239,12 @@ mod tests {
 
                 assert_eq_race(actual, expected);
 
-                let actual_results = match &actual.results.as_ref().unwrap() {
+                let actual_results = match &actual.results {
                     SessionResults::QualifyingResults(qualifying_results) => qualifying_results,
                     _ => panic!("Expected QualifyingResults variant"),
                 };
 
-                let expected_results = match &expected.results.as_ref().unwrap() {
+                let expected_results = match &expected.results {
                     SessionResults::QualifyingResults(qualifying_results) => qualifying_results,
                     _ => panic!("Expected QualifyingResults variant"),
                 };
@@ -278,12 +278,12 @@ mod tests {
 
                 assert_eq_race(actual, expected);
 
-                let actual_results = match &actual.results.as_ref().unwrap() {
+                let actual_results = match &actual.results {
                     SessionResults::SprintResults(sprint_results) => sprint_results,
                     _ => panic!("Expected SprintResults variant"),
                 };
 
-                let expected_results = match &expected.results.as_ref().unwrap() {
+                let expected_results = match &expected.results {
                     SessionResults::SprintResults(sprint_results) => sprint_results,
                     _ => panic!("Expected SprintResults variant"),
                 };
@@ -334,12 +334,12 @@ mod tests {
 
                 assert_eq_race(actual, expected);
 
-                let actual_results = match &actual.results.as_ref().unwrap() {
+                let actual_results = match &actual.results {
                     SessionResults::RaceResults(race_results) => race_results,
                     _ => panic!("Expected RaceResults variant"),
                 };
 
-                let expected_results = match &expected.results.as_ref().unwrap() {
+                let expected_results = match &expected.results {
                     SessionResults::RaceResults(race_results) => race_results,
                     _ => panic!("Expected RaceResults variant"),
                 };
@@ -371,12 +371,12 @@ mod tests {
 
                 assert_eq_race(actual, expected);
 
-                let actual_results = match &actual.results.as_ref().unwrap() {
+                let actual_results = match &actual.results {
                     SessionResults::RaceResults(race_results) => race_results,
                     _ => panic!("Expected RaceResults variant"),
                 };
 
-                let expected_results = match &expected.results.as_ref().unwrap() {
+                let expected_results = match &expected.results {
                     SessionResults::RaceResults(race_results) => race_results,
                     _ => panic!("Expected RaceResults variant"),
                 };
@@ -426,13 +426,13 @@ mod tests {
             ..Filters::none()
         });
 
-        let expected_results = match &RACE_2023_4_RACE_RESULTS.results.as_ref().unwrap() {
+        let expected_results = match &RACE_2023_4_RACE_RESULTS.results {
             SessionResults::RaceResults(race_results) => race_results,
             _ => panic!("Expected RaceResults variant"),
         };
 
         let get_actual_results = |resp: &Response| match &resp.mr_data.table {
-            Table::RaceTable(race_table) => match &race_table.races[0].results.as_ref().unwrap() {
+            Table::RaceTable(race_table) => match &race_table.races[0].results {
                 SessionResults::RaceResults(race_results) => race_results.clone(),
                 _ => panic!("Expected RaceResults variant"),
             },

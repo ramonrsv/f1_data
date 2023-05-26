@@ -159,7 +159,7 @@ pub struct Race {
     #[serde(flatten)]
     pub schedule: Schedule,
     #[serde(flatten)]
-    pub results: Option<SessionResults>,
+    pub results: SessionResults,
 }
 
 #[derive(Deserialize, PartialEq, Clone, Debug)]
@@ -176,12 +176,55 @@ pub struct Schedule {
     pub sprint: Option<DateTime>,
 }
 
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum SessionResults {
+    QualifyingResults(Vec<QualifyingResult>),
+    SprintResults(Vec<SprintResult>),
+    RaceResults(Vec<RaceResult>),
+    /// Only one kind of session results may be returned in a response, but it may also contain no
+    /// session results. While that could be handled via `Option<SessionResults>`, it's more
+    /// ergonomic to handle it with this [`SessionResults::NoSessionResults`] variant. The
+    /// [`SessionResults::has_results`] method is provided to query the presence of results.
+    NoSessionResults,
+}
+
+impl SessionResults {
+    /// Returns true if any of the results variants is held, i.e. any variant that isn't
+    /// [`SessionResults::NoSessionResults`].
+    pub fn has_results(&self) -> bool {
+        !matches!(self, Self::NoSessionResults)
+    }
+}
+
+impl From<SessionResultsProxy> for SessionResults {
+    fn from(proxy: SessionResultsProxy) -> Self {
+        type Proxy = SessionResultsProxy;
+
+        match proxy {
+            Proxy::QualifyingResults(qr) => Self::QualifyingResults(qr),
+            Proxy::SprintResults(sr) => Self::SprintResults(sr),
+            Proxy::RaceResults(rr) => Self::RaceResults(rr),
+        }
+    }
+}
+
+#[allow(clippy::enum_variant_names)]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
+enum SessionResultsProxy {
     QualifyingResults(Vec<QualifyingResult>),
     SprintResults(Vec<SprintResult>),
     #[serde(rename = "Results")]
     RaceResults(Vec<RaceResult>),
+}
+
+impl<'de> Deserialize<'de> for SessionResults {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        if let Some(proxy) = Option::<SessionResultsProxy>::deserialize(deserializer)? {
+            Ok(SessionResults::from(proxy))
+        } else {
+            Ok(SessionResults::NoSessionResults)
+        }
+    }
 }
 
 #[serde_as]
@@ -542,7 +585,7 @@ mod tests {
         {
             let race: Race = serde_json::from_str(RACE_2003_4_QUALIFYING_RESULTS_STR).unwrap();
 
-            let qualifying_results = match &race.results.as_ref().unwrap() {
+            let qualifying_results = match &race.results {
                 SessionResults::QualifyingResults(qualifying_results) => qualifying_results,
                 _ => panic!("Expected QualifyingResults variant"),
             };
@@ -555,7 +598,7 @@ mod tests {
         {
             let race: Race = serde_json::from_str(RACE_2023_4_QUALIFYING_RESULTS_STR).unwrap();
 
-            let qualifying_results = match &race.results.as_ref().unwrap() {
+            let qualifying_results = match &race.results {
                 SessionResults::QualifyingResults(qualifying_results) => qualifying_results,
                 _ => panic!("Expected QualifyingResults variant"),
             };
@@ -577,7 +620,7 @@ mod tests {
     fn sprint_results() {
         let race: Race = serde_json::from_str(RACE_2023_4_SPRINT_RESULTS_STR).unwrap();
 
-        let sprint_results = match &race.results.as_ref().unwrap() {
+        let sprint_results = match &race.results {
             SessionResults::SprintResults(sprint_results) => sprint_results,
             _ => panic!("Expected SprintResults variant"),
         };
@@ -605,7 +648,7 @@ mod tests {
         {
             let race: Race = serde_json::from_str(RACE_2003_4_RACE_RESULTS_STR).unwrap();
 
-            let race_results = match &race.results.as_ref().unwrap() {
+            let race_results = match &race.results {
                 SessionResults::RaceResults(race_results) => race_results,
                 _ => panic!("Expected RaceResults variant"),
             };
@@ -618,7 +661,7 @@ mod tests {
         {
             let race: Race = serde_json::from_str(RACE_2023_4_RACE_RESULTS_STR).unwrap();
 
-            let race_results = match &race.results.as_ref().unwrap() {
+            let race_results = match &race.results {
                 SessionResults::RaceResults(race_results) => race_results,
                 _ => panic!("Expected RaceResults variant"),
             };

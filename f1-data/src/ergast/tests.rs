@@ -689,7 +689,7 @@ pub const RACE_NONE: Lazy<Race> = Lazy::new(|| Race {
         qualifying: None,
         sprint: None,
     },
-    results: None,
+    results: SessionResults::NoSessionResults,
 });
 
 pub const RACE_1950_1: Lazy<Race> = Lazy::new(|| Race {
@@ -1088,11 +1088,11 @@ pub const RACE_2003_4_QUALIFYING_RESULTS_STR: &str = formatcp!(
 );
 
 pub static RACE_2003_4_QUALIFYING_RESULTS: Lazy<Race> = Lazy::new(|| Race {
-    results: Some(SessionResults::QualifyingResults(vec![
+    results: SessionResults::QualifyingResults(vec![
         QUALIFYING_RESULT_2003_4_P1.clone(),
         QUALIFYING_RESULT_2003_4_P2.clone(),
         QUALIFYING_RESULT_2003_4_P20.clone(),
-    ])),
+    ]),
     ..RACE_2003_4.clone()
 });
 
@@ -1108,11 +1108,11 @@ pub const RACE_2023_4_QUALIFYING_RESULTS_STR: &str = formatcp!(
 );
 
 pub static RACE_2023_4_QUALIFYING_RESULTS: Lazy<Race> = Lazy::new(|| Race {
-    results: Some(SessionResults::QualifyingResults(vec![
+    results: SessionResults::QualifyingResults(vec![
         QUALIFYING_RESULT_2023_4_P1.clone(),
         QUALIFYING_RESULT_2023_4_P2.clone(),
         QUALIFYING_RESULT_2023_4_P3.clone(),
-    ])),
+    ]),
     ..RACE_2023_4.clone()
 });
 
@@ -1274,7 +1274,7 @@ pub const RACE_2023_4_SPRINT_RESULTS_STR: &str = formatcp!(
 );
 
 pub static RACE_2023_4_SPRINT_RESULTS: Lazy<Race> = Lazy::new(|| Race {
-    results: Some(SessionResults::SprintResults(vec![SPRINT_RESULT_2023_4_P1.clone()])),
+    results: SessionResults::SprintResults(vec![SPRINT_RESULT_2023_4_P1.clone()]),
     ..RACE_2023_4.clone()
 });
 
@@ -1522,11 +1522,11 @@ pub const RACE_2003_4_RACE_RESULTS_STR: &str = formatcp!(
 );
 
 pub static RACE_2003_4_RACE_RESULTS: Lazy<Race> = Lazy::new(|| Race {
-    results: Some(SessionResults::RaceResults(vec![
+    results: SessionResults::RaceResults(vec![
         RACE_RESULT_2003_4_P1.clone(),
         RACE_RESULT_2003_4_P2.clone(),
         RACE_RESULT_2003_4_P19.clone(),
-    ])),
+    ]),
     ..RACE_2003_4.clone()
 });
 
@@ -1542,11 +1542,11 @@ pub const RACE_2023_4_RACE_RESULTS_STR: &str = formatcp!(
 );
 
 pub static RACE_2023_4_RACE_RESULTS: Lazy<Race> = Lazy::new(|| Race {
-    results: Some(SessionResults::RaceResults(vec![
+    results: SessionResults::RaceResults(vec![
         RACE_RESULT_2023_4_P1.clone(),
         RACE_RESULT_2023_4_P2.clone(),
         RACE_RESULT_2023_4_P20.clone(),
-    ])),
+    ]),
     ..RACE_2023_4.clone()
 });
 
