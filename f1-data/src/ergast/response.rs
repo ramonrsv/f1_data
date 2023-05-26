@@ -507,12 +507,9 @@ mod tests {
     fn season_table() {
         let table: Table = serde_json::from_str(SEASON_TABLE_STR).unwrap();
 
-        let season_table = match table {
-            Table::SeasonTable(ref season_table) => season_table,
-            _ => panic!("Expected SeasonTable variant"),
-        };
-
+        let Table::SeasonTable(ref season_table) = table else { panic!("Expected SeasonTable variant") };
         assert!(!season_table.seasons.is_empty());
+
         assert_eq!(table, *SEASON_TABLE);
     }
 
@@ -520,12 +517,9 @@ mod tests {
     fn driver_table() {
         let table: Table = serde_json::from_str(DRIVER_TABLE_STR).unwrap();
 
-        let driver_table = match table {
-            Table::DriverTable(ref driver_table) => driver_table,
-            _ => panic!("Expected DriverTable variant"),
-        };
-
+        let Table::DriverTable(ref driver_table) = table else { panic!("Expected DriverTable variant") };
         assert!(!driver_table.drivers.is_empty());
+
         assert_eq!(table, *DRIVER_TABLE);
     }
 
@@ -533,12 +527,9 @@ mod tests {
     fn constructor_table() {
         let table: Table = serde_json::from_str(CONSTRUCTOR_TABLE_STR).unwrap();
 
-        let constructor_table = match table {
-            Table::ConstructorTable(ref constructor_table) => constructor_table,
-            _ => panic!("Expected ConstructorTable variant"),
-        };
-
+        let Table::ConstructorTable(ref constructor_table) = table else { panic!("Expected ConstructorTable variant") };
         assert!(!constructor_table.constructors.is_empty());
+
         assert_eq!(table, *CONSTRUCTOR_TABLE);
     }
 
@@ -546,12 +537,9 @@ mod tests {
     fn circuit_table() {
         let table: Table = serde_json::from_str(CIRCUIT_TABLE_STR).unwrap();
 
-        let circuit_table = match table {
-            Table::CircuitTable(ref circuit_table) => circuit_table,
-            _ => panic!("Expected CircuitTable variant"),
-        };
-
+        let Table::CircuitTable(ref circuit_table) = table else { panic!("Expected CircuitTable variant") };
         assert!(!circuit_table.circuits.is_empty());
+
         assert_eq!(table, *CIRCUIT_TABLE);
     }
 
@@ -559,12 +547,9 @@ mod tests {
     fn race_table_schedule() {
         let table: Table = serde_json::from_str(RACE_TABLE_SCHEDULE_STR).unwrap();
 
-        let race_table = match table {
-            Table::RaceTable(ref race_table) => race_table,
-            _ => panic!("Expected RaceTable variant"),
-        };
-
+        let Table::RaceTable(ref race_table) = table else { panic!("Expected RaceTable variant") };
         assert!(!race_table.races.is_empty());
+
         assert_eq!(table, *RACE_TABLE_SCHEDULE);
     }
 
@@ -585,9 +570,8 @@ mod tests {
         {
             let race: Race = serde_json::from_str(RACE_2003_4_QUALIFYING_RESULTS_STR).unwrap();
 
-            let qualifying_results = match &race.results {
-                SessionResults::QualifyingResults(qualifying_results) => qualifying_results,
-                _ => panic!("Expected QualifyingResults variant"),
+            let SessionResults::QualifyingResults(qualifying_results) = &race.results else {
+                panic!("Expected QualifyingResults variant")
             };
 
             assert!(!qualifying_results.is_empty());
@@ -598,9 +582,8 @@ mod tests {
         {
             let race: Race = serde_json::from_str(RACE_2023_4_QUALIFYING_RESULTS_STR).unwrap();
 
-            let qualifying_results = match &race.results {
-                SessionResults::QualifyingResults(qualifying_results) => qualifying_results,
-                _ => panic!("Expected QualifyingResults variant"),
+            let SessionResults::QualifyingResults(qualifying_results) = &race.results else {
+                panic!("Expected QualifyingResults variant")
             };
 
             assert!(!qualifying_results.is_empty());
@@ -620,9 +603,8 @@ mod tests {
     fn sprint_results() {
         let race: Race = serde_json::from_str(RACE_2023_4_SPRINT_RESULTS_STR).unwrap();
 
-        let sprint_results = match &race.results {
-            SessionResults::SprintResults(sprint_results) => sprint_results,
-            _ => panic!("Expected SprintResults variant"),
+        let SessionResults::SprintResults(sprint_results) = &race.results else {
+            panic!("Expected SprintResults variant")
         };
 
         assert!(!sprint_results.is_empty());
@@ -648,9 +630,8 @@ mod tests {
         {
             let race: Race = serde_json::from_str(RACE_2003_4_RACE_RESULTS_STR).unwrap();
 
-            let race_results = match &race.results {
-                SessionResults::RaceResults(race_results) => race_results,
-                _ => panic!("Expected RaceResults variant"),
+            let SessionResults::RaceResults(race_results) = &race.results else {
+                panic!("Expected RaceResults variant")
             };
 
             assert!(!race_results.is_empty());
@@ -661,9 +642,8 @@ mod tests {
         {
             let race: Race = serde_json::from_str(RACE_2023_4_RACE_RESULTS_STR).unwrap();
 
-            let race_results = match &race.results {
-                SessionResults::RaceResults(race_results) => race_results,
-                _ => panic!("Expected RaceResults variant"),
+            let SessionResults::RaceResults(race_results) = &race.results else {
+                panic!("Expected RaceResults variant")
             };
 
             assert!(!race_results.is_empty());
@@ -676,12 +656,9 @@ mod tests {
     fn finishing_status() {
         let table: Table = serde_json::from_str(STATUS_TABLE_2022_STR).unwrap();
 
-        let status_table = match table {
-            Table::StatusTable(ref status_table) => status_table,
-            _ => panic!("Expected StatusTable variant"),
-        };
-
+        let Table::StatusTable(ref status_table) = table else { panic!("Expected StatusTable variant") };
         assert!(!status_table.status.is_empty());
+
         assert_eq!(table, *STATUS_TABLE_2022);
     }
 

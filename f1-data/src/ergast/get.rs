@@ -45,15 +45,11 @@ mod tests {
     fn get_seasons() {
         let resp: Response = get_into_json(Resource::SeasonList(Filters::none()));
 
-        match resp.mr_data.table {
-            Table::SeasonTable(season_table) => {
-                assert_eq!(season_table.seasons.len(), 30);
+        let Table::SeasonTable(season_table) = resp.mr_data.table else { panic!("Expected SeasonTable variant") };
+        assert_eq!(season_table.seasons.len(), 30);
 
-                assert_eq!(season_table.seasons[0], *SEASON_1950);
-                assert_eq!(season_table.seasons[29], *SEASON_1979);
-            }
-            _ => assert!(false, "Expected SeasonTable variant"),
-        }
+        assert_eq!(season_table.seasons[0], *SEASON_1950);
+        assert_eq!(season_table.seasons[29], *SEASON_1979);
     }
 
     // Resource::DriverInfo
@@ -65,13 +61,9 @@ mod tests {
             ..Filters::none()
         }));
 
-        match resp.mr_data.table {
-            Table::DriverTable(driver_table) => {
-                assert_eq!(driver_table.drivers.len(), 1);
-                assert_eq!(&driver_table.drivers[0], driver);
-            }
-            _ => assert!(false, "Expected DriverTable variant"),
-        }
+        let Table::DriverTable(driver_table) = resp.mr_data.table else { panic!("Expected DriverTable variant") };
+        assert_eq!(driver_table.drivers.len(), 1);
+        assert_eq!(&driver_table.drivers[0], driver);
     }
 
     #[test]
@@ -104,13 +96,12 @@ mod tests {
             ..Filters::none()
         }));
 
-        match resp.mr_data.table {
-            Table::ConstructorTable(constructor_table) => {
-                assert_eq!(constructor_table.constructors.len(), 1);
-                assert_eq!(&constructor_table.constructors[0], constructor);
-            }
-            _ => assert!(false, "Expected ConstructorTable variant"),
-        }
+        let Table::ConstructorTable(constructor_table) = resp.mr_data.table else {
+            panic!("Expected ConstructorTable variant")
+        };
+
+        assert_eq!(constructor_table.constructors.len(), 1);
+        assert_eq!(&constructor_table.constructors[0], constructor);
     }
 
     #[test]
@@ -133,13 +124,9 @@ mod tests {
             ..Filters::none()
         }));
 
-        match resp.mr_data.table {
-            Table::CircuitTable(circuit_table) => {
-                assert_eq!(circuit_table.circuits.len(), 1);
-                assert_eq!(&circuit_table.circuits[0], circuit);
-            }
-            _ => assert!(false, "Expected CircuitTable variant"),
-        }
+        let Table::CircuitTable(circuit_table) = resp.mr_data.table else { panic!("Expected CircuitTable variant") };
+        assert_eq!(circuit_table.circuits.len(), 1);
+        assert_eq!(&circuit_table.circuits[0], circuit);
     }
 
     #[test]
@@ -161,13 +148,9 @@ mod tests {
             ..Filters::none()
         }));
 
-        match resp.mr_data.table {
-            Table::RaceTable(race_table) => {
-                assert_eq!(race_table.races.len(), 1);
-                assert_eq!(&race_table.races[0], race_schedule);
-            }
-            _ => assert!(false, "Expected RaceTable variant"),
-        }
+        let Table::RaceTable(race_table) = resp.mr_data.table else { panic!("Expected RaceTable variant") };
+        assert_eq!(race_table.races.len(), 1);
+        assert_eq!(&race_table.races[0], race_schedule);
     }
 
     #[test]
@@ -193,32 +176,26 @@ mod tests {
             ..Filters::none()
         }));
 
-        match resp.mr_data.table {
-            Table::RaceTable(race_table) => {
-                assert_eq!(race_table.races.len(), 1);
+        let Table::RaceTable(race_table) = resp.mr_data.table else { panic!("Expected RaceTable variant") };
+        assert_eq!(race_table.races.len(), 1);
 
-                let actual = &race_table.races[0];
-                let expected = &RACE_2003_4_QUALIFYING_RESULTS;
+        let actual = &race_table.races[0];
+        let expected = &RACE_2003_4_QUALIFYING_RESULTS;
 
-                assert_eq_race(actual, expected);
+        assert_eq_race(actual, expected);
 
-                let actual_results = match &actual.results {
-                    SessionResults::QualifyingResults(qualifying_results) => qualifying_results,
-                    _ => panic!("Expected QualifyingResults variant"),
-                };
+        let SessionResults::QualifyingResults(actual_results) = &actual.results else {
+            panic!("Expected QualifyingResults variant")
+        };
 
-                let expected_results = match &expected.results {
-                    SessionResults::QualifyingResults(qualifying_results) => qualifying_results,
-                    _ => panic!("Expected QualifyingResults variant"),
-                };
+        let SessionResults::QualifyingResults(expected_results) = &expected.results else {
+            panic!("Expected QualifyingResults variant")
+        };
 
-                assert_eq!(actual_results.len(), 20);
+        assert_eq!(actual_results.len(), 20);
 
-                assert_eq!(actual_results[0..1], expected_results[0..1]);
-                assert_eq!(actual_results[19], expected_results[2]);
-            }
-            _ => assert!(false, "Expected RaceTable variant"),
-        }
+        assert_eq!(actual_results[0..1], expected_results[0..1]);
+        assert_eq!(actual_results[19], expected_results[2]);
     }
 
     #[test]
@@ -230,31 +207,24 @@ mod tests {
             ..Filters::none()
         }));
 
-        match resp.mr_data.table {
-            Table::RaceTable(race_table) => {
-                assert_eq!(race_table.races.len(), 1);
+        let Table::RaceTable(race_table) = resp.mr_data.table else { panic!("Expected RaceTable variant") };
+        assert_eq!(race_table.races.len(), 1);
 
-                let actual = &race_table.races[0];
-                let expected = &RACE_2023_4_QUALIFYING_RESULTS;
+        let actual = &race_table.races[0];
+        let expected = &RACE_2023_4_QUALIFYING_RESULTS;
 
-                assert_eq_race(actual, expected);
+        assert_eq_race(actual, expected);
 
-                let actual_results = match &actual.results {
-                    SessionResults::QualifyingResults(qualifying_results) => qualifying_results,
-                    _ => panic!("Expected QualifyingResults variant"),
-                };
+        let SessionResults::QualifyingResults(actual_results) = &actual.results else {
+            panic!("Expected QualifyingResults variant")
+        };
 
-                let expected_results = match &expected.results {
-                    SessionResults::QualifyingResults(qualifying_results) => qualifying_results,
-                    _ => panic!("Expected QualifyingResults variant"),
-                };
+        let SessionResults::QualifyingResults(expected_results) = &expected.results else {
+            panic!("Expected QualifyingResults variant")
+        };
 
-                assert_eq!(actual_results.len(), 20);
-
-                assert_eq!(actual_results[0..2], expected_results[0..2]);
-            }
-            _ => assert!(false, "Expected RaceTable variant"),
-        }
+        assert_eq!(actual_results.len(), 20);
+        assert_eq!(actual_results[0..2], expected_results[0..2]);
     }
 
     // Resource::SprintResults
@@ -269,31 +239,24 @@ mod tests {
             ..Filters::none()
         }));
 
-        match resp.mr_data.table {
-            Table::RaceTable(race_table) => {
-                assert_eq!(race_table.races.len(), 1);
+        let Table::RaceTable(race_table) = resp.mr_data.table else { panic!("Expected RaceTable variant") };
+        assert_eq!(race_table.races.len(), 1);
 
-                let actual = &race_table.races[0];
-                let expected = &RACE_2023_4_SPRINT_RESULTS;
+        let actual = &race_table.races[0];
+        let expected = &RACE_2023_4_SPRINT_RESULTS;
 
-                assert_eq_race(actual, expected);
+        assert_eq_race(actual, expected);
 
-                let actual_results = match &actual.results {
-                    SessionResults::SprintResults(sprint_results) => sprint_results,
-                    _ => panic!("Expected SprintResults variant"),
-                };
+        let SessionResults::SprintResults(actual_results) = &actual.results else {
+            panic!("Expected SprintResults variant")
+        };
 
-                let expected_results = match &expected.results {
-                    SessionResults::SprintResults(sprint_results) => sprint_results,
-                    _ => panic!("Expected SprintResults variant"),
-                };
+        let SessionResults::SprintResults(expected_results) = &expected.results else {
+            panic!("Expected SprintResults variant")
+        };
 
-                assert_eq!(actual_results.len(), 20);
-
-                assert_eq!(actual_results[0], expected_results[0]);
-            }
-            _ => assert!(false, "Expected RaceTable variant"),
-        }
+        assert_eq!(actual_results.len(), 20);
+        assert_eq!(actual_results[0], expected_results[0]);
     }
 
     #[test]
@@ -305,12 +268,8 @@ mod tests {
             ..Filters::none()
         }));
 
-        match resp.mr_data.table {
-            Table::RaceTable(race_table) => {
-                assert!(race_table.races.is_empty());
-            }
-            _ => assert!(false, "Expected RaceTable variant"),
-        }
+        let Table::RaceTable(race_table) = resp.mr_data.table else { panic!("Expected RaceTable variant") };
+        assert!(race_table.races.is_empty());
     }
 
     // Resource::RaceResults
@@ -325,32 +284,26 @@ mod tests {
             ..Filters::none()
         }));
 
-        match resp.mr_data.table {
-            Table::RaceTable(race_table) => {
-                assert_eq!(race_table.races.len(), 1);
+        let Table::RaceTable(race_table) = resp.mr_data.table else { panic!("Expected RaceTable variant") };
+        assert_eq!(race_table.races.len(), 1);
 
-                let actual = &race_table.races[0];
-                let expected = &RACE_2003_4_RACE_RESULTS;
+        let actual = &race_table.races[0];
+        let expected = &RACE_2003_4_RACE_RESULTS;
 
-                assert_eq_race(actual, expected);
+        assert_eq_race(actual, expected);
 
-                let actual_results = match &actual.results {
-                    SessionResults::RaceResults(race_results) => race_results,
-                    _ => panic!("Expected RaceResults variant"),
-                };
+        let SessionResults::RaceResults(actual_results) = &actual.results else {
+            panic!("Expected RaceResults variant")
+        };
 
-                let expected_results = match &expected.results {
-                    SessionResults::RaceResults(race_results) => race_results,
-                    _ => panic!("Expected RaceResults variant"),
-                };
+        let SessionResults::RaceResults(expected_results) = &expected.results else {
+            panic!("Expected RaceResults variant")
+        };
 
-                assert_eq!(actual_results.len(), 20);
+        assert_eq!(actual_results.len(), 20);
 
-                assert_eq!(actual_results[0..1], expected_results[0..1]);
-                assert_eq!(actual_results[18], expected_results[2]);
-            }
-            _ => assert!(false, "Expected RaceTable variant"),
-        }
+        assert_eq!(actual_results[0..1], expected_results[0..1]);
+        assert_eq!(actual_results[18], expected_results[2]);
     }
 
     #[test]
@@ -362,32 +315,26 @@ mod tests {
             ..Filters::none()
         }));
 
-        match resp.mr_data.table {
-            Table::RaceTable(race_table) => {
-                assert_eq!(race_table.races.len(), 1);
+        let Table::RaceTable(race_table) = resp.mr_data.table else { panic!("Expected RaceTable variant") };
+        assert_eq!(race_table.races.len(), 1);
 
-                let actual = &race_table.races[0];
-                let expected = &RACE_2023_4_RACE_RESULTS;
+        let actual = &race_table.races[0];
+        let expected = &RACE_2023_4_RACE_RESULTS;
 
-                assert_eq_race(actual, expected);
+        assert_eq_race(actual, expected);
 
-                let actual_results = match &actual.results {
-                    SessionResults::RaceResults(race_results) => race_results,
-                    _ => panic!("Expected RaceResults variant"),
-                };
+        let SessionResults::RaceResults(actual_results) = &actual.results else {
+            panic!("Expected RaceResults variant")
+        };
 
-                let expected_results = match &expected.results {
-                    SessionResults::RaceResults(race_results) => race_results,
-                    _ => panic!("Expected RaceResults variant"),
-                };
+        let SessionResults::RaceResults(expected_results) = &expected.results else {
+            panic!("Expected RaceResults variant")
+        };
 
-                assert_eq!(actual_results.len(), 20);
+        assert_eq!(actual_results.len(), 20);
 
-                assert_eq!(actual_results[0..1], expected_results[0..1]);
-                assert_eq!(actual_results[19], expected_results[2]);
-            }
-            _ => assert!(false, "Expected RaceTable variant"),
-        }
+        assert_eq!(actual_results[0..1], expected_results[0..1]);
+        assert_eq!(actual_results[19], expected_results[2]);
     }
 
     // Resource::FinishingStatus
@@ -400,14 +347,12 @@ mod tests {
             ..Filters::none()
         }));
 
-        let actual_status_table = match resp.mr_data.table {
-            Table::StatusTable(status_table) => status_table,
-            _ => panic!("Expected StatusTable variant"),
+        let Table::StatusTable(actual_status_table) = resp.mr_data.table else {
+            panic!("Expected StatusTable variant")
         };
 
-        let expected_status_table = match &*STATUS_TABLE_2022 {
-            Table::StatusTable(ref status_table) => status_table,
-            _ => panic!("Expected StatusTable variant"),
+        let Table::StatusTable(ref expected_status_table) = &*STATUS_TABLE_2022 else {
+            panic!("Expected StatusTable variant")
         };
 
         assert!(!actual_status_table.status.is_empty());
@@ -426,9 +371,8 @@ mod tests {
             ..Filters::none()
         });
 
-        let expected_results = match &RACE_2023_4_RACE_RESULTS.results {
-            SessionResults::RaceResults(race_results) => race_results,
-            _ => panic!("Expected RaceResults variant"),
+        let SessionResults::RaceResults(expected_results) = &RACE_2023_4_RACE_RESULTS.results else {
+            panic!("Expected RaceResults variant")
         };
 
         let get_actual_results = |resp: &Response| match &resp.mr_data.table {
