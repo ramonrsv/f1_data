@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Deserializer};
 use serde_with::{serde_as, DisplayFromStr};
 use url::Url;
@@ -54,7 +55,7 @@ impl Pagination {
     }
 }
 
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, EnumAsInner, PartialEq, Clone, Debug)]
 pub enum Table {
     #[serde(rename = "SeasonTable")]
     Seasons {
@@ -494,50 +495,35 @@ mod tests {
     #[test]
     fn season_table() {
         let table: Table = serde_json::from_str(SEASON_TABLE_STR).unwrap();
-
-        let Table::Seasons { ref seasons } = table else { panic!("Expected Seasons variant") };
-        assert!(!seasons.is_empty());
-
+        assert!(!table.as_seasons().unwrap().is_empty());
         assert_eq!(table, *SEASON_TABLE);
     }
 
     #[test]
     fn driver_table() {
         let table: Table = serde_json::from_str(DRIVER_TABLE_STR).unwrap();
-
-        let Table::Drivers { ref drivers } = table else { panic!("Expected Drivers variant") };
-        assert!(!drivers.is_empty());
-
+        assert!(!table.as_drivers().unwrap().is_empty());
         assert_eq!(table, *DRIVER_TABLE);
     }
 
     #[test]
     fn constructor_table() {
         let table: Table = serde_json::from_str(CONSTRUCTOR_TABLE_STR).unwrap();
-
-        let Table::Constructors { ref constructors } = table else { panic!("Expected Constructors variant") };
-        assert!(!constructors.is_empty());
-
+        assert!(!table.as_constructors().unwrap().is_empty());
         assert_eq!(table, *CONSTRUCTOR_TABLE);
     }
 
     #[test]
     fn circuit_table() {
         let table: Table = serde_json::from_str(CIRCUIT_TABLE_STR).unwrap();
-
-        let Table::Circuits{ ref circuits } = table else { panic!("Expected Circuits variant") };
-        assert!(!circuits.is_empty());
-
+        assert!(!table.as_circuits().unwrap().is_empty());
         assert_eq!(table, *CIRCUIT_TABLE);
     }
 
     #[test]
     fn race_table_schedule() {
         let table: Table = serde_json::from_str(RACE_TABLE_SCHEDULE_STR).unwrap();
-
-        let Table::Races{ ref races } = table else { panic!("Expected Races variant") };
-        assert!(!races.is_empty());
-
+        assert!(!table.as_races().unwrap().is_empty());
         assert_eq!(table, *RACE_TABLE_SCHEDULE);
     }
 
@@ -643,10 +629,7 @@ mod tests {
     #[test]
     fn finishing_status() {
         let table: Table = serde_json::from_str(STATUS_TABLE_2022_STR).unwrap();
-
-        let Table::Status{ ref status } = table else { panic!("Expected Status variant") };
-        assert!(!status.is_empty());
-
+        assert!(!table.as_status().unwrap().is_empty());
         assert_eq!(table, *STATUS_TABLE_2022);
     }
 

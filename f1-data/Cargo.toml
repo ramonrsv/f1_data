@@ -17,3 +17,4 @@ serde_with = "3.0"
 url = { version = "2.3", features = ["serde"] }
 time = { version = "0.3", features = ["serde-human-readable", "macros"] }
 regex = "1.8"
+enum-as-inner = "0.5.1"
