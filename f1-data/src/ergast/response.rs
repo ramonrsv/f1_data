@@ -55,35 +55,82 @@ impl Pagination {
     }
 }
 
+/// [`Table`] represents all the possible different lists of data that may be returned in a
+/// [`Response`] from the Ergast API, e.g. [`Table::Seasons`] corresponds to the the `"SeasonTable"`
+/// property key in the JSON response, containing a list of [`Season`]s which corresponds to the
+/// `"Seasons"` property key. One and only of these tables may be returned in a given response,
+/// which is represented by the different variants of this enum.
+///
+/// The variants and inner fields may be matched and accessed via the usual pattern matching, or
+/// via accessor functions provided by [`enum-as-inner`](https://crates.io/crates/enum-as-inner).
+///
+/// # Examples:
+///
+/// ```
+/// # use url::Url;
+/// use f1_data::ergast::response::{Season, Table};
+///
+/// let table = Table::Seasons {
+///     seasons: vec![Season {
+///         season: 2022,
+///         url: Url::parse("http://empty.org").unwrap(),
+///     }],
+/// };
+///
+/// let Table::Seasons { ref seasons } = table else { panic!("Expected Seasons variant") };
+/// assert_eq!(seasons[0].season, 2022);
+///
+/// assert_eq!(table.as_seasons().unwrap()[0].season, 2022);
+/// ```
 #[derive(Deserialize, EnumAsInner, PartialEq, Clone, Debug)]
 pub enum Table {
+    /// Contains a list of [`Season`]s, and corresponds to the `"SeasonTable"` property key in the
+    /// JSON response from the Ergast API.
     #[serde(rename = "SeasonTable")]
     Seasons {
+        /// List of [`Season`]s, corresponding to the `"Seasons"` property key in the JSON response.
         #[serde(rename = "Seasons")]
         seasons: Vec<Season>,
     },
+    /// Contains a list of [`Driver`]s, and corresponds to the `"DriverTable"` property key in the
+    /// JSON response from the Ergast API.
     #[serde(rename = "DriverTable")]
     Drivers {
+        /// List of [`Driver`]s, corresponding to the `"Drivers"` property key in the JSON response.
         #[serde(rename = "Drivers")]
         drivers: Vec<Driver>,
     },
+    /// Contains a list of [`Constructor`]s, and corresponds to the `"ConstructorTable"` property
+    /// key in the JSON response from the Ergast API.
     #[serde(rename = "ConstructorTable")]
     Constructors {
+        /// List of [`Constructor`]s, corresponding to the `"Constructors"` property key in the JSON
+        /// response.
         #[serde(rename = "Constructors")]
         constructors: Vec<Constructor>,
     },
+    /// Contains a list of [`Circuit`]s, and corresponds to the `"CircuitTable"` property key in the
+    /// JSON response from the Ergast API.
     #[serde(rename = "CircuitTable")]
     Circuits {
+        /// List of [`Circuit`]s, corresponding to the `"Circuits"` property key in the JSON
+        /// response.
         #[serde(rename = "Circuits")]
         circuits: Vec<Circuit>,
     },
+    /// Contains a list of [`Race`]s, and corresponds to the `"RaceTable"` property key in the
+    /// JSON response from the Ergast API.
     #[serde(rename = "RaceTable")]
     Races {
+        /// List of [`Race`]s, corresponding to the `"Races"` property key in the JSON response.
         #[serde(rename = "Races")]
         races: Vec<Race>,
     },
+    /// Contains a list of [`Status`]es, and corresponds to the `"StatusTable"` property key in the
+    /// JSON response from the Ergast API.
     #[serde(rename = "StatusTable")]
     Status {
+        /// List of [`Status`]es, corresponding to the `"Status"` property key in the JSON response.
         #[serde(rename = "Status")]
         status: Vec<Status>,
     },
