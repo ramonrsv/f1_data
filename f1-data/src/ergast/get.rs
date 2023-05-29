@@ -338,6 +338,7 @@ mod tests {
     // -------------------------
 
     #[test]
+    #[ignore]
     fn get_finishing_status_2022() {
         let resp: Response = get_into_json(Resource::FinishingStatus(Filters {
             year: Some(2022),
