@@ -9,12 +9,13 @@ use crate::ergast::response::Pagination;
 pub enum Resource {
     /// Get a list of seasons currently supported by the API. Each season listed in a response is
     /// uniquely identified by the year it took place in, returned in
-    /// [`response::Season::season`](crate::ergast::response::Season::season), e.g. `"2023"` for the
+    /// [`response::Season::season`](crate::ergast::response::Season::season), e.g. `2023` for the
     /// _2023 Formula One World Championship_. The season year can be used to filter requests for
     /// other resources, via [`Filters::year`].
     ///
     /// Directly maps to <http://ergast.com/mrd/methods/seasons/>
     SeasonList(Filters),
+
     /// Get a list of drivers within the series, and information about them. Each driver listed in
     /// a response is identified by a unique ID, returned in
     /// [`response::Driver::driver_id`](crate::ergast::response::Driver::driver_id), e.g. `"alonso"`
@@ -28,6 +29,7 @@ pub enum Resource {
     ///
     /// Directly maps to <http://ergast.com/mrd/methods/drivers/>
     DriverInfo(Filters),
+
     /// Get a list of constructors within the series, and information about them. Each constructor
     /// listed in a response is identified by a unique ID, returned in
     /// [`response::Constructor::constructor_id`](crate::ergast::response::Constructor::constructor_id),
@@ -36,6 +38,7 @@ pub enum Resource {
     ///
     /// Directly maps to <http://ergast.com/mrd/methods/constructors/>
     ConstructorInfo(Filters),
+
     /// Get a list of circuits within the series, and information about them. Each circuit listed in
     /// a response is identified by a unique ID, returned in
     /// [`response::Circuit::circuit_id`](crate::ergast::response::Circuit::circuit_id), e.g.
@@ -44,6 +47,7 @@ pub enum Resource {
     ///
     /// Directly maps to <http://ergast.com/mrd/methods/circuits/>
     CircuitInfo(Filters),
+
     /// Get a schedule of races within the series, and information about them. Each race can be
     /// uniquely identified by the season year and round index, starting from `1`, returned in
     /// [`response::Race::season`](crate::ergast::response::Race::season) and
@@ -51,11 +55,11 @@ pub enum Resource {
     /// used to filter requests for other resources, via [`Filters::year`] and [`Filters::round`],
     /// respectively.
     ///
-    /// **Note:**: Round indexes may not be contiguous, if there are scheduled race cancellations
-    /// due to weather, pandemics, etc.
+    /// **Note:** Schedule details before 2022 are limited to the date/time of the Grand Prix.
     ///
     /// Directly maps to <http://ergast.com/mrd/methods/schedule/>
     RaceSchedule(Filters),
+
     /// Get a list of qualifying results. The qualifying position, returned in
     /// [`response::QualifyingResult::position`](crate::ergast::response::QualifyingResult::position),
     /// can be used to filter requests for other resources, via [`Filters::qualifying_pos`].
@@ -66,28 +70,60 @@ pub enum Resource {
     /// penalties, mechanical problems, and various sprint event configurations. The starting grid
     /// positions are recorded in
     /// [`response::SprintResult::grid`](crate::ergast::response::SprintResult::grid) and
-    /// [`response::Result::grid`](crate::ergast::response::Result::grid) for sprints and races,
-    /// respectively.
+    /// [`response::RaceResult::grid`](crate::ergast::response::RaceResult::grid) for sprints and
+    /// races, respectively.
     ///
     /// Directly maps to <http://ergast.com/mrd/methods/qualifying/>
     QualifyingResults(Filters),
+
     /// Get a list of sprint event results.
     ///
     /// **Note:** Sprint results are only available for races where there is a `Sprint` element in
-    /// the schedule, returned in [`response::Race::sprint`](crate::ergast::response::Race::sprint).
+    /// the schedule.
+    ///
+    /// **Note:** The value of
+    /// [`response::SprintResult::position_text`](crate::ergast::response::SprintResult::position_text)
+    /// is either an integer (finishing position), “R” (retired), “D” (disqualified),
+    /// “E” (excluded), “W” (withdrawn), “F” (failed to qualify) or “N” (not classified). Further
+    /// information is given by
+    /// [`response::SprintResult::status`](crate::ergast::response::SprintResult::status).
+    ///
+    /// **Note:** A grid position of `0`, or [`Filters::GRID_PIT_LANE`], indicates that a driver
+    /// started from the pit lane.
     ///
     /// Directly maps to <https://ergast.com/mrd/methods/sprint/>
     SprintResults(Filters),
+
     /// Get a list of race results. Various of the returned values can be used to filter requests
     /// for other resources, via fields of [`Filters`]. The grid position, returned in
-    /// [`response::Result::grid`](crate::ergast::response::Result::grid), can be used in
-    /// [`Filters::grid_pos`]. A grid position of `0`, or [`Filters::GRID_PIT_LANE`], indicates that
-    /// a driver started from the pit lane. The finishing position, returned in
-    /// [`response::Result::position`](crate::ergast::response::Result::position), can be used in
-    /// [`Filters::finish_pos`].
+    /// [`response::RaceResult::grid`](crate::ergast::response::RaceResult::grid), can be used in
+    /// [`Filters::grid_pos`]. The finishing position, returned in
+    /// [`response::RaceResult::position`](crate::ergast::response::RaceResult::position), can be
+    /// used in [`Filters::finish_pos`].
+    ///
+    /// **Note:** The value of
+    /// [`response::RaceResult::position_text`](crate::ergast::response::RaceResult::position_text)
+    /// is either an integer (finishing position), “R” (retired), “D” (disqualified),
+    /// “E” (excluded), “W” (withdrawn), “F” (failed to qualify) or “N” (not classified). Further
+    /// information is given by
+    /// [`response::RaceResult::status`](crate::ergast::response::RaceResult::status).
+    ///
+    /// **Note:** A grid position of `0`, or [`Filters::GRID_PIT_LANE`], indicates that a driver
+    /// started from the pit lane.
+    ///
+    /// **Note:** Fastest lap times are included from the 2004 season onwards, returned in
+    /// [`response::RaceResult::fastest_lap`](crate::ergast::response::RaceResult::fastest_lap)
+    ///
+    /// **Note:** The car number that a driver achieved a given result with, returned in
+    /// [`response::RaceResult::number`](crate::ergast::response::RaceResult::number), may differ
+    /// from a driver's permanent number, since those were only implemented in the 2014 season
+    /// onwards, and in cases where the reigning champion chose to use `1` rather than their
+    /// permanent driver number. Drivers' permanent numbers, if they exist, are returned in
+    /// [`response::Driver::permanent_number`](crate::ergast::response::Driver::permanent_number).
     ///
     /// Directly maps to <http://ergast.com/mrd/methods/results/>
     RaceResults(Filters),
+
     /// Get a list of finishing status codes supported by the API. While each status has a textual
     /// representation, e.g. `"Finished"`, `"Accident"`, `"Collision"`, etc., it is uniquely
     /// identified by a numeric ID, returned in
@@ -218,9 +254,6 @@ pub struct Filters {
     ///
     /// **Note:** A [`Filters::year`] is required if this field is set, in order to uniquely
     /// identify a race.
-    ///
-    /// **Note:** Round indexes may not be contiguous, if there are scheduled race cancellations
-    /// due to weather, pandemics, etc.
     ///
     /// # Panics
     ///
