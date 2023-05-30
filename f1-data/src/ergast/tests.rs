@@ -1238,7 +1238,7 @@ pub const SPRINT_RESULT_2023_4_P1_STR: &str = formatcp!(
 pub const SPRINT_RESULT_2023_4_P1: Lazy<SprintResult> = Lazy::new(|| SprintResult {
     number: 11,
     position: 1,
-    position_text: "1".to_string(),
+    position_text: Position::Finished(1),
     points: 8,
     driver: DRIVER_PEREZ.clone(),
     constructor: CONSTRUCTOR_RED_BULL.clone(),
@@ -1395,7 +1395,7 @@ pub const RACE_RESULT_2023_4_P20_STR: &str = formatcp!(
 pub const RACE_RESULT_2003_4_P1: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     number: 1,
     position: 1,
-    position_text: "1".to_string(),
+    position_text: Position::Finished(1),
     points: 10,
     driver: DRIVER_MICHAEL.clone(),
     constructor: CONSTRUCTOR_FERRARI.clone(),
@@ -1409,7 +1409,7 @@ pub const RACE_RESULT_2003_4_P1: Lazy<RaceResult> = Lazy::new(|| RaceResult {
 pub const RACE_RESULT_2003_4_P2: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     number: 6,
     position: 2,
-    position_text: "2".to_string(),
+    position_text: Position::Finished(2),
     points: 8,
     driver: DRIVER_KIMI.clone(),
     constructor: CONSTRUCTOR_MCLAREN.clone(),
@@ -1423,7 +1423,7 @@ pub const RACE_RESULT_2003_4_P2: Lazy<RaceResult> = Lazy::new(|| RaceResult {
 pub const RACE_RESULT_2003_4_P19: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     number: 18,
     position: 19,
-    position_text: "R".to_string(),
+    position_text: Position::R,
     points: 0,
     driver: DRIVER_WILSON.clone(),
     constructor: CONSTRUCTOR_MINARDI.clone(),
@@ -1437,7 +1437,7 @@ pub const RACE_RESULT_2003_4_P19: Lazy<RaceResult> = Lazy::new(|| RaceResult {
 pub const RACE_RESULT_2023_4_P1: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     number: 11,
     position: 1,
-    position_text: "1".to_string(),
+    position_text: Position::Finished(1),
     points: 25,
     driver: DRIVER_PEREZ.clone(),
     constructor: CONSTRUCTOR_RED_BULL.clone(),
@@ -1459,7 +1459,7 @@ pub const RACE_RESULT_2023_4_P1: Lazy<RaceResult> = Lazy::new(|| RaceResult {
 pub const RACE_RESULT_2023_4_P2: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     number: 1,
     position: 2,
-    position_text: "2".to_string(),
+    position_text: Position::Finished(2),
     points: 18,
     driver: DRIVER_MAX.clone(),
     constructor: CONSTRUCTOR_RED_BULL.clone(),
@@ -1481,7 +1481,7 @@ pub const RACE_RESULT_2023_4_P2: Lazy<RaceResult> = Lazy::new(|| RaceResult {
 pub const RACE_RESULT_2023_4_P20: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     number: 21,
     position: 20,
-    position_text: "R".to_string(),
+    position_text: Position::R,
     points: 0,
     driver: DRIVER_DE_VRIES.clone(),
     constructor: CONSTRUCTOR_ALPHA_TAURI.clone(),

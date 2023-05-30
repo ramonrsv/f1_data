@@ -293,7 +293,7 @@ pub struct SprintResult {
     pub number: u32,
     #[serde_as(as = "DisplayFromStr")]
     pub position: u32,
-    pub position_text: String,
+    pub position_text: Position,
     #[serde_as(as = "DisplayFromStr")]
     pub points: u32,
     #[serde(rename = "Driver")]
@@ -319,7 +319,7 @@ pub struct RaceResult {
     pub number: u32,
     #[serde_as(as = "DisplayFromStr")]
     pub position: u32,
-    pub position_text: String,
+    pub position_text: Position,
     #[serde_as(as = "DisplayFromStr")]
     pub points: u32,
     #[serde(rename = "Driver")]
@@ -335,6 +335,43 @@ pub struct RaceResult {
     pub time: Option<RaceTime>,
     #[serde(rename = "FastestLap")]
     pub fastest_lap: Option<FastestLap>,
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum Position {
+    Finished(u32),
+    Retired,
+    Disqualified,
+    Excluded,
+    Withdrawn,
+    FailedToQualify,
+    NotClassified,
+}
+
+impl Position {
+    pub const R: Position = Position::Retired;
+    pub const D: Position = Position::Disqualified;
+    pub const E: Position = Position::Excluded;
+    pub const W: Position = Position::Withdrawn;
+    pub const F: Position = Position::FailedToQualify;
+    pub const N: Position = Position::NotClassified;
+}
+
+impl<'de> Deserialize<'de> for Position {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        match String::deserialize(deserializer)?.as_str() {
+            "R" => Ok(Self::R),
+            "D" => Ok(Self::D),
+            "E" => Ok(Self::E),
+            "W" => Ok(Self::W),
+            "F" => Ok(Self::F),
+            "N" => Ok(Self::N),
+            num => Ok(Self::Finished(
+                num.parse::<u32>()
+                    .map_err(|err| serde::de::Error::custom(err.to_string()))?,
+            )),
+        }
+    }
 }
 
 #[serde_as]
