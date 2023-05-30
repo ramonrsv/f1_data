@@ -806,6 +806,38 @@ mod tests {
     }
 
     #[test]
+    fn position() {
+        assert_eq!(Position::Retired, Position::R);
+        assert_ne!(Position::Retired, Position::E);
+
+        let pos = Position::Finished(10);
+        assert!(matches!(pos, Position::Finished(_)));
+        assert!(!matches!(pos, Position::E));
+
+        match pos {
+            Position::Finished(pos) => assert_eq!(pos, 10),
+            _ => panic!("Expected Finished variant"),
+        };
+    }
+
+    #[test]
+    fn position_deserialize() {
+        assert!(matches!(serde_json::from_str::<Position>("\"R\"").unwrap(), Position::R));
+        assert!(matches!(serde_json::from_str::<Position>("\"D\"").unwrap(), Position::D));
+        assert!(matches!(serde_json::from_str::<Position>("\"E\"").unwrap(), Position::E));
+        assert!(matches!(serde_json::from_str::<Position>("\"W\"").unwrap(), Position::W));
+        assert!(matches!(serde_json::from_str::<Position>("\"F\"").unwrap(), Position::F));
+        assert!(matches!(serde_json::from_str::<Position>("\"N\"").unwrap(), Position::N));
+
+        let Position::Finished(pos) = serde_json::from_str("\"10\"").unwrap() else {
+            panic!("Expected Finished variant")
+        };
+        assert_eq!(pos, 10);
+
+        assert!(serde_json::from_str::<Position>("\"unknown\"").is_err());
+    }
+
+    #[test]
     fn date_time() {
         let dt: DateTime = serde_json::from_str(
             r#"{
