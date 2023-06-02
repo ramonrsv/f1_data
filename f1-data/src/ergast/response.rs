@@ -195,7 +195,7 @@ pub struct Race {
     #[serde(flatten)]
     pub schedule: Schedule,
     #[serde(flatten)]
-    pub results: SessionResults,
+    pub payload: Payload,
 }
 
 #[derive(Deserialize, PartialEq, Clone, Debug)]
@@ -213,28 +213,29 @@ pub struct Schedule {
 }
 
 #[derive(PartialEq, Clone, Debug)]
-pub enum SessionResults {
+pub enum Payload {
     QualifyingResults(Vec<QualifyingResult>),
     SprintResults(Vec<SprintResult>),
     RaceResults(Vec<RaceResult>),
-    /// Only one kind of session results may be returned in a response, but it may also contain no
-    /// session results. While that could be handled via `Option<SessionResults>`, it's more
-    /// ergonomic to handle it with this [`SessionResults::NoSessionResults`] variant. The
-    /// [`SessionResults::has_results`] method is provided to query the presence of results.
-    NoSessionResults,
+    /// Only one kind of payload may be returned in a response, but it may also contain no payload,
+    /// e.g. when [`Resource::RaceSchedule`](crate::ergast::resource::Resource::RaceSchedule) is
+    /// requested. While that could be handled via `Option<Payload>`, it's more ergonomic to handle
+    /// it with this [`Payload::NoPayload`] variant. The [`Payload::has_payload`] method is provided
+    /// to query the presence of a payload, i.e. any variant that is not [`Payload::NoPayload`].
+    NoPayload,
 }
 
-impl SessionResults {
-    /// Returns true if any of the results variants is held, i.e. any variant that isn't
-    /// [`SessionResults::NoSessionResults`].
-    pub fn has_results(&self) -> bool {
-        !matches!(self, Self::NoSessionResults)
+impl Payload {
+    /// Returns true if any of the payload variants is held, i.e. any variant that in't
+    /// [`Payload::NoPayload`].
+    pub fn has_payload(&self) -> bool {
+        !matches!(self, Self::NoPayload)
     }
 }
 
-impl From<SessionResultsProxy> for SessionResults {
-    fn from(proxy: SessionResultsProxy) -> Self {
-        type Proxy = SessionResultsProxy;
+impl From<PayloadProxy> for Payload {
+    fn from(proxy: PayloadProxy) -> Self {
+        type Proxy = PayloadProxy;
 
         match proxy {
             Proxy::QualifyingResults(qr) => Self::QualifyingResults(qr),
@@ -246,19 +247,19 @@ impl From<SessionResultsProxy> for SessionResults {
 
 #[allow(clippy::enum_variant_names)]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
-enum SessionResultsProxy {
+enum PayloadProxy {
     QualifyingResults(Vec<QualifyingResult>),
     SprintResults(Vec<SprintResult>),
     #[serde(rename = "Results")]
     RaceResults(Vec<RaceResult>),
 }
 
-impl<'de> Deserialize<'de> for SessionResults {
+impl<'de> Deserialize<'de> for Payload {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        if let Some(proxy) = Option::<SessionResultsProxy>::deserialize(deserializer)? {
-            Ok(SessionResults::from(proxy))
+        if let Some(proxy) = Option::<PayloadProxy>::deserialize(deserializer)? {
+            Ok(Payload::from(proxy))
         } else {
-            Ok(SessionResults::NoSessionResults)
+            Ok(Payload::NoPayload)
         }
     }
 }
@@ -628,7 +629,7 @@ mod tests {
         {
             let race: Race = serde_json::from_str(RACE_2003_4_QUALIFYING_RESULTS_STR).unwrap();
 
-            let SessionResults::QualifyingResults(qualifying_results) = &race.results else {
+            let Payload::QualifyingResults(qualifying_results) = &race.payload else {
                 panic!("Expected QualifyingResults variant")
             };
 
@@ -640,7 +641,7 @@ mod tests {
         {
             let race: Race = serde_json::from_str(RACE_2023_4_QUALIFYING_RESULTS_STR).unwrap();
 
-            let SessionResults::QualifyingResults(qualifying_results) = &race.results else {
+            let Payload::QualifyingResults(qualifying_results) = &race.payload else {
                 panic!("Expected QualifyingResults variant")
             };
 
@@ -661,7 +662,7 @@ mod tests {
     fn sprint_results() {
         let race: Race = serde_json::from_str(RACE_2023_4_SPRINT_RESULTS_STR).unwrap();
 
-        let SessionResults::SprintResults(sprint_results) = &race.results else {
+        let Payload::SprintResults(sprint_results) = &race.payload else {
             panic!("Expected SprintResults variant")
         };
 
@@ -688,7 +689,7 @@ mod tests {
         {
             let race: Race = serde_json::from_str(RACE_2003_4_RACE_RESULTS_STR).unwrap();
 
-            let SessionResults::RaceResults(race_results) = &race.results else {
+            let Payload::RaceResults(race_results) = &race.payload else {
                 panic!("Expected RaceResults variant")
             };
 
@@ -700,7 +701,7 @@ mod tests {
         {
             let race: Race = serde_json::from_str(RACE_2023_4_RACE_RESULTS_STR).unwrap();
 
-            let SessionResults::RaceResults(race_results) = &race.results else {
+            let Payload::RaceResults(race_results) = &race.payload else {
                 panic!("Expected RaceResults variant")
             };
 

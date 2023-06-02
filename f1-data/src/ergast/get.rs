@@ -181,11 +181,11 @@ mod tests {
 
         assert_eq_race(actual, expected);
 
-        let SessionResults::QualifyingResults(actual_results) = &actual.results else {
+        let Payload::QualifyingResults(actual_results) = &actual.payload else {
             panic!("Expected QualifyingResults variant")
         };
 
-        let SessionResults::QualifyingResults(expected_results) = &expected.results else {
+        let Payload::QualifyingResults(expected_results) = &expected.payload else {
             panic!("Expected QualifyingResults variant")
         };
 
@@ -212,11 +212,11 @@ mod tests {
 
         assert_eq_race(actual, expected);
 
-        let SessionResults::QualifyingResults(actual_results) = &actual.results else {
+        let Payload::QualifyingResults(actual_results) = &actual.payload else {
             panic!("Expected QualifyingResults variant")
         };
 
-        let SessionResults::QualifyingResults(expected_results) = &expected.results else {
+        let Payload::QualifyingResults(expected_results) = &expected.payload else {
             panic!("Expected QualifyingResults variant")
         };
 
@@ -244,11 +244,11 @@ mod tests {
 
         assert_eq_race(actual, expected);
 
-        let SessionResults::SprintResults(actual_results) = &actual.results else {
+        let Payload::SprintResults(actual_results) = &actual.payload else {
             panic!("Expected SprintResults variant")
         };
 
-        let SessionResults::SprintResults(expected_results) = &expected.results else {
+        let Payload::SprintResults(expected_results) = &expected.payload else {
             panic!("Expected SprintResults variant")
         };
 
@@ -289,11 +289,11 @@ mod tests {
 
         assert_eq_race(actual, expected);
 
-        let SessionResults::RaceResults(actual_results) = &actual.results else {
+        let Payload::RaceResults(actual_results) = &actual.payload else {
             panic!("Expected RaceResults variant")
         };
 
-        let SessionResults::RaceResults(expected_results) = &expected.results else {
+        let Payload::RaceResults(expected_results) = &expected.payload else {
             panic!("Expected RaceResults variant")
         };
 
@@ -320,11 +320,11 @@ mod tests {
 
         assert_eq_race(actual, expected);
 
-        let SessionResults::RaceResults(actual_results) = &actual.results else {
+        let Payload::RaceResults(actual_results) = &actual.payload else {
             panic!("Expected RaceResults variant")
         };
 
-        let SessionResults::RaceResults(expected_results) = &expected.results else {
+        let Payload::RaceResults(expected_results) = &expected.payload else {
             panic!("Expected RaceResults variant")
         };
 
@@ -364,14 +364,14 @@ mod tests {
             ..Filters::none()
         });
 
-        let SessionResults::RaceResults(expected_results) = &RACE_2023_4_RACE_RESULTS.results else {
+        let Payload::RaceResults(expected_results) = &RACE_2023_4_RACE_RESULTS.payload else {
             panic!("Expected RaceResults variant")
         };
 
         let get_actual_results = |resp: &Response| {
             let races = resp.mr_data.table.as_races().unwrap();
 
-            let SessionResults::RaceResults(race_results) = &races[0].results else {
+            let Payload::RaceResults(race_results) = &races[0].payload else {
                 panic!("Expected RaceResults variant")
             };
 
