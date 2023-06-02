@@ -1619,3 +1619,159 @@ pub static STATUS_TABLE_2022: Lazy<Table> = Lazy::new(|| Table::Status {
         STATUS_2022_ENGINE.clone(),
     ],
 });
+
+// http://ergast.com/mrd/methods/laps/
+// -----------------------------------
+
+pub const TIMING_2023_4_L1_P1_STR: &str = formatcp!(
+    r#"{{
+    "driverId": "leclerc",
+    "position": "1",
+    "time": "1:50.109"
+  }}"#
+);
+
+pub const TIMING_2023_4_L1_P2_STR: &str = formatcp!(
+    r#"{{
+    "driverId": "max_verstappen",
+    "position": "2",
+    "time": "1:50.456"
+  }}"#
+);
+
+pub const TIMING_2023_4_L2_P1_STR: &str = formatcp!(
+    r#"{{
+    "driverId": "leclerc",
+    "position": "1",
+    "time": "1:47.656"
+  }}"#
+);
+
+pub const TIMING_2023_4_L2_P2_STR: &str = formatcp!(
+    r#"{{
+    "driverId": "max_verstappen",
+    "position": "2",
+    "time": "1:47.707"
+  }}"#
+);
+
+pub const TIMING_2023_4_L1_P1: Lazy<Timing> = Lazy::new(|| Timing {
+    driver_id: "leclerc".to_string(),
+    position: 1,
+    time: Duration::from_m_s_ms(1, 50, 109),
+});
+
+pub const TIMING_2023_4_L1_P2: Lazy<Timing> = Lazy::new(|| Timing {
+    driver_id: "max_verstappen".to_string(),
+    position: 2,
+    time: Duration::from_m_s_ms(1, 50, 456),
+});
+
+pub const TIMING_2023_4_L2_P1: Lazy<Timing> = Lazy::new(|| Timing {
+    driver_id: "leclerc".to_string(),
+    position: 1,
+    time: Duration::from_m_s_ms(1, 47, 656),
+});
+
+pub const TIMING_2023_4_L2_P2: Lazy<Timing> = Lazy::new(|| Timing {
+    driver_id: "max_verstappen".to_string(),
+    position: 2,
+    time: Duration::from_m_s_ms(1, 47, 707),
+});
+
+pub const LAP_2023_4_L1_STR: &str = formatcp!(
+    r#"{{
+    "number": "1",
+    "Timings": [
+        {TIMING_2023_4_L1_P1_STR},
+        {TIMING_2023_4_L1_P2_STR}
+    ]
+  }}"#
+);
+
+pub const LAP_2023_4_L2_STR: &str = formatcp!(
+    r#"{{
+    "number": "2",
+    "Timings": [
+        {TIMING_2023_4_L2_P1_STR},
+        {TIMING_2023_4_L2_P2_STR}
+    ]
+  }}"#
+);
+
+pub const LAP_2023_4_L1: Lazy<Lap> = Lazy::new(|| Lap {
+    number: 1,
+    timings: vec![TIMING_2023_4_L1_P1.clone(), TIMING_2023_4_L1_P2.clone()],
+});
+
+pub const LAP_2023_4_L2: Lazy<Lap> = Lazy::new(|| Lap {
+    number: 2,
+    timings: vec![TIMING_2023_4_L2_P1.clone(), TIMING_2023_4_L2_P2.clone()],
+});
+
+pub const RACE_2023_4_LAPS_STR: &str = formatcp!(
+    r#"{{
+    {RACE_2023_4_STR},
+    "Laps": [
+        {LAP_2023_4_L1_STR},
+        {LAP_2023_4_L2_STR}
+    ]
+  }}"#
+);
+
+pub static RACE_2023_4_LAPS: Lazy<Race> = Lazy::new(|| Race {
+    payload: Payload::Laps(vec![LAP_2023_4_L1.clone(), LAP_2023_4_L2.clone()]),
+    ..RACE_2023_4.clone()
+});
+
+// http://ergast.com/mrd/methods/pitstops/
+// ---------------------------------------
+
+pub const PIT_STOP_2023_4_L10_MAX_STR: &str = formatcp!(
+    r#"{{
+    "driverId": "max_verstappen",
+    "lap": "10",
+    "stop": "1",
+    "time": "15:22:00",
+    "duration": "20.707"
+  }}"#
+);
+
+pub const PIT_STOP_2023_4_L11_LECLERC_STR: &str = formatcp!(
+    r#"{{
+    "driverId": "leclerc",
+    "lap": "11",
+    "stop": "1",
+    "time": "15:24:25",
+    "duration": "21.126"
+  }}"#
+);
+
+pub const PIT_STOP_2023_4_L10_MAX: Lazy<PitStop> = Lazy::new(|| PitStop {
+    driver_id: "max_verstappen".to_string(),
+    lap: 10,
+    stop: 1,
+    duration: Duration::from_m_s_ms(0, 20, 707),
+});
+
+pub const PIT_STOP_2023_4_L11_LECLERC: Lazy<PitStop> = Lazy::new(|| PitStop {
+    driver_id: "leclerc".to_string(),
+    lap: 11,
+    stop: 1,
+    duration: Duration::from_m_s_ms(0, 21, 126),
+});
+
+pub const RACE_2023_4_PIT_STOPS_STR: &str = formatcp!(
+    r#"{{
+    {RACE_2023_4_STR},
+    "PitStops": [
+        {PIT_STOP_2023_4_L10_MAX_STR},
+        {PIT_STOP_2023_4_L11_LECLERC_STR}
+    ]
+  }}"#
+);
+
+pub static RACE_2023_4_PIT_STOPS: Lazy<Race> = Lazy::new(|| Race {
+    payload: Payload::PitStops(vec![PIT_STOP_2023_4_L10_MAX.clone(), PIT_STOP_2023_4_L11_LECLERC.clone()]),
+    ..RACE_2023_4.clone()
+});

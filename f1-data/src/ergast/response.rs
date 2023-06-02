@@ -217,6 +217,8 @@ pub enum Payload {
     QualifyingResults(Vec<QualifyingResult>),
     SprintResults(Vec<SprintResult>),
     RaceResults(Vec<RaceResult>),
+    Laps(Vec<Lap>),
+    PitStops(Vec<PitStop>),
     /// Only one kind of payload may be returned in a response, but it may also contain no payload,
     /// e.g. when [`Resource::RaceSchedule`](crate::ergast::resource::Resource::RaceSchedule) is
     /// requested. While that could be handled via `Option<Payload>`, it's more ergonomic to handle
@@ -238,20 +240,23 @@ impl From<PayloadProxy> for Payload {
         type Proxy = PayloadProxy;
 
         match proxy {
-            Proxy::QualifyingResults(qr) => Self::QualifyingResults(qr),
-            Proxy::SprintResults(sr) => Self::SprintResults(sr),
-            Proxy::RaceResults(rr) => Self::RaceResults(rr),
+            Proxy::QualifyingResults(inner) => Self::QualifyingResults(inner),
+            Proxy::SprintResults(inner) => Self::SprintResults(inner),
+            Proxy::RaceResults(inner) => Self::RaceResults(inner),
+            Proxy::Laps(inner) => Self::Laps(inner),
+            Proxy::PitStops(inner) => Self::PitStops(inner),
         }
     }
 }
 
-#[allow(clippy::enum_variant_names)]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 enum PayloadProxy {
     QualifyingResults(Vec<QualifyingResult>),
     SprintResults(Vec<SprintResult>),
     #[serde(rename = "Results")]
     RaceResults(Vec<RaceResult>),
+    Laps(Vec<Lap>),
+    PitStops(Vec<PitStop>),
 }
 
 impl<'de> Deserialize<'de> for Payload {
@@ -373,6 +378,39 @@ impl<'de> Deserialize<'de> for Position {
             )),
         }
     }
+}
+
+#[serde_as]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
+pub struct Lap {
+    #[serde_as(as = "DisplayFromStr")]
+    pub number: u32,
+    #[serde(rename = "Timings")]
+    pub timings: Vec<Timing>,
+}
+
+#[serde_as]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct Timing {
+    pub driver_id: String,
+    #[serde_as(as = "DisplayFromStr")]
+    pub position: u32,
+    pub time: LapTime,
+}
+
+#[serde_as]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct PitStop {
+    pub driver_id: String,
+    #[serde_as(as = "DisplayFromStr")]
+    pub lap: u32,
+    #[serde_as(as = "DisplayFromStr")]
+    pub stop: u32,
+    // @todo I don't quite understand what this field is supposed to be
+    //pub time, "time"
+    pub duration: Duration,
 }
 
 #[serde_as]
@@ -716,6 +754,53 @@ mod tests {
         let table: Table = serde_json::from_str(STATUS_TABLE_2022_STR).unwrap();
         assert!(!table.as_status().unwrap().is_empty());
         assert_eq!(table, *STATUS_TABLE_2022);
+    }
+
+    #[test]
+    fn timing() {
+        let from_str = |timing_str| serde_json::from_str::<Timing>(timing_str).unwrap();
+
+        assert_eq!(from_str(TIMING_2023_4_L1_P1_STR), *TIMING_2023_4_L1_P1);
+        assert_eq!(from_str(TIMING_2023_4_L1_P2_STR), *TIMING_2023_4_L1_P2);
+        assert_eq!(from_str(TIMING_2023_4_L2_P1_STR), *TIMING_2023_4_L2_P1);
+        assert_eq!(from_str(TIMING_2023_4_L2_P2_STR), *TIMING_2023_4_L2_P2);
+    }
+
+    #[test]
+    fn lap() {
+        let from_str = |lap_str| serde_json::from_str::<Lap>(lap_str).unwrap();
+
+        assert_eq!(from_str(LAP_2023_4_L1_STR), *LAP_2023_4_L1);
+        assert_eq!(from_str(LAP_2023_4_L2_STR), *LAP_2023_4_L2);
+    }
+
+    #[test]
+    fn laps() {
+        let race: Race = serde_json::from_str(RACE_2023_4_LAPS_STR).unwrap();
+
+        let Payload::Laps(laps) = &race.payload else { panic!("Expected Laps variant") };
+        assert!(!laps.is_empty());
+        laps.iter().for_each(|lap| assert!(!lap.timings.is_empty()));
+
+        assert_eq!(race, *RACE_2023_4_LAPS);
+    }
+
+    #[test]
+    fn pit_stop() {
+        let from_str = |pit_stop_str| serde_json::from_str::<PitStop>(pit_stop_str).unwrap();
+
+        assert_eq!(from_str(PIT_STOP_2023_4_L10_MAX_STR), *PIT_STOP_2023_4_L10_MAX);
+        assert_eq!(from_str(PIT_STOP_2023_4_L11_LECLERC_STR), *PIT_STOP_2023_4_L11_LECLERC);
+    }
+
+    #[test]
+    fn pit_stops() {
+        let race: Race = serde_json::from_str(RACE_2023_4_PIT_STOPS_STR).unwrap();
+
+        let Payload::PitStops(pit_stops) = &race.payload else { panic!("Expected PitStops variant") };
+        assert!(!pit_stops.is_empty());
+
+        assert_eq!(race, *RACE_2023_4_PIT_STOPS);
     }
 
     #[test]

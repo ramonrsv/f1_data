@@ -21,7 +21,7 @@ fn get_into_json_with<T: DeserializeOwned>(request: Resource, page: Page) -> T {
 
 #[cfg(test)]
 mod tests {
-    use crate::ergast::resource::{Filters, Resource};
+    use crate::ergast::resource::{Filters, LapTimeFilters, PitStopFilters, Resource};
     use crate::ergast::response::*;
 
     use super::*;
@@ -350,6 +350,58 @@ mod tests {
 
         assert!(!actual.is_empty());
         assert_eq!(actual[0..expected.len()], expected[..]);
+    }
+
+    // Resource::LapTimes
+    // ------------------
+
+    #[test]
+    #[ignore]
+    fn get_lap_times_2023_4() {
+        let resp: Response = get_into_json(Resource::LapTimes(LapTimeFilters::new(2023, 4)));
+
+        let races = resp.mr_data.table.as_races().unwrap();
+        assert_eq!(races.len(), 1);
+
+        let actual = &races[0];
+        let expected = &RACE_2023_4_LAPS;
+
+        assert_eq_race(actual, expected);
+
+        let Payload::Laps(actual_laps) = &actual.payload else { panic!("Expected Laps variant") };
+        let Payload::Laps(expected_laps) = &expected.payload else { panic!("Expected Laps variant") };
+
+        assert!(actual_laps.len() >= 2);
+        assert_eq!(expected_laps.len(), 2);
+
+        assert_eq!(actual_laps[0].timings[..2], expected_laps[0].timings[..]);
+        assert_eq!(actual_laps[1].timings[..2], expected_laps[1].timings[..]);
+    }
+
+    // Resource::PitStops
+    // ------------------
+
+    #[test]
+    #[ignore]
+    fn get_pit_stops_2023_4() {
+        let resp: Response = get_into_json(Resource::PitStops(PitStopFilters::new(2023, 4)));
+
+        let races = resp.mr_data.table.as_races().unwrap();
+        assert_eq!(races.len(), 1);
+
+        let actual = &races[0];
+        let expected = &RACE_2023_4_PIT_STOPS;
+
+        assert_eq_race(actual, expected);
+
+        let Payload::PitStops(actual_pit_stops) = &actual.payload else { panic!("Expected PitStops variant") };
+        let Payload::PitStops(expected_pit_stops) = &expected.payload else { panic!("Expected PitStops variant") };
+
+        assert!(actual_pit_stops.len() >= 2);
+        assert_eq!(expected_pit_stops.len(), 2);
+
+        assert_eq!(actual_pit_stops[8], expected_pit_stops[0]);
+        assert_eq!(actual_pit_stops[11], expected_pit_stops[1]);
     }
 
     // Pagination
