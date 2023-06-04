@@ -56,7 +56,7 @@ impl Pagination {
 }
 
 /// [`Table`] represents all the possible different lists of data that may be returned in a
-/// [`Response`] from the Ergast API, e.g. [`Table::Seasons`] corresponds to the the `"SeasonTable"`
+/// [`Response`] from the Ergast API, e.g. [`Table::Seasons`] corresponds to the `"SeasonTable"`
 /// property key in the JSON response, containing a list of [`Season`]s which corresponds to the
 /// `"Seasons"` property key. One and only of these tables may be returned in a given response,
 /// which is represented by the different variants of this enum.
@@ -212,13 +212,51 @@ pub struct Schedule {
     pub sprint: Option<DateTime>,
 }
 
-#[derive(PartialEq, Clone, Debug)]
+/// [`Payload`] represents all the possible different data elements that be me returned as part of
+/// a [`Race`] in a [`Response`] from the Eergast API, e.g. [`Payload::SprintResults`] corresponds
+/// to the `"SprintResults"` property key in the JSON response, which is a list of [`SprintResult`].
+/// Only one of these payloads may be returned in a given response, which is represented by the
+/// different variants of this enum, as well as no payload may be returned, which is represented by
+/// [`Payload::NoPayload`].
+///
+/// The variants and inner values may be matched and accessed via the usual pattern matching, or via
+/// accessor functions provided by  [`enum-as-inner`](https://crates.io/crates/enum-as-inner).
+///
+/// # Examples:
+///
+/// ```
+/// # use url::Url;
+/// use f1_data::ergast::response::{Payload, SprintResult};
+///
+/// let payload = Payload::Laps(vec![]);
+///
+/// let Payload::Laps(laps) = &payload else { panic!("Expected Laps variant"); };
+/// assert!(laps.is_empty());
+///
+/// assert!(payload.as_laps().unwrap().is_empty());
+/// ```
+#[derive(EnumAsInner, PartialEq, Clone, Debug)]
 pub enum Payload {
+    /// Contains a list of [`QualifyingResult`]s, and corresponds to the `"QualifyingResults"`
+    /// property key in the JSON response from the Ergast API.
     QualifyingResults(Vec<QualifyingResult>),
+
+    /// Contains a list of [`SprintResult`]s, and corresponds to the `"SprintResults"` property key
+    /// in the JSON response from the Ergast API.
     SprintResults(Vec<SprintResult>),
+
+    /// Contains a list of [`RaceResult`]s, and corresponds to the `"Results"` property key in the
+    /// JSON response from the Ergast API.
     RaceResults(Vec<RaceResult>),
+
+    /// Contains a list of [`Lap`]s, and corresponds to the `"Laps"` property key in the JSON
+    /// response from the Ergast API.
     Laps(Vec<Lap>),
+
+    /// Contains a list of [`PitStop`]s, and corresponds to the `"PitStops"` property key in the
+    /// JSON response from the Ergast API.
     PitStops(Vec<PitStop>),
+
     /// Only one kind of payload may be returned in a response, but it may also contain no payload,
     /// e.g. when [`Resource::RaceSchedule`](crate::ergast::resource::Resource::RaceSchedule) is
     /// requested. While that could be handled via `Option<Payload>`, it's more ergonomic to handle
