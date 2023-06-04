@@ -181,13 +181,8 @@ mod tests {
 
         assert_eq_race(actual, expected);
 
-        let Payload::QualifyingResults(actual_results) = &actual.payload else {
-            panic!("Expected QualifyingResults variant")
-        };
-
-        let Payload::QualifyingResults(expected_results) = &expected.payload else {
-            panic!("Expected QualifyingResults variant")
-        };
+        let actual_results = actual.payload.as_qualifying_results().unwrap();
+        let expected_results = expected.payload.as_qualifying_results().unwrap();
 
         assert_eq!(actual_results.len(), 20);
 
@@ -212,13 +207,8 @@ mod tests {
 
         assert_eq_race(actual, expected);
 
-        let Payload::QualifyingResults(actual_results) = &actual.payload else {
-            panic!("Expected QualifyingResults variant")
-        };
-
-        let Payload::QualifyingResults(expected_results) = &expected.payload else {
-            panic!("Expected QualifyingResults variant")
-        };
+        let actual_results = actual.payload.as_qualifying_results().unwrap();
+        let expected_results = expected.payload.as_qualifying_results().unwrap();
 
         assert_eq!(actual_results.len(), 20);
         assert_eq!(actual_results[0..2], expected_results[0..2]);
@@ -244,13 +234,8 @@ mod tests {
 
         assert_eq_race(actual, expected);
 
-        let Payload::SprintResults(actual_results) = &actual.payload else {
-            panic!("Expected SprintResults variant")
-        };
-
-        let Payload::SprintResults(expected_results) = &expected.payload else {
-            panic!("Expected SprintResults variant")
-        };
+        let actual_results = actual.payload.as_sprint_results().unwrap();
+        let expected_results = expected.payload.as_sprint_results().unwrap();
 
         assert_eq!(actual_results.len(), 20);
         assert_eq!(actual_results[0], expected_results[0]);
@@ -289,13 +274,8 @@ mod tests {
 
         assert_eq_race(actual, expected);
 
-        let Payload::RaceResults(actual_results) = &actual.payload else {
-            panic!("Expected RaceResults variant")
-        };
-
-        let Payload::RaceResults(expected_results) = &expected.payload else {
-            panic!("Expected RaceResults variant")
-        };
+        let actual_results = actual.payload.as_race_results().unwrap();
+        let expected_results = expected.payload.as_race_results().unwrap();
 
         assert_eq!(actual_results.len(), 20);
 
@@ -320,13 +300,8 @@ mod tests {
 
         assert_eq_race(actual, expected);
 
-        let Payload::RaceResults(actual_results) = &actual.payload else {
-            panic!("Expected RaceResults variant")
-        };
-
-        let Payload::RaceResults(expected_results) = &expected.payload else {
-            panic!("Expected RaceResults variant")
-        };
+        let actual_results = actual.payload.as_race_results().unwrap();
+        let expected_results = expected.payload.as_race_results().unwrap();
 
         assert_eq!(actual_results.len(), 20);
 
@@ -368,8 +343,8 @@ mod tests {
 
         assert_eq_race(actual, expected);
 
-        let Payload::Laps(actual_laps) = &actual.payload else { panic!("Expected Laps variant") };
-        let Payload::Laps(expected_laps) = &expected.payload else { panic!("Expected Laps variant") };
+        let actual_laps = actual.payload.as_laps().unwrap();
+        let expected_laps = expected.payload.as_laps().unwrap();
 
         assert!(actual_laps.len() >= 2);
         assert_eq!(expected_laps.len(), 2);
@@ -394,8 +369,8 @@ mod tests {
 
         assert_eq_race(actual, expected);
 
-        let Payload::PitStops(actual_pit_stops) = &actual.payload else { panic!("Expected PitStops variant") };
-        let Payload::PitStops(expected_pit_stops) = &expected.payload else { panic!("Expected PitStops variant") };
+        let actual_pit_stops = actual.payload.as_pit_stops().unwrap();
+        let expected_pit_stops = expected.payload.as_pit_stops().unwrap();
 
         assert!(actual_pit_stops.len() >= 2);
         assert_eq!(expected_pit_stops.len(), 2);
@@ -416,17 +391,11 @@ mod tests {
             ..Filters::none()
         });
 
-        let Payload::RaceResults(expected_results) = &RACE_2023_4_RACE_RESULTS.payload else {
-            panic!("Expected RaceResults variant")
-        };
+        let expected_results = RACE_2023_4_RACE_RESULTS.payload.as_race_results().unwrap();
 
         let get_actual_results = |resp: &Response| {
             let races = resp.mr_data.table.as_races().unwrap();
-
-            let Payload::RaceResults(race_results) = &races[0].payload else {
-                panic!("Expected RaceResults variant")
-            };
-
+            let race_results = races[0].payload.as_race_results().unwrap();
             race_results.clone()
         };
 

@@ -666,25 +666,13 @@ mod tests {
     fn qualifying_results() {
         {
             let race: Race = serde_json::from_str(RACE_2003_4_QUALIFYING_RESULTS_STR).unwrap();
-
-            let Payload::QualifyingResults(qualifying_results) = &race.payload else {
-                panic!("Expected QualifyingResults variant")
-            };
-
-            assert!(!qualifying_results.is_empty());
-
+            assert!(!race.payload.as_qualifying_results().unwrap().is_empty());
             assert_eq!(race, *RACE_2003_4_QUALIFYING_RESULTS);
         }
 
         {
             let race: Race = serde_json::from_str(RACE_2023_4_QUALIFYING_RESULTS_STR).unwrap();
-
-            let Payload::QualifyingResults(qualifying_results) = &race.payload else {
-                panic!("Expected QualifyingResults variant")
-            };
-
-            assert!(!qualifying_results.is_empty());
-
+            assert!(!race.payload.as_qualifying_results().unwrap().is_empty());
             assert_eq!(race, *RACE_2023_4_QUALIFYING_RESULTS);
         }
     }
@@ -699,13 +687,7 @@ mod tests {
     #[test]
     fn sprint_results() {
         let race: Race = serde_json::from_str(RACE_2023_4_SPRINT_RESULTS_STR).unwrap();
-
-        let Payload::SprintResults(sprint_results) = &race.payload else {
-            panic!("Expected SprintResults variant")
-        };
-
-        assert!(!sprint_results.is_empty());
-
+        assert!(!race.payload.as_sprint_results().unwrap().is_empty());
         assert_eq!(race, *RACE_2023_4_SPRINT_RESULTS);
     }
 
@@ -726,25 +708,13 @@ mod tests {
     fn race_results() {
         {
             let race: Race = serde_json::from_str(RACE_2003_4_RACE_RESULTS_STR).unwrap();
-
-            let Payload::RaceResults(race_results) = &race.payload else {
-                panic!("Expected RaceResults variant")
-            };
-
-            assert!(!race_results.is_empty());
-
+            assert!(!race.payload.as_race_results().unwrap().is_empty());
             assert_eq!(race, *RACE_2003_4_RACE_RESULTS);
         }
 
         {
             let race: Race = serde_json::from_str(RACE_2023_4_RACE_RESULTS_STR).unwrap();
-
-            let Payload::RaceResults(race_results) = &race.payload else {
-                panic!("Expected RaceResults variant")
-            };
-
-            assert!(!race_results.is_empty());
-
+            assert!(!race.payload.as_race_results().unwrap().is_empty());
             assert_eq!(race, *RACE_2023_4_RACE_RESULTS);
         }
     }
@@ -778,7 +748,7 @@ mod tests {
     fn laps() {
         let race: Race = serde_json::from_str(RACE_2023_4_LAPS_STR).unwrap();
 
-        let Payload::Laps(laps) = &race.payload else { panic!("Expected Laps variant") };
+        let laps = race.payload.as_laps().unwrap();
         assert!(!laps.is_empty());
         laps.iter().for_each(|lap| assert!(!lap.timings.is_empty()));
 
@@ -796,10 +766,7 @@ mod tests {
     #[test]
     fn pit_stops() {
         let race: Race = serde_json::from_str(RACE_2023_4_PIT_STOPS_STR).unwrap();
-
-        let Payload::PitStops(pit_stops) = &race.payload else { panic!("Expected PitStops variant") };
-        assert!(!pit_stops.is_empty());
-
+        assert!(!race.payload.as_pit_stops().unwrap().is_empty());
         assert_eq!(race, *RACE_2023_4_PIT_STOPS);
     }
 
