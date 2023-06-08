@@ -1,22 +1,105 @@
-use serde::de::DeserializeOwned;
 use ureq;
 
 use crate::ergast::resource::{Page, Resource};
+use crate::ergast::response::Response;
 
-fn get_into_json<T: DeserializeOwned>(request: Resource) -> T {
-    ureq::request_url("GET", &request.to_url())
-        .call()
-        .unwrap()
-        .into_json()
-        .unwrap()
+/// An error that may occur while processing a [`Resource`](crate::ergast::resource::Resource)
+/// HTTP request from the Ergast API, via the provided family of `get_*` methods. These may be
+/// underlying HTTP errors, represented by [`Error::Http`], errors parsing the JSON response,
+/// represented by [`Error::Parse`], or errors due to unmet restrictions imposed on the response,
+/// e.g. a request by a method supporting only single-page responses resulted in a multi-page
+/// response, represented by [`Error::MultiPage`].
+#[derive(Debug)]
+pub enum Error {
+    /// Underlying HTTP error, passing through the [`ureq::Error`] returned by
+    /// [`ureq::Request::call`].
+    Http(ureq::Error),
+
+    /// Error parsing the JSON response into a serializable type from
+    /// [`response`](crate::ergast::response), presumably an error from [`serde_json`] but passing
+    /// through the [`std::io::Error`] returned by [`ureq::Response::into_json`].
+    Parse(std::io::Error),
+
+    /// A request by a method supporting only single-page responses resulted in a multi-page one.
+    MultiPage,
 }
 
-fn get_into_json_with<T: DeserializeOwned>(request: Resource, page: Page) -> T {
-    ureq::request_url("GET", &request.to_url_with(page))
-        .call()
-        .unwrap()
-        .into_json()
-        .unwrap()
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+impl std::error::Error for Error {}
+
+impl From<ureq::Error> for Error {
+    fn from(error: ureq::Error) -> Self {
+        Self::Http(error)
+    }
+}
+
+impl From<std::io::Error> for Error {
+    fn from(error: std::io::Error) -> Self {
+        Self::Parse(error)
+    }
+}
+
+/// Performs a GET request to the Ergast API for the argument specified [`Resource`] and returns a
+/// single-page [`Response`], parsed from the JSON response. An [`Error::MultiPage`] is returned if
+/// the requested [`Resource`] results in a multi-page response.
+///
+/// This method performs no additional processing, it returns the top-level [`Response`] type that
+/// is a direct representation of the full JSON response. It is expected that users will use one of
+/// the other convenience `get_*` methods, e.g. `get_driver_info`, in almost all cases, but this
+/// method is provided for maximum flexibility.
+///
+/// # Examples
+///
+/// ```
+/// use f1_data::ergast::{get::get_response, resource::{Filters, Resource}};
+///
+/// let resp = get_response(Resource::DriverInfo(Filters {
+///     driver_id: Some("leclerc".to_string()),
+///     ..Filters::none()
+/// }))
+/// .unwrap();
+///
+/// assert_eq!(resp.mr_data.table.as_drivers().unwrap()[0].given_name, "Charles".to_string());
+/// ```
+pub fn get_response(resource: Resource) -> Result<Response, Error> {
+    Ok(ureq::request_url("GET", &resource.to_url())
+        .call()?
+        .into_json::<Response>()?)
+}
+
+/// Performs a GET request to the Ergast API for a specific page of the argument specified
+/// [`Resource`] and returns a [`Response`] with a single page, parsed from the JSON response, of a
+/// possibly multi-page response. `Response::mr_data::pagination` can be used to check for
+/// [`response::Pagination::is_last_page`](crate::ergast::response::Pagination::is_last_page) and
+/// get [`response::Pagination::next_page`](crate::ergast::response::Pagination::next_page) to
+/// request the following page of the response, via another call to this method.
+///
+/// This method performs no additional processing, it returns the top-level [`Response`] type that
+/// is a direct representation of the full JSON response. It is expected that users will use one of
+/// the other convenience `get_*` methods, e.g. `get_driver_info`, in almost all cases, but this
+/// method is provided for maximum flexibility.
+///
+/// # Examples
+///
+/// ```
+/// use f1_data::ergast::{get::get_response_page, resource::{Filters, Page, Resource}};
+///
+/// let resp = get_response_page(Resource::DriverInfo(Filters::none()), Page::default()).unwrap();
+/// assert_eq!(resp.mr_data.pagination.limit, 30);
+/// assert_eq!(resp.mr_data.table.as_drivers().unwrap().len(), 30);
+///
+/// assert!(resp.mr_data.pagination.total > 30);
+/// assert!(!resp.mr_data.pagination.is_last_page());
+/// ```
+pub fn get_response_page(resource: Resource, page: Page) -> Result<Response, Error> {
+    Ok(ureq::request_url("GET", &resource.to_url_with(page))
+        .call()?
+        .into_json::<Response>()?)
 }
 
 #[cfg(test)]
@@ -43,7 +126,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_seasons() {
-        let resp: Response = get_into_json(Resource::SeasonList(Filters::none()));
+        let resp = get_response(Resource::SeasonList(Filters::none())).unwrap();
 
         let seasons = resp.mr_data.table.as_seasons().unwrap();
         assert_eq!(seasons.len(), 30);
@@ -56,10 +139,11 @@ mod tests {
     // --------------------
 
     fn verify_single_driver(driver_id: &str, driver: &Driver) {
-        let resp: Response = get_into_json(Resource::DriverInfo(Filters {
+        let resp = get_response(Resource::DriverInfo(Filters {
             driver_id: Some(driver_id.to_string()),
             ..Filters::none()
-        }));
+        }))
+        .unwrap();
 
         let drivers = resp.mr_data.table.as_drivers().unwrap();
         assert_eq!(drivers.len(), 1);
@@ -91,10 +175,11 @@ mod tests {
     // -------------------------
 
     fn verify_single_constructor(constructor_id: &str, constructor: &Constructor) {
-        let resp: Response = get_into_json(Resource::ConstructorInfo(Filters {
+        let resp = get_response(Resource::ConstructorInfo(Filters {
             constructor_id: Some(constructor_id.to_string()),
             ..Filters::none()
-        }));
+        }))
+        .unwrap();
 
         let constructors = resp.mr_data.table.as_constructors().unwrap();
         assert_eq!(constructors.len(), 1);
@@ -116,10 +201,11 @@ mod tests {
     // ---------------------
 
     fn verify_single_circuit(circuit_id: &str, circuit: &Circuit) {
-        let resp: Response = get_into_json(Resource::CircuitInfo(Filters {
+        let resp = get_response(Resource::CircuitInfo(Filters {
             circuit_id: Some(circuit_id.to_string()),
             ..Filters::none()
-        }));
+        }))
+        .unwrap();
 
         let circuits = resp.mr_data.table.as_circuits().unwrap();
         assert_eq!(circuits.len(), 1);
@@ -139,11 +225,12 @@ mod tests {
     // ----------------------
 
     fn verify_single_race_schedule(year: u32, round: u32, race_schedule: &Race) {
-        let resp: Response = get_into_json(Resource::RaceSchedule(Filters {
+        let resp = get_response(Resource::RaceSchedule(Filters {
             year: Some(year),
             round: Some(round),
             ..Filters::none()
-        }));
+        }))
+        .unwrap();
 
         let races = resp.mr_data.table.as_races().unwrap();
         assert_eq!(races.len(), 1);
@@ -167,11 +254,12 @@ mod tests {
     #[test]
     #[ignore]
     fn get_qualifying_results_2003_4() {
-        let resp: Response = get_into_json(Resource::QualifyingResults(Filters {
+        let resp = get_response(Resource::QualifyingResults(Filters {
             year: Some(2003),
             round: Some(4),
             ..Filters::none()
-        }));
+        }))
+        .unwrap();
 
         let races = resp.mr_data.table.as_races().unwrap();
         assert_eq!(races.len(), 1);
@@ -193,11 +281,12 @@ mod tests {
     #[test]
     #[ignore]
     fn get_qualifying_results_2023_4() {
-        let resp: Response = get_into_json(Resource::QualifyingResults(Filters {
+        let resp = get_response(Resource::QualifyingResults(Filters {
             year: Some(2023),
             round: Some(4),
             ..Filters::none()
-        }));
+        }))
+        .unwrap();
 
         let races = resp.mr_data.table.as_races().unwrap();
         assert_eq!(races.len(), 1);
@@ -220,11 +309,12 @@ mod tests {
     #[test]
     #[ignore]
     fn get_sprint_results_2023_4() {
-        let resp: Response = get_into_json(Resource::SprintResults(Filters {
+        let resp = get_response(Resource::SprintResults(Filters {
             year: Some(2023),
             round: Some(4),
             ..Filters::none()
-        }));
+        }))
+        .unwrap();
 
         let races = resp.mr_data.table.as_races().unwrap();
         assert_eq!(races.len(), 1);
@@ -244,11 +334,12 @@ mod tests {
     #[test]
     #[ignore]
     fn get_sprint_results_no_sprint() {
-        let resp: Response = get_into_json(Resource::SprintResults(Filters {
+        let resp = get_response(Resource::SprintResults(Filters {
             year: Some(2023),
             round: Some(1),
             ..Filters::none()
-        }));
+        }))
+        .unwrap();
 
         let races = resp.mr_data.table.as_races().unwrap();
         assert!(races.is_empty());
@@ -260,11 +351,12 @@ mod tests {
     #[test]
     #[ignore]
     fn get_race_results_2003_4() {
-        let resp: Response = get_into_json(Resource::RaceResults(Filters {
+        let resp = get_response(Resource::RaceResults(Filters {
             year: Some(2003),
             round: Some(4),
             ..Filters::none()
-        }));
+        }))
+        .unwrap();
 
         let races = resp.mr_data.table.as_races().unwrap();
         assert_eq!(races.len(), 1);
@@ -286,11 +378,12 @@ mod tests {
     #[test]
     #[ignore]
     fn get_race_results_2023_4() {
-        let resp: Response = get_into_json(Resource::RaceResults(Filters {
+        let resp = get_response(Resource::RaceResults(Filters {
             year: Some(2023),
             round: Some(4),
             ..Filters::none()
-        }));
+        }))
+        .unwrap();
 
         let races = resp.mr_data.table.as_races().unwrap();
         assert_eq!(races.len(), 1);
@@ -315,10 +408,11 @@ mod tests {
     #[test]
     #[ignore]
     fn get_finishing_status_2022() {
-        let resp: Response = get_into_json(Resource::FinishingStatus(Filters {
+        let resp = get_response(Resource::FinishingStatus(Filters {
             year: Some(2022),
             ..Filters::none()
-        }));
+        }))
+        .unwrap();
 
         let actual = resp.mr_data.table.as_status().unwrap();
         let expected = STATUS_TABLE_2022.as_status().unwrap();
@@ -333,7 +427,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_lap_times_2023_4() {
-        let resp: Response = get_into_json(Resource::LapTimes(LapTimeFilters::new(2023, 4)));
+        let resp = get_response(Resource::LapTimes(LapTimeFilters::new(2023, 4))).unwrap();
 
         let races = resp.mr_data.table.as_races().unwrap();
         assert_eq!(races.len(), 1);
@@ -359,7 +453,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_pit_stops_2023_4() {
-        let resp: Response = get_into_json(Resource::PitStops(PitStopFilters::new(2023, 4)));
+        let resp = get_response(Resource::PitStops(PitStopFilters::new(2023, 4))).unwrap();
 
         let races = resp.mr_data.table.as_races().unwrap();
         assert_eq!(races.len(), 1);
@@ -400,7 +494,7 @@ mod tests {
         };
 
         {
-            let resp: Response = get_into_json(req.clone());
+            let resp = get_response(req.clone()).unwrap();
             assert!(resp.mr_data.pagination.is_last_page());
             assert_eq!(resp.mr_data.pagination.limit, 30);
             assert_eq!(resp.mr_data.pagination.offset, 0);
@@ -414,7 +508,7 @@ mod tests {
         }
 
         {
-            let mut resp: Response = get_into_json_with(req.clone(), Page::with_limit(5));
+            let mut resp = get_response_page(req.clone(), Page::with_limit(5)).unwrap();
             assert!(!resp.mr_data.pagination.is_last_page());
 
             let actual_results = get_actual_results(&resp);
@@ -429,7 +523,7 @@ mod tests {
 
                 assert_eq!(get_actual_results(&resp).len(), 5);
 
-                resp = get_into_json_with(req.clone(), resp.mr_data.pagination.next_page().unwrap().into());
+                resp = get_response_page(req.clone(), resp.mr_data.pagination.next_page().unwrap().into()).unwrap();
 
                 current_offset += 5;
             }
