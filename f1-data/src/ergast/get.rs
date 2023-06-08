@@ -55,7 +55,7 @@ impl From<std::io::Error> for Error {
 ///
 /// # Examples
 ///
-/// ```
+/// ```no_run
 /// use f1_data::ergast::{get::get_response, resource::{Filters, Resource}};
 ///
 /// let resp = get_response(Resource::DriverInfo(Filters {
@@ -86,7 +86,7 @@ pub fn get_response(resource: Resource) -> Result<Response, Error> {
 ///
 /// # Examples
 ///
-/// ```
+/// ```no_run
 /// use f1_data::ergast::{get::get_response_page, resource::{Filters, Page, Resource}};
 ///
 /// let resp = get_response_page(Resource::DriverInfo(Filters::none()), Page::default()).unwrap();
