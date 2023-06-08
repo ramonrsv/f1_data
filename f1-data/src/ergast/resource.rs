@@ -611,6 +611,11 @@ pub struct Page {
 impl Page {
     const DEFAULT_LIMIT: u32 = 30;
     const MAX_LIMIT: u32 = 1000;
+    const DEFAULT_OFFSET: u32 = 0;
+
+    pub fn default() -> Self {
+        Self::with(Self::DEFAULT_LIMIT, Self::DEFAULT_OFFSET)
+    }
 
     pub fn with(limit: u32, offset: u32) -> Self {
         assert!(limit <= Self::MAX_LIMIT);
@@ -623,7 +628,7 @@ impl Page {
     }
 
     pub fn with_limit(limit: u32) -> Self {
-        Self::with(limit, 0)
+        Self::with(limit, Self::DEFAULT_OFFSET)
     }
 
     pub fn with_max_limit() -> Self {
@@ -976,7 +981,15 @@ mod tests {
             Page::with_max_limit(),
             Page {
                 limit: Page::MAX_LIMIT,
-                offset: 0
+                offset: Page::DEFAULT_OFFSET
+            }
+        );
+
+        assert_eq!(
+            Page::default(),
+            Page {
+                limit: Page::DEFAULT_LIMIT,
+                offset: Page::DEFAULT_OFFSET
             }
         );
     }
