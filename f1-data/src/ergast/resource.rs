@@ -609,9 +609,10 @@ pub struct Page {
 }
 
 impl Page {
-    const DEFAULT_LIMIT: u32 = 30;
-    const MAX_LIMIT: u32 = 1000;
-    const DEFAULT_OFFSET: u32 = 0;
+    pub const DEFAULT_LIMIT: u32 = 30;
+    pub const DEFAULT_OFFSET: u32 = 0;
+
+    pub const MAX_LIMIT: u32 = 1000;
 
     pub fn default() -> Self {
         Self::with(Self::DEFAULT_LIMIT, Self::DEFAULT_OFFSET)

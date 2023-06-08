@@ -44,6 +44,36 @@ impl From<std::io::Error> for Error {
     }
 }
 
+/// Performs a GET request to the Ergast API for a specific page of the argument specified
+/// [`Resource`] and returns a [`Response`] with a single page, parsed from the JSON response, of a
+/// possibly multi-page response. `Response::mr_data::pagination` can be used to check for
+/// [`response::Pagination::is_last_page`](crate::ergast::response::Pagination::is_last_page) and
+/// get [`response::Pagination::next_page`](crate::ergast::response::Pagination::next_page) to
+/// request the following page of the response, via another call to this method.
+///
+/// This method performs no additional processing; it returns the top-level [`Response`] type that
+/// is a direct representation of the full JSON response. It is expected that users will use one of
+/// the other convenience `get_*` methods, e.g. `get_driver_info`, in almost all cases, but this
+/// method is provided for maximum flexibility.
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::ergast::{get::get_response_page, resource::{Filters, Page, Resource}};
+///
+/// let resp = get_response_page(Resource::DriverInfo(Filters::none()), Page::default()).unwrap();
+/// assert_eq!(resp.mr_data.pagination.limit, 30);
+/// assert_eq!(resp.mr_data.table.as_drivers().unwrap().len(), 30);
+///
+/// assert!(resp.mr_data.pagination.total > 30);
+/// assert!(!resp.mr_data.pagination.is_last_page());
+/// ```
+pub fn get_response_page(resource: Resource, page: Page) -> Result<Response, Error> {
+    Ok(ureq::request_url("GET", &resource.to_url_with(page))
+        .call()?
+        .into_json::<Response>()?)
+}
+
 /// Performs a GET request to the Ergast API for the argument specified [`Resource`] and returns a
 /// single-page [`Response`], parsed from the JSON response. An [`Error::MultiPage`] is returned if
 /// the requested [`Resource`] results in a multi-page response.
@@ -67,39 +97,16 @@ impl From<std::io::Error> for Error {
 /// assert_eq!(resp.mr_data.table.as_drivers().unwrap()[0].given_name, "Charles".to_string());
 /// ```
 pub fn get_response(resource: Resource) -> Result<Response, Error> {
-    Ok(ureq::request_url("GET", &resource.to_url())
-        .call()?
-        .into_json::<Response>()?)
+    single_page_or_err(get_response_page(resource, Page::default())?)
 }
 
-/// Performs a GET request to the Ergast API for a specific page of the argument specified
-/// [`Resource`] and returns a [`Response`] with a single page, parsed from the JSON response, of a
-/// possibly multi-page response. `Response::mr_data::pagination` can be used to check for
-/// [`response::Pagination::is_last_page`](crate::ergast::response::Pagination::is_last_page) and
-/// get [`response::Pagination::next_page`](crate::ergast::response::Pagination::next_page) to
-/// request the following page of the response, via another call to this method.
-///
-/// This method performs no additional processing, it returns the top-level [`Response`] type that
-/// is a direct representation of the full JSON response. It is expected that users will use one of
-/// the other convenience `get_*` methods, e.g. `get_driver_info`, in almost all cases, but this
-/// method is provided for maximum flexibility.
-///
-/// # Examples
-///
-/// ```no_run
-/// use f1_data::ergast::{get::get_response_page, resource::{Filters, Page, Resource}};
-///
-/// let resp = get_response_page(Resource::DriverInfo(Filters::none()), Page::default()).unwrap();
-/// assert_eq!(resp.mr_data.pagination.limit, 30);
-/// assert_eq!(resp.mr_data.table.as_drivers().unwrap().len(), 30);
-///
-/// assert!(resp.mr_data.pagination.total > 30);
-/// assert!(!resp.mr_data.pagination.is_last_page());
-/// ```
-pub fn get_response_page(resource: Resource, page: Page) -> Result<Response, Error> {
-    Ok(ureq::request_url("GET", &resource.to_url_with(page))
-        .call()?
-        .into_json::<Response>()?)
+/// Convert [`Response`] to `Result<Response, Error>`, enforcing that [`Response`] is single-page
+fn single_page_or_err(response: Response) -> Result<Response, Error> {
+    if response.mr_data.pagination.is_single_page() {
+        Ok(response)
+    } else {
+        Err(Error::MultiPage)
+    }
 }
 
 #[cfg(test)]
@@ -126,7 +133,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_seasons() {
-        let resp = get_response(Resource::SeasonList(Filters::none())).unwrap();
+        let resp = get_response_page(Resource::SeasonList(Filters::none()), Page::default()).unwrap();
 
         let seasons = resp.mr_data.table.as_seasons().unwrap();
         assert_eq!(seasons.len(), 30);
@@ -427,7 +434,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_lap_times_2023_4() {
-        let resp = get_response(Resource::LapTimes(LapTimeFilters::new(2023, 4))).unwrap();
+        let resp = get_response_page(Resource::LapTimes(LapTimeFilters::new(2023, 4)), Page::default()).unwrap();
 
         let races = resp.mr_data.table.as_races().unwrap();
         assert_eq!(races.len(), 1);
@@ -533,5 +540,14 @@ mod tests {
 
             assert!(resp.mr_data.pagination.next_page().is_none());
         }
+    }
+
+    // Error::MultiPage
+    // ----------------
+
+    #[test]
+    #[ignore]
+    fn pagination_multi_page_error() {
+        assert!(matches!(get_response(Resource::SeasonList(Filters::none())), Err(Error::MultiPage)));
     }
 }

@@ -43,6 +43,10 @@ impl Pagination {
         (self.offset + self.limit) >= self.total
     }
 
+    pub fn is_single_page(&self) -> bool {
+        (self.offset == 0) && self.is_last_page()
+    }
+
     pub fn next_page(&self) -> Option<Self> {
         if self.is_last_page() {
             None
@@ -830,6 +834,23 @@ mod tests {
             total: 15
         }
         .is_last_page());
+    }
+
+    #[test]
+    fn pagination_is_single_page() {
+        assert!(Pagination {
+            limit: 30,
+            offset: 0,
+            total: 16
+        }
+        .is_single_page());
+
+        assert!(!Pagination {
+            limit: 10,
+            offset: 5,
+            total: 15
+        }
+        .is_single_page())
     }
 
     #[test]
