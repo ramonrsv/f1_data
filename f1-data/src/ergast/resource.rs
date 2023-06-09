@@ -614,10 +614,6 @@ impl Page {
 
     pub const MAX_LIMIT: u32 = 1000;
 
-    pub fn default() -> Self {
-        Self::with(Self::DEFAULT_LIMIT, Self::DEFAULT_OFFSET)
-    }
-
     pub fn with(limit: u32, offset: u32) -> Self {
         assert!(limit <= Self::MAX_LIMIT);
 
@@ -649,6 +645,12 @@ impl Page {
             offset: self.offset + self.limit,
             ..*self
         }
+    }
+}
+
+impl Default for Page {
+    fn default() -> Self {
+        Self::with(Self::DEFAULT_LIMIT, Self::DEFAULT_OFFSET)
     }
 }
 

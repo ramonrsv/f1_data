@@ -13,7 +13,7 @@ use crate::ergast::response::Response;
 pub enum Error {
     /// Underlying HTTP error, passing through the [`ureq::Error`] returned by
     /// [`ureq::Request::call`].
-    Http(ureq::Error),
+    Http(Box<ureq::Error>),
 
     /// Error parsing the JSON response into a serializable type from
     /// [`response`](crate::ergast::response), presumably an error from [`serde_json`] but passing
@@ -34,7 +34,7 @@ impl std::error::Error for Error {}
 
 impl From<ureq::Error> for Error {
     fn from(error: ureq::Error) -> Self {
-        Self::Http(error)
+        Self::Http(Box::new(error))
     }
 }
 
