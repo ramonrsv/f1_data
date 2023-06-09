@@ -63,9 +63,10 @@ impl From<std::io::Error> for Error {
 ///
 /// let resp = get_response_page(Resource::SeasonList(Filters::none()), Page::with_limit(50)).unwrap();
 ///
-/// assert_eq!(resp.mr_data.table.as_seasons().unwrap().len(), 50);
-/// assert_eq!(resp.mr_data.table.as_seasons().unwrap().first().unwrap().season, 1950);
-/// assert_eq!(resp.mr_data.table.as_seasons().unwrap().last().unwrap().season, 1999);
+/// let seasons = resp.mr_data.table.as_seasons().unwrap();
+/// assert_eq!(seasons.len(), 50);
+/// assert_eq!(seasons.first().unwrap().season, 1950);
+/// assert_eq!(seasons.last().unwrap().season, 1999);
 /// assert!(!resp.mr_data.pagination.is_last_page());
 ///
 /// let resp = get_response_page(
@@ -74,8 +75,9 @@ impl From<std::io::Error> for Error {
 /// )
 /// .unwrap();
 ///
-/// assert!(resp.mr_data.table.as_seasons().unwrap().len() <= 50);
-/// assert_eq!(resp.mr_data.table.as_seasons().unwrap().first().unwrap().season, 2000);
+/// let seasons = resp.mr_data.table.as_seasons().unwrap();
+/// assert!(seasons.len() <= 50);
+/// assert_eq!(seasons.first().unwrap().season, 2000);
 /// assert!(resp.mr_data.pagination.is_last_page());
 /// ```
 pub fn get_response_page(resource: Resource, page: Page) -> Result<Response, Error> {
