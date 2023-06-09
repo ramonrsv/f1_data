@@ -61,12 +61,12 @@ impl SeasonPrices {
         self.constructors.keys()
     }
 
-    pub fn driver_price(&self, driver: &DriverID, round: &RoundID) -> Option<Price> {
-        Some(*self.drivers.get(driver)?.get(round)?)
+    pub fn driver_price(&self, driver: &DriverID, round: RoundID) -> Option<Price> {
+        Some(*self.drivers.get(driver)?.get(&round)?)
     }
 
-    pub fn constructor_price(&self, constructor: &ConstructorID, round: &RoundID) -> Option<Price> {
-        Some(*self.constructors.get(constructor)?.get(round)?)
+    pub fn constructor_price(&self, constructor: &ConstructorID, round: RoundID) -> Option<Price> {
+        Some(*self.constructors.get(constructor)?.get(&round)?)
     }
 }
 
@@ -82,7 +82,7 @@ impl SeasonPrices {
                     prices
                         .iter()
                         .enumerate()
-                        .map(|(idx, price)| (RoundID::from(idx as u32 + 1), *price))
+                        .map(|(idx, price)| (idx as RoundID + 1, *price))
                         .collect::<HashMap<_, _>>(),
                 )
             })
@@ -114,7 +114,7 @@ impl SeasonPrices {
                         .iter()
                         .map(|price| price.as_f64().unwrap())
                         .enumerate()
-                        .map(|(idx, price)| (RoundID::from(idx as u32 + 1), price as Price))
+                        .map(|(idx, price)| (idx as RoundID + 1, price as Price))
                         .collect::<HashMap<_, _>>(),
                 )
             })
@@ -206,12 +206,7 @@ mod tests {
     fn validate_driver_price(season_prices: &SeasonPrices) {
         for driver in DRIVERS.iter() {
             for (idx, price) in DRIVER_PRICES.get(driver).unwrap().iter().enumerate() {
-                assert_eq!(
-                    season_prices
-                        .driver_price(driver, &RoundID::from(idx as u32 + 1))
-                        .unwrap(),
-                    price.clone()
-                );
+                assert_eq!(season_prices.driver_price(driver, idx as RoundID + 1).unwrap(), price.clone());
             }
         }
     }
@@ -221,7 +216,7 @@ mod tests {
             for (idx, price) in CONSTRUCTOR_PRICES.get(constructor).unwrap().iter().enumerate() {
                 assert_eq!(
                     season_prices
-                        .constructor_price(constructor, &RoundID::from(idx as u32 + 1))
+                        .constructor_price(constructor, idx as RoundID + 1)
                         .unwrap(),
                     price.clone()
                 );
