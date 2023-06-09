@@ -139,7 +139,7 @@ impl SeasonPrices {
 mod tests {
     use std::collections::HashSet;
 
-    use lazy_static::lazy_static;
+    use once_cell::sync::Lazy;
 
     use super::*;
 
@@ -149,25 +149,28 @@ mod tests {
     const REDB_STR: &str = "red_bull";
     const MERC_STR: &str = "mercedes";
 
-    lazy_static! {
-        static ref VER_ID: DriverID = DriverID::from(VER_STR);
-        static ref HAM_ID: DriverID = DriverID::from(HAM_STR);
-        static ref REDB_ID: ConstructorID = ConstructorID::from(REDB_STR);
-        static ref MERC_ID: ConstructorID = ConstructorID::from(MERC_STR);
-        static ref DRIVERS: Vec<DriverID> = vec![VER_ID.clone(), HAM_ID.clone()];
-        static ref CONSTRUCTORS: Vec<ConstructorID> = vec![REDB_ID.clone(), MERC_ID.clone()];
-    }
+    static VER_ID: Lazy<DriverID> = Lazy::new(|| DriverID::from(VER_STR));
+    static HAM_ID: Lazy<DriverID> = Lazy::new(|| DriverID::from(HAM_STR));
 
-    lazy_static! {
-        static ref DRIVER_PRICES: HashMap<DriverID, Vec<Price>> = HashMap::from([
+    static REDB_ID: Lazy<ConstructorID> = Lazy::new(|| ConstructorID::from(REDB_STR));
+    static MERC_ID: Lazy<ConstructorID> = Lazy::new(|| ConstructorID::from(MERC_STR));
+
+    static DRIVERS: Lazy<Vec<DriverID>> = Lazy::new(|| vec![VER_ID.clone(), HAM_ID.clone()]);
+    static CONSTRUCTORS: Lazy<Vec<ConstructorID>> = Lazy::new(|| vec![REDB_ID.clone(), MERC_ID.clone()]);
+
+    static DRIVER_PRICES: Lazy<HashMap<DriverID, Vec<Price>>> = Lazy::new(|| {
+        HashMap::from([
             (VER_ID.clone(), vec![26.9, 27.0, 27.1, 27.2]),
             (HAM_ID.clone(), vec![23.7, 23.7, 23.7, 23.8]),
-        ]);
-        static ref CONSTRUCTOR_PRICES: HashMap<ConstructorID, Vec<Price>> = HashMap::from([
+        ])
+    });
+
+    static CONSTRUCTOR_PRICES: Lazy<HashMap<ConstructorID, Vec<Price>>> = Lazy::new(|| {
+        HashMap::from([
             (REDB_ID.clone(), vec![27.2, 27.3, 27.4, 27.5]),
-            (MERC_ID.clone(), vec![25.1, 25.1, 25.1, 25.1])
-        ]);
-    }
+            (MERC_ID.clone(), vec![25.1, 25.1, 25.1, 25.1]),
+        ])
+    });
 
     fn as_hashset<'a, ID, T>(iter: T) -> HashSet<ID>
     where
@@ -180,16 +183,16 @@ mod tests {
     #[test]
     fn season_prices_validate_test_data() {
         assert_eq!(DRIVERS.len(), 2);
-        assert!(DRIVER_PRICES.contains_key(&VER_ID));
-        assert!(DRIVER_PRICES.contains_key(&HAM_ID));
-        assert_eq!(DRIVER_PRICES.get(&VER_ID).unwrap().len(), 4);
-        assert_eq!(DRIVER_PRICES.get(&HAM_ID).unwrap().len(), 4);
+        assert!(DRIVER_PRICES.contains_key(&*VER_ID));
+        assert!(DRIVER_PRICES.contains_key(&*HAM_ID));
+        assert_eq!(DRIVER_PRICES.get(&*VER_ID).unwrap().len(), 4);
+        assert_eq!(DRIVER_PRICES.get(&*HAM_ID).unwrap().len(), 4);
 
         assert_eq!(CONSTRUCTORS.len(), 2);
-        assert!(CONSTRUCTOR_PRICES.contains_key(&REDB_ID));
-        assert!(CONSTRUCTOR_PRICES.contains_key(&MERC_ID));
-        assert_eq!(CONSTRUCTOR_PRICES.get(&REDB_ID).unwrap().len(), 4);
-        assert_eq!(CONSTRUCTOR_PRICES.get(&MERC_ID).unwrap().len(), 4);
+        assert!(CONSTRUCTOR_PRICES.contains_key(&*REDB_ID));
+        assert!(CONSTRUCTOR_PRICES.contains_key(&*MERC_ID));
+        assert_eq!(CONSTRUCTOR_PRICES.get(&*REDB_ID).unwrap().len(), 4);
+        assert_eq!(CONSTRUCTOR_PRICES.get(&*MERC_ID).unwrap().len(), 4);
     }
 
     fn validate_drivers(season_prices: &SeasonPrices) {
@@ -230,12 +233,12 @@ mod tests {
     fn season_prices_from_str_price_map_happy_path() {
         let season_prices = SeasonPrices::from_str_price_map(
             &HashMap::from([
-                (VER_STR, DRIVER_PRICES.get(&VER_ID).unwrap().clone()),
-                (HAM_STR, DRIVER_PRICES.get(&HAM_ID).unwrap().clone()),
+                (VER_STR, DRIVER_PRICES.get(&*VER_ID).unwrap().clone()),
+                (HAM_STR, DRIVER_PRICES.get(&*HAM_ID).unwrap().clone()),
             ]),
             &HashMap::from([
-                (REDB_STR, CONSTRUCTOR_PRICES.get(&REDB_ID).unwrap().clone()),
-                (MERC_STR, CONSTRUCTOR_PRICES.get(&MERC_ID).unwrap().clone()),
+                (REDB_STR, CONSTRUCTOR_PRICES.get(&*REDB_ID).unwrap().clone()),
+                (MERC_STR, CONSTRUCTOR_PRICES.get(&*MERC_ID).unwrap().clone()),
             ]),
         );
 
