@@ -1,6 +1,9 @@
 use url::Url;
 
-use crate::ergast::response::Pagination;
+use crate::{
+    ergast::response::Pagination,
+    id::{CircuitID, ConstructorID, DriverID, RoundID, SeasonID, StatusID},
+};
 
 /// Each variant of the [`Resource`] enumeration represents a given resource that can be requested
 /// from the Ergast API, and it contains any options or filters that can be applied to the request.
@@ -167,10 +170,11 @@ impl Resource {
     ///
     /// ```
     /// # use url::Url;
+    /// use f1_data::id::DriverID;
     /// use f1_data::ergast::resource::{Resource, Filters};
     ///
     /// let request = Resource::DriverInfo(Filters {
-    ///     driver_id: Some("leclerc".to_string()),
+    ///     driver_id: Some(DriverID::from("leclerc")),
     ///     ..Filters::none()
     /// });
     ///
@@ -247,15 +251,16 @@ trait FiltersFormatter {
 /// # Examples
 ///
 /// ```
+/// use f1_data::id::{CircuitID, DriverID};
 /// use f1_data::ergast::resource::Filters;
 ///
 /// let filters = Filters {
-///     driver_id: Some("alonso".to_string()),
-///     circuit_id: Some("spa".to_string()),
+///     driver_id: Some(DriverID::from("alonso")),
+///     circuit_id: Some(CircuitID::from("spa")),
 ///     ..Filters::none()
 /// };
-/// assert_eq!(filters.driver_id, Some("alonso".to_string()));
-/// assert_eq!(filters.circuit_id, Some("spa".to_string()));
+/// assert_eq!(filters.driver_id, Some(DriverID::from("alonso")));
+/// assert_eq!(filters.circuit_id, Some(CircuitID::from("spa")));
 ///
 /// assert!(
 ///     filters.year.is_none()
@@ -270,7 +275,7 @@ pub struct Filters {
     /// Restrict responses to a given championship season, identified by the year it took place in,
     /// e.g. `2023` for the _2023 Formula One World Championship_. See [`Resource::SeasonList`] to
     /// get a list of seasons currently supported by the API.
-    pub year: Option<u32>,
+    pub year: Option<SeasonID>,
 
     /// Restrict responses to a specific race, identified by the round index starting from `1`, in a
     /// specific season. See [`Resource::RaceSchedule`] to get a list of rounds for a given season.
@@ -283,23 +288,23 @@ pub struct Filters {
     /// [`Filters::round`] being set requires that [`Filters::year`] be set as well, else
     /// certain methods may panic. The inverse is not true, [`Filters::year`] can be set
     /// without [`Filters::round`].
-    pub round: Option<u32>,
+    pub round: Option<RoundID>,
 
     /// Restrict responses to those in which a given driver, identified by a unique ID, features,
     /// e.g. seasons or races in which the driver competed, constructors for which they drove, etc.
     /// See [`Resource::DriverInfo`] to get a list of all available driver IDs.
-    pub driver_id: Option<String>,
+    pub driver_id: Option<DriverID>,
 
     /// Restrict responses to those in which a given constructors, identified by a unique ID,
     /// features, e.g. seasons or races in which the constructor competed, drivers that drove for
     /// them, etc. See [`Resource::ConstructorInfo`] to get a list of all available constructor IDs.
-    pub constructor_id: Option<String>,
+    pub constructor_id: Option<ConstructorID>,
 
     /// Restrict responses to those in which a given circuit, identified by a unique ID, features,
     /// e.g. races that took place in that circuit, seasons that held such a race, drivers that
     /// competed in that circuit, etc. See [`Resource::CircuitInfo`] to get a list of all available
     /// circuit IDs.
-    pub circuit_id: Option<String>,
+    pub circuit_id: Option<CircuitID>,
 
     /// Restrict responses to those in which a qualifying result with a specific position features,
     /// e.g. drivers or constructors that achieved a specific qualifying position, etc. See
@@ -326,7 +331,7 @@ pub struct Filters {
     /// a driver had an `"Accident"`. This field should be the unique numeric ID for a finishing
     /// status, not the textual representation. See [`Resource::FinishingStatus`] to get a list of
     /// all supported unique finishing status codes.
-    pub finishing_status: Option<u32>,
+    pub finishing_status: Option<StatusID>,
 }
 
 impl Filters {
@@ -374,6 +379,7 @@ impl Filters {
 /// # Examples
 ///
 /// ```
+/// use f1_data::id::DriverID;
 /// use f1_data::ergast::resource::LapTimeFilters;
 ///
 /// let filters = LapTimeFilters::new(2023, 4);
@@ -386,26 +392,26 @@ impl Filters {
 ///     year: 2023,
 ///     round: 4,
 ///     lap: Some(1),
-///     driver_id: Some("alonso".to_string()),
+///     driver_id: Some(DriverID::from("alonso")),
 /// };
 ///
 /// assert_eq!(filters.year, 2023);
 /// assert_eq!(filters.round, 4);
 /// assert_eq!(filters.lap, Some(1));
-/// assert_eq!(filters.driver_id, Some("alonso".to_string()));
+/// assert_eq!(filters.driver_id, Some(DriverID::from("alonso")));
 /// ```
 #[derive(Clone, Debug)]
 pub struct LapTimeFilters {
     /// Indicates a specific championship season, identified by the year it took place in.
     /// This is a required field, along with [`LapTimeFilters::round`], to uniquely identify a race.
-    pub year: u32,
+    pub year: SeasonID,
     /// Indicates a specific race in a season, identified by the round index, starting from `1`.
     /// This is a required field, along with [`LapTimeFilters::year`], to uniquely identify a race.
-    pub round: u32,
+    pub round: RoundID,
     /// Restrict responses to data for a single lap, identified by an index, starting from `1`.
     pub lap: Option<u32>,
     /// Restrict responses to data for a single driver's race laps, identified by a unique ID.
-    pub driver_id: Option<String>,
+    pub driver_id: Option<DriverID>,
 }
 
 impl LapTimeFilters {
@@ -423,7 +429,7 @@ impl LapTimeFilters {
     /// assert_eq!(filters.round, 4);
     /// assert!(filters.lap.is_none() && filters.driver_id.is_none());
     /// ```
-    pub fn new(year: u32, round: u32) -> Self {
+    pub fn new(year: SeasonID, round: RoundID) -> Self {
         Self::none(year, round)
     }
 
@@ -445,7 +451,7 @@ impl LapTimeFilters {
     /// assert_eq!(filters.lap, Some(1));
     /// assert!(filters.driver_id.is_none());
     /// ```
-    pub fn none(year: u32, round: u32) -> Self {
+    pub fn none(year: SeasonID, round: RoundID) -> Self {
         Self {
             year,
             round,
@@ -463,6 +469,7 @@ impl LapTimeFilters {
 /// # Examples
 ///
 /// ```
+/// use f1_data::id::DriverID;
 /// use f1_data::ergast::resource::PitStopFilters;
 ///
 /// let filters = PitStopFilters::new(2023, 4);
@@ -475,29 +482,29 @@ impl LapTimeFilters {
 ///     year: 2023,
 ///     round: 4,
 ///     lap: Some(1),
-///     driver_id: Some("alonso".to_string()),
+///     driver_id: Some(DriverID::from("alonso")),
 ///     pit_stop: Some(1),
 /// };
 ///
 /// assert_eq!(filters.year, 2023);
 /// assert_eq!(filters.round, 4);
 /// assert_eq!(filters.lap, Some(1));
-/// assert_eq!(filters.driver_id, Some("alonso".to_string()));
+/// assert_eq!(filters.driver_id, Some(DriverID::from("alonso")));
 /// assert_eq!(filters.pit_stop, Some(1));
 /// ```
 #[derive(Clone, Debug)]
 pub struct PitStopFilters {
     /// Indicates a specific championship season, identified by the year it took place in.
     /// This is a required field, along with [`PitStopFilters::round`], to uniquely identify a race.
-    pub year: u32,
+    pub year: SeasonID,
     /// Indicates a specific race in a season, identified by the round index, starting from `1`.
     /// This is a required field, along with [`PitStopFilters::year`], to uniquely identify a race.
-    pub round: u32,
+    pub round: RoundID,
     /// Restrict responses to pit stops that took place on a specific lap, identified by an index,
     /// starting from `1`. The response will be empty if no pit stops took place in that lap.
     pub lap: Option<u32>,
     /// Restrict responses to pit stops for a single driver's car, identified by a unique ID.
-    pub driver_id: Option<String>,
+    pub driver_id: Option<DriverID>,
     /// Restrict responses to specific pit stops, identified by an index, starting from `1`. The
     /// response will be empty if not enough pit stops took place, e.g. `2` for a one-stop race.
     pub pit_stop: Option<u32>,
@@ -518,7 +525,7 @@ impl PitStopFilters {
     /// assert_eq!(filters.round, 4);
     /// assert!(filters.lap.is_none() && filters.driver_id.is_none() && filters.pit_stop.is_none());
     /// ```
-    pub fn new(year: u32, round: u32) -> Self {
+    pub fn new(year: SeasonID, round: RoundID) -> Self {
         Self::none(year, round)
     }
 
@@ -539,7 +546,7 @@ impl PitStopFilters {
     /// assert_eq!(filters.lap, Some(1));
     /// assert!(filters.driver_id.is_none() && filters.pit_stop.is_none());
     /// ```
-    pub fn none(year: u32, round: u32) -> Self {
+    pub fn none(year: SeasonID, round: RoundID) -> Self {
         Self {
             year,
             round,
@@ -691,7 +698,7 @@ mod tests {
     fn resource_to_url_resource_filter() {
         assert_eq!(
             Resource::DriverInfo(Filters {
-                driver_id: Some("leclerc".to_string()),
+                driver_id: Some("leclerc".into()),
                 ..Filters::none()
             })
             .to_url(),
@@ -730,7 +737,7 @@ mod tests {
     fn resource_to_url_non_resource_filters() {
         assert_eq!(
             Resource::SeasonList(Filters {
-                driver_id: Some("leclerc".to_string()),
+                driver_id: Some("leclerc".into()),
                 ..Filters::none()
             })
             .to_url(),
@@ -739,8 +746,8 @@ mod tests {
 
         assert_eq!(
             Resource::DriverInfo(Filters {
-                constructor_id: Some("ferrari".to_string()),
-                circuit_id: Some("spa".to_string()),
+                constructor_id: Some("ferrari".into()),
+                circuit_id: Some("spa".into()),
                 qualifying_pos: Some(1),
                 ..Filters::none()
             })
@@ -753,9 +760,9 @@ mod tests {
     fn resource_to_url_mixed_filters() {
         assert_eq!(
             Resource::DriverInfo(Filters {
-                driver_id: Some("leclerc".to_string()),
-                constructor_id: Some("ferrari".to_string()),
-                circuit_id: Some("spa".to_string()),
+                driver_id: Some("leclerc".into()),
+                constructor_id: Some("ferrari".into()),
+                circuit_id: Some("spa".into()),
                 qualifying_pos: Some(1),
                 ..Filters::none()
             })
@@ -833,7 +840,7 @@ mod tests {
                 year: 2023,
                 round: 4,
                 lap: Some(1),
-                driver_id: Some("alonso".to_string())
+                driver_id: Some("alonso".into())
             })
             .to_url(),
             url("/2023/4/drivers/alonso/laps/1.json")
@@ -849,7 +856,7 @@ mod tests {
                 year: 2023,
                 round: 4,
                 lap: Some(1),
-                driver_id: Some("alonso".to_string()),
+                driver_id: Some("alonso".into()),
                 pit_stop: Some(1),
             })
             .to_url(),
@@ -874,12 +881,12 @@ mod tests {
         );
 
         let filters = Filters {
-            driver_id: Some("alonso".to_string()),
-            circuit_id: Some("spa".to_string()),
+            driver_id: Some("alonso".into()),
+            circuit_id: Some("spa".into()),
             ..Filters::none()
         };
-        assert_eq!(filters.driver_id, Some("alonso".to_string()));
-        assert_eq!(filters.circuit_id, Some("spa".to_string()));
+        assert_eq!(filters.driver_id, Some("alonso".into()));
+        assert_eq!(filters.circuit_id, Some("spa".into()));
 
         assert!(
             filters.year.is_none()
@@ -916,11 +923,11 @@ mod tests {
             year: 2023,
             round: 4,
             lap: Some(1),
-            driver_id: Some("alonso".to_string()),
+            driver_id: Some("alonso".into()),
         };
         assert_year_round(&filters);
         assert_eq!(filters.lap, Some(1));
-        assert_eq!(filters.driver_id, Some("alonso".to_string()));
+        assert_eq!(filters.driver_id, Some("alonso".into()));
     }
 
     #[test]
@@ -946,12 +953,12 @@ mod tests {
             year: 2023,
             round: 4,
             lap: Some(1),
-            driver_id: Some("alonso".to_string()),
+            driver_id: Some("alonso".into()),
             pit_stop: Some(1),
         };
         assert_year_round(&filters);
         assert_eq!(filters.lap, Some(1));
-        assert_eq!(filters.driver_id, Some("alonso".to_string()));
+        assert_eq!(filters.driver_id, Some("alonso".into()));
         assert_eq!(filters.pit_stop, Some(1));
     }
 

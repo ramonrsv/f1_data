@@ -5,7 +5,10 @@ use serde::{Deserialize, Deserializer};
 use serde_with::{serde_as, DisplayFromStr};
 use url::Url;
 
-use crate::ergast::time::{Date, Duration, ParseError, Time};
+use crate::{
+    ergast::time::{Date, Duration, ParseError, Time},
+    id::{CircuitID, ConstructorID, DriverID, RoundID, SeasonID, StatusID},
+};
 
 pub const GRID_PIT_LANE: u32 = 0;
 
@@ -152,7 +155,7 @@ pub struct Season {
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Driver {
-    pub driver_id: String,
+    pub driver_id: DriverID,
     #[serde_as(as = "Option<DisplayFromStr>")]
     pub permanent_number: Option<u32>,
     pub code: Option<String>,
@@ -166,7 +169,7 @@ pub struct Driver {
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Constructor {
-    pub constructor_id: String,
+    pub constructor_id: ConstructorID,
     pub url: Url,
     pub name: String,
     pub nationality: String,
@@ -175,7 +178,7 @@ pub struct Constructor {
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Circuit {
-    pub circuit_id: String,
+    pub circuit_id: CircuitID,
     pub url: Url,
     pub circuit_name: String,
     #[serde(rename = "Location")]
@@ -187,9 +190,9 @@ pub struct Circuit {
 #[serde(rename_all = "camelCase")]
 pub struct Race {
     #[serde_as(as = "DisplayFromStr")]
-    pub season: u32,
+    pub season: SeasonID,
     #[serde_as(as = "DisplayFromStr")]
-    pub round: u32,
+    pub round: RoundID,
     pub url: Url,
     pub race_name: String,
     #[serde(rename = "Circuit")]
@@ -435,7 +438,7 @@ pub struct Lap {
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Timing {
-    pub driver_id: String,
+    pub driver_id: DriverID,
     #[serde_as(as = "DisplayFromStr")]
     pub position: u32,
     pub time: LapTime,
@@ -445,7 +448,7 @@ pub struct Timing {
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PitStop {
-    pub driver_id: String,
+    pub driver_id: DriverID,
     #[serde_as(as = "DisplayFromStr")]
     pub lap: u32,
     #[serde_as(as = "DisplayFromStr")]
@@ -460,7 +463,7 @@ pub struct PitStop {
 #[serde(rename_all = "camelCase")]
 pub struct Status {
     #[serde_as(as = "DisplayFromStr")]
-    pub status_id: u32,
+    pub status_id: StatusID,
     #[serde_as(as = "DisplayFromStr")]
     pub count: u32,
     pub status: String,

@@ -98,10 +98,11 @@ pub fn get_response_page(resource: Resource, page: Page) -> Result<Response, Err
 /// # Examples
 ///
 /// ```no_run
+/// use f1_data::id::DriverID;
 /// use f1_data::ergast::{get::get_response, resource::{Filters, Resource}};
 ///
 /// let resp = get_response(Resource::DriverInfo(Filters {
-///     driver_id: Some("leclerc".to_string()),
+///     driver_id: Some(DriverID::from("leclerc")),
 ///     ..Filters::none()
 /// }))
 /// .unwrap();
@@ -150,8 +151,13 @@ fn single_page_or_err(response: Response) -> Result<Response, Error> {
 
 #[cfg(test)]
 mod tests {
-    use crate::ergast::resource::{Filters, LapTimeFilters, PitStopFilters, Resource};
-    use crate::ergast::response::*;
+    use crate::{
+        ergast::{
+            resource::{Filters, LapTimeFilters, PitStopFilters, Resource},
+            response::*,
+        },
+        id::{RoundID, SeasonID},
+    };
 
     use super::*;
     use crate::ergast::tests::*;
@@ -186,7 +192,7 @@ mod tests {
 
     fn verify_single_driver(driver_id: &str, driver: &Driver) {
         let resp = get_response(Resource::DriverInfo(Filters {
-            driver_id: Some(driver_id.to_string()),
+            driver_id: Some(driver_id.into()),
             ..Filters::none()
         }))
         .unwrap();
@@ -222,7 +228,7 @@ mod tests {
 
     fn verify_single_constructor(constructor_id: &str, constructor: &Constructor) {
         let resp = get_response(Resource::ConstructorInfo(Filters {
-            constructor_id: Some(constructor_id.to_string()),
+            constructor_id: Some(constructor_id.into()),
             ..Filters::none()
         }))
         .unwrap();
@@ -248,7 +254,7 @@ mod tests {
 
     fn verify_single_circuit(circuit_id: &str, circuit: &Circuit) {
         let resp = get_response(Resource::CircuitInfo(Filters {
-            circuit_id: Some(circuit_id.to_string()),
+            circuit_id: Some(circuit_id.into()),
             ..Filters::none()
         }))
         .unwrap();
@@ -270,7 +276,7 @@ mod tests {
     // Resource::RaceSchedule
     // ----------------------
 
-    fn verify_single_race_schedule(year: u32, round: u32, race_schedule: &Race) {
+    fn verify_single_race_schedule(year: SeasonID, round: RoundID, race_schedule: &Race) {
         let resp = get_response(Resource::RaceSchedule(Filters {
             year: Some(year),
             round: Some(round),

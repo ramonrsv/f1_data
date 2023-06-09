@@ -195,7 +195,7 @@ pub const DRIVER_LECLERC_STR: &str = r#"{
   }"#;
 
 pub static DRIVER_ABATE: Lazy<Driver> = Lazy::new(|| Driver {
-    driver_id: "abate".to_string(),
+    driver_id: "abate".into(),
     permanent_number: None,
     code: None,
     url: Url::parse("http://en.wikipedia.org/wiki/Carlo_Mario_Abate").unwrap(),
@@ -206,7 +206,7 @@ pub static DRIVER_ABATE: Lazy<Driver> = Lazy::new(|| Driver {
 });
 
 pub static DRIVER_MICHAEL: Lazy<Driver> = Lazy::new(|| Driver {
-    driver_id: "michael_schumacher".to_string(),
+    driver_id: "michael_schumacher".into(),
     permanent_number: None,
     code: Some("MSC".to_string()),
     url: Url::parse("http://en.wikipedia.org/wiki/Michael_Schumacher").unwrap(),
@@ -217,7 +217,7 @@ pub static DRIVER_MICHAEL: Lazy<Driver> = Lazy::new(|| Driver {
 });
 
 pub static DRIVER_JOS: Lazy<Driver> = Lazy::new(|| Driver {
-    driver_id: "verstappen".to_string(),
+    driver_id: "verstappen".into(),
     permanent_number: None,
     code: None,
     url: Url::parse("http://en.wikipedia.org/wiki/Jos_Verstappen").unwrap(),
@@ -228,7 +228,7 @@ pub static DRIVER_JOS: Lazy<Driver> = Lazy::new(|| Driver {
 });
 
 pub static DRIVER_RALF: Lazy<Driver> = Lazy::new(|| Driver {
-    driver_id: "ralf_schumacher".to_string(),
+    driver_id: "ralf_schumacher".into(),
     permanent_number: None,
     code: Some("SCH".to_string()),
     url: Url::parse("http://en.wikipedia.org/wiki/Ralf_Schumacher").unwrap(),
@@ -239,7 +239,7 @@ pub static DRIVER_RALF: Lazy<Driver> = Lazy::new(|| Driver {
 });
 
 pub static DRIVER_WILSON: Lazy<Driver> = Lazy::new(|| Driver {
-    driver_id: "wilson".to_string(),
+    driver_id: "wilson".into(),
     permanent_number: None,
     code: None,
     url: Url::parse("http://en.wikipedia.org/wiki/Justin_Wilson_(racing_driver)").unwrap(),
@@ -250,7 +250,7 @@ pub static DRIVER_WILSON: Lazy<Driver> = Lazy::new(|| Driver {
 });
 
 pub static DRIVER_KIMI: Lazy<Driver> = Lazy::new(|| Driver {
-    driver_id: "raikkonen".to_string(),
+    driver_id: "raikkonen".into(),
     permanent_number: Some(7),
     code: Some("RAI".to_string()),
     url: Url::parse("http://en.wikipedia.org/wiki/Kimi_R%C3%A4ikk%C3%B6nen").unwrap(),
@@ -261,7 +261,7 @@ pub static DRIVER_KIMI: Lazy<Driver> = Lazy::new(|| Driver {
 });
 
 pub static DRIVER_ALONSO: Lazy<Driver> = Lazy::new(|| Driver {
-    driver_id: "alonso".to_string(),
+    driver_id: "alonso".into(),
     permanent_number: Some(14),
     code: Some("ALO".to_string()),
     url: Url::parse("http://en.wikipedia.org/wiki/Fernando_Alonso").unwrap(),
@@ -272,7 +272,7 @@ pub static DRIVER_ALONSO: Lazy<Driver> = Lazy::new(|| Driver {
 });
 
 pub static DRIVER_PEREZ: Lazy<Driver> = Lazy::new(|| Driver {
-    driver_id: "perez".to_string(),
+    driver_id: "perez".into(),
     permanent_number: Some(11),
     code: Some("PER".to_string()),
     url: Url::parse("http://en.wikipedia.org/wiki/Sergio_P%C3%A9rez").unwrap(),
@@ -283,7 +283,7 @@ pub static DRIVER_PEREZ: Lazy<Driver> = Lazy::new(|| Driver {
 });
 
 pub static DRIVER_DE_VRIES: Lazy<Driver> = Lazy::new(|| Driver {
-    driver_id: "de_vries".to_string(),
+    driver_id: "de_vries".into(),
     permanent_number: Some(21),
     code: Some("DEV".to_string()),
     url: Url::parse("http://en.wikipedia.org/wiki/Nyck_de_Vries").unwrap(),
@@ -294,7 +294,7 @@ pub static DRIVER_DE_VRIES: Lazy<Driver> = Lazy::new(|| Driver {
 });
 
 pub static DRIVER_MAX: Lazy<Driver> = Lazy::new(|| Driver {
-    driver_id: "max_verstappen".to_string(),
+    driver_id: "max_verstappen".into(),
     permanent_number: Some(33),
     code: Some("VER".to_string()),
     url: Url::parse("http://en.wikipedia.org/wiki/Max_Verstappen").unwrap(),
@@ -305,7 +305,7 @@ pub static DRIVER_MAX: Lazy<Driver> = Lazy::new(|| Driver {
 });
 
 pub static DRIVER_LECLERC: Lazy<Driver> = Lazy::new(|| Driver {
-    driver_id: "leclerc".to_string(),
+    driver_id: "leclerc".into(),
     permanent_number: Some(16),
     code: Some("LEC".to_string()),
     url: Url::parse("http://en.wikipedia.org/wiki/Charles_Leclerc").unwrap(),
@@ -396,42 +396,42 @@ pub const CONSTRUCTOR_RED_BULL_STR: &str = r#"{
   }"#;
 
 pub static CONSTRUCTOR_MCLAREN: Lazy<Constructor> = Lazy::new(|| Constructor {
-    constructor_id: "mclaren".to_string(),
+    constructor_id: "mclaren".into(),
     url: Url::parse("http://en.wikipedia.org/wiki/McLaren").unwrap(),
     name: "McLaren".to_string(),
     nationality: "British".to_string(),
 });
 
 pub static CONSTRUCTOR_FERRARI: Lazy<Constructor> = Lazy::new(|| Constructor {
-    constructor_id: "ferrari".to_string(),
+    constructor_id: "ferrari".into(),
     url: Url::parse("http://en.wikipedia.org/wiki/Scuderia_Ferrari").unwrap(),
     name: "Ferrari".to_string(),
     nationality: "Italian".to_string(),
 });
 
 pub static CONSTRUCTOR_WILLIAMS: Lazy<Constructor> = Lazy::new(|| Constructor {
-    constructor_id: "williams".to_string(),
+    constructor_id: "williams".into(),
     url: Url::parse("http://en.wikipedia.org/wiki/Williams_Grand_Prix_Engineering").unwrap(),
     name: "Williams".to_string(),
     nationality: "British".to_string(),
 });
 
 pub static CONSTRUCTOR_MINARDI: Lazy<Constructor> = Lazy::new(|| Constructor {
-    constructor_id: "minardi".to_string(),
+    constructor_id: "minardi".into(),
     url: Url::parse("http://en.wikipedia.org/wiki/Minardi").unwrap(),
     name: "Minardi".to_string(),
     nationality: "Italian".to_string(),
 });
 
 pub static CONSTRUCTOR_ALPHA_TAURI: Lazy<Constructor> = Lazy::new(|| Constructor {
-    constructor_id: "alphatauri".to_string(),
+    constructor_id: "alphatauri".into(),
     url: Url::parse("http://en.wikipedia.org/wiki/Scuderia_AlphaTauri").unwrap(),
     name: "AlphaTauri".to_string(),
     nationality: "Italian".to_string(),
 });
 
 pub static CONSTRUCTOR_RED_BULL: Lazy<Constructor> = Lazy::new(|| Constructor {
-    constructor_id: "red_bull".to_string(),
+    constructor_id: "red_bull".into(),
     url: Url::parse("http://en.wikipedia.org/wiki/Red_Bull_Racing").unwrap(),
     name: "Red Bull".to_string(),
     nationality: "Austrian".to_string(),
@@ -514,7 +514,7 @@ pub const CIRCUIT_BAKU_STR: &str = r#"{
   }"#;
 
 pub static CIRCUIT_SPA: Lazy<Circuit> = Lazy::new(|| Circuit {
-    circuit_id: "spa".to_string(),
+    circuit_id: "spa".into(),
     url: Url::parse("http://en.wikipedia.org/wiki/Circuit_de_Spa-Francorchamps").unwrap(),
     circuit_name: "Circuit de Spa-Francorchamps".to_string(),
     location: Location {
@@ -526,7 +526,7 @@ pub static CIRCUIT_SPA: Lazy<Circuit> = Lazy::new(|| Circuit {
 });
 
 pub static CIRCUIT_SILVERSTONE: Lazy<Circuit> = Lazy::new(|| Circuit {
-    circuit_id: "silverstone".to_string(),
+    circuit_id: "silverstone".into(),
     url: Url::parse("http://en.wikipedia.org/wiki/Silverstone_Circuit").unwrap(),
     circuit_name: "Silverstone Circuit".to_string(),
     location: Location {
@@ -538,7 +538,7 @@ pub static CIRCUIT_SILVERSTONE: Lazy<Circuit> = Lazy::new(|| Circuit {
 });
 
 pub static CIRCUIT_IMOLA: Lazy<Circuit> = Lazy::new(|| Circuit {
-    circuit_id: "imola".to_string(),
+    circuit_id: "imola".into(),
     url: Url::parse("http://en.wikipedia.org/wiki/Autodromo_Enzo_e_Dino_Ferrari").unwrap(),
     circuit_name: "Autodromo Enzo e Dino Ferrari".to_string(),
     location: Location {
@@ -550,7 +550,7 @@ pub static CIRCUIT_IMOLA: Lazy<Circuit> = Lazy::new(|| Circuit {
 });
 
 pub static CIRCUIT_BAKU: Lazy<Circuit> = Lazy::new(|| Circuit {
-    circuit_id: "baku".to_string(),
+    circuit_id: "baku".into(),
     url: Url::parse("http://en.wikipedia.org/wiki/Baku_City_Circuit").unwrap(),
     circuit_name: "Baku City Circuit".to_string(),
     location: Location {
@@ -1656,25 +1656,25 @@ pub const TIMING_2023_4_L2_P2_STR: &str = formatcp!(
 );
 
 pub const TIMING_2023_4_L1_P1: Lazy<Timing> = Lazy::new(|| Timing {
-    driver_id: "leclerc".to_string(),
+    driver_id: "leclerc".into(),
     position: 1,
     time: Duration::from_m_s_ms(1, 50, 109),
 });
 
 pub const TIMING_2023_4_L1_P2: Lazy<Timing> = Lazy::new(|| Timing {
-    driver_id: "max_verstappen".to_string(),
+    driver_id: "max_verstappen".into(),
     position: 2,
     time: Duration::from_m_s_ms(1, 50, 456),
 });
 
 pub const TIMING_2023_4_L2_P1: Lazy<Timing> = Lazy::new(|| Timing {
-    driver_id: "leclerc".to_string(),
+    driver_id: "leclerc".into(),
     position: 1,
     time: Duration::from_m_s_ms(1, 47, 656),
 });
 
 pub const TIMING_2023_4_L2_P2: Lazy<Timing> = Lazy::new(|| Timing {
-    driver_id: "max_verstappen".to_string(),
+    driver_id: "max_verstappen".into(),
     position: 2,
     time: Duration::from_m_s_ms(1, 47, 707),
 });
@@ -1748,14 +1748,14 @@ pub const PIT_STOP_2023_4_L11_LECLERC_STR: &str = formatcp!(
 );
 
 pub const PIT_STOP_2023_4_L10_MAX: Lazy<PitStop> = Lazy::new(|| PitStop {
-    driver_id: "max_verstappen".to_string(),
+    driver_id: "max_verstappen".into(),
     lap: 10,
     stop: 1,
     duration: Duration::from_m_s_ms(0, 20, 707),
 });
 
 pub const PIT_STOP_2023_4_L11_LECLERC: Lazy<PitStop> = Lazy::new(|| PitStop {
-    driver_id: "leclerc".to_string(),
+    driver_id: "leclerc".into(),
     lap: 11,
     stop: 1,
     duration: Duration::from_m_s_ms(0, 21, 126),
