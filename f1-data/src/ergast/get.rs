@@ -61,12 +61,22 @@ impl From<std::io::Error> for Error {
 /// ```no_run
 /// use f1_data::ergast::{get::get_response_page, resource::{Filters, Page, Resource}};
 ///
-/// let resp = get_response_page(Resource::DriverInfo(Filters::none()), Page::default()).unwrap();
-/// assert_eq!(resp.mr_data.pagination.limit, 30);
-/// assert_eq!(resp.mr_data.table.as_drivers().unwrap().len(), 30);
+/// let resp = get_response_page(Resource::SeasonList(Filters::none()), Page::with_limit(50)).unwrap();
 ///
-/// assert!(resp.mr_data.pagination.total > 30);
+/// assert_eq!(resp.mr_data.table.as_seasons().unwrap().len(), 50);
+/// assert_eq!(resp.mr_data.table.as_seasons().unwrap().first().unwrap().season, 1950);
+/// assert_eq!(resp.mr_data.table.as_seasons().unwrap().last().unwrap().season, 1999);
 /// assert!(!resp.mr_data.pagination.is_last_page());
+///
+/// let resp = get_response_page(
+///     Resource::SeasonList(Filters::none()),
+///     resp.mr_data.pagination.next_page().unwrap().into(),
+/// )
+/// .unwrap();
+///
+/// assert!(resp.mr_data.table.as_seasons().unwrap().len() <= 50);
+/// assert_eq!(resp.mr_data.table.as_seasons().unwrap().first().unwrap().season, 2000);
+/// assert!(resp.mr_data.pagination.is_last_page());
 /// ```
 pub fn get_response_page(resource: Resource, page: Page) -> Result<Response, Error> {
     Ok(ureq::request_url("GET", &resource.to_url_with(page))
@@ -98,6 +108,33 @@ pub fn get_response_page(resource: Resource, page: Page) -> Result<Response, Err
 /// ```
 pub fn get_response(resource: Resource) -> Result<Response, Error> {
     single_page_or_err(get_response_page(resource, Page::default())?)
+}
+
+/// Performs a GET request to the Ergast API for the argument specified [`Resource`] and returns a
+/// single-page [`Response`], parsed from the JSON response, with the maximum allowed pagination
+/// limit. An [`Error::MultiPage`] is returned if the requested [`Resource`] results in a multi-page
+/// response. This method is similar to [`get_response`] but allows for larger requests to be
+/// accommodated in a single page.
+///
+/// This method performs no additional processing, it returns the top-level [`Response`] type that
+/// is a direct representation of the full JSON response. It is expected that users will use one of
+/// the other convenience `get_*` methods, e.g. `get_driver_info`, in almost all cases, but this
+/// method is provided for maximum flexibility.
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::ergast::{get::get_response_max_limit, resource::{Filters, Resource}};
+///
+/// let resp = get_response_max_limit(Resource::SeasonList(Filters::none())).unwrap();
+///
+/// let seasons = resp.mr_data.table.as_seasons().unwrap();
+/// assert!(seasons.len() >= 74);
+/// assert_eq!(seasons[0].season, 1950);
+/// assert_eq!(seasons[73].season, 2023);
+/// ```
+pub fn get_response_max_limit(resource: Resource) -> Result<Response, Error> {
+    single_page_or_err(get_response_page(resource, Page::with_max_limit())?)
 }
 
 /// Convert [`Response`] to `Result<Response, Error>`, enforcing that [`Response`] is single-page
@@ -133,10 +170,10 @@ mod tests {
     #[test]
     #[ignore]
     fn get_seasons() {
-        let resp = get_response_page(Resource::SeasonList(Filters::none()), Page::default()).unwrap();
+        let resp = get_response_max_limit(Resource::SeasonList(Filters::none())).unwrap();
 
         let seasons = resp.mr_data.table.as_seasons().unwrap();
-        assert_eq!(seasons.len(), 30);
+        assert!(seasons.len() >= 74);
 
         assert_eq!(seasons[0], *SEASON_1950);
         assert_eq!(seasons[29], *SEASON_1979);
