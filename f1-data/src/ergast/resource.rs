@@ -14,7 +14,7 @@ pub enum Resource {
     /// uniquely identified by the year it took place in, returned in
     /// [`response::Season::season`](crate::ergast::response::Season::season), e.g. `2023` for the
     /// _2023 Formula One World Championship_. The season year can be used to filter requests for
-    /// other resources, via [`Filters::year`].
+    /// other resources, via [`Filters::season`].
     ///
     /// Directly maps to <http://ergast.com/mrd/methods/seasons/>
     SeasonList(Filters),
@@ -55,7 +55,7 @@ pub enum Resource {
     /// uniquely identified by the season year and round index, starting from `1`, returned in
     /// [`response::Race::season`](crate::ergast::response::Race::season) and
     /// [`response::Race::round`](crate::ergast::response::Race::round), respectively. These can be
-    /// used to filter requests for other resources, via [`Filters::year`] and [`Filters::round`],
+    /// used to filter requests for other resources, via [`Filters::season`] and [`Filters::round`],
     /// respectively.
     ///
     /// **Note:** Schedule details before 2022 are limited to the date/time of the Grand Prix.
@@ -263,7 +263,7 @@ trait FiltersFormatter {
 /// assert_eq!(filters.circuit_id, Some(CircuitID::from("spa")));
 ///
 /// assert!(
-///     filters.year.is_none()
+///     filters.season.is_none()
 ///         && filters.round.is_none()
 ///         && filters.constructor_id.is_none()
 ///         && filters.qualifying_pos.is_none()
@@ -275,18 +275,18 @@ pub struct Filters {
     /// Restrict responses to a given championship season, identified by the year it took place in,
     /// e.g. `2023` for the _2023 Formula One World Championship_. See [`Resource::SeasonList`] to
     /// get a list of seasons currently supported by the API.
-    pub year: Option<SeasonID>,
+    pub season: Option<SeasonID>,
 
     /// Restrict responses to a specific race, identified by the round index starting from `1`, in a
     /// specific season. See [`Resource::RaceSchedule`] to get a list of rounds for a given season.
     ///
-    /// **Note:** A [`Filters::year`] is required if this field is set, in order to uniquely
+    /// **Note:** A [`Filters::season`] is required if this field is set, in order to uniquely
     /// identify a race.
     ///
     /// # Panics
     ///
-    /// [`Filters::round`] being set requires that [`Filters::year`] be set as well, else
-    /// certain methods may panic. The inverse is not true, [`Filters::year`] can be set
+    /// [`Filters::round`] being set requires that [`Filters::season`] be set as well, else
+    /// certain methods may panic. The inverse is not true, [`Filters::season`] can be set
     /// without [`Filters::round`].
     pub round: Option<RoundID>,
 
@@ -348,7 +348,7 @@ impl Filters {
     ///
     /// let filters = Filters::none();
     /// assert!(
-    ///     filters.year.is_none()
+    ///     filters.season.is_none()
     ///         && filters.round.is_none()
     ///         && filters.constructor_id.is_none()
     ///         && filters.qualifying_pos.is_none()
@@ -357,7 +357,7 @@ impl Filters {
     /// ```
     pub fn none() -> Self {
         Self {
-            year: None,
+            season: None,
             round: None,
             driver_id: None,
             constructor_id: None,
@@ -372,7 +372,7 @@ impl Filters {
 }
 
 /// Can be used to filter [`Resource::LapTimes`] from the Ergast API by a number of fields, some of
-/// which are required, e.g. [`years`](LapTimeFilters::year) and [`round`](LapTimeFilters::round),
+/// which are required, e.g. [`season`](LapTimeFilters::season) and [`round`](LapTimeFilters::round),
 /// and the rest are optional and can be set simultaneously. The methods [`LapTimeFilters::new`] and
 /// [`LapTimeFilters::none`] have parameters for the required fields, and set the rest to `None`.
 ///
@@ -384,18 +384,18 @@ impl Filters {
 ///
 /// let filters = LapTimeFilters::new(2023, 4);
 ///
-/// assert_eq!(filters.year, 2023);
+/// assert_eq!(filters.season, 2023);
 /// assert_eq!(filters.round, 4);
 /// assert!(filters.lap.is_none() && filters.driver_id.is_none());
 ///
 /// let filters = LapTimeFilters {
-///     year: 2023,
+///     season: 2023,
 ///     round: 4,
 ///     lap: Some(1),
 ///     driver_id: Some(DriverID::from("alonso")),
 /// };
 ///
-/// assert_eq!(filters.year, 2023);
+/// assert_eq!(filters.season, 2023);
 /// assert_eq!(filters.round, 4);
 /// assert_eq!(filters.lap, Some(1));
 /// assert_eq!(filters.driver_id, Some(DriverID::from("alonso")));
@@ -404,9 +404,9 @@ impl Filters {
 pub struct LapTimeFilters {
     /// Indicates a specific championship season, identified by the year it took place in.
     /// This is a required field, along with [`LapTimeFilters::round`], to uniquely identify a race.
-    pub year: SeasonID,
+    pub season: SeasonID,
     /// Indicates a specific race in a season, identified by the round index, starting from `1`.
-    /// This is a required field, along with [`LapTimeFilters::year`], to uniquely identify a race.
+    /// This is a required field, along with [`LapTimeFilters::season`], to uniquely identify a race.
     pub round: RoundID,
     /// Restrict responses to data for a single lap, identified by an index, starting from `1`.
     pub lap: Option<u32>,
@@ -425,12 +425,12 @@ impl LapTimeFilters {
     ///
     /// let filters = LapTimeFilters::new(2023, 4);
     ///
-    /// assert_eq!(filters.year, 2023);
+    /// assert_eq!(filters.season, 2023);
     /// assert_eq!(filters.round, 4);
     /// assert!(filters.lap.is_none() && filters.driver_id.is_none());
     /// ```
-    pub fn new(year: SeasonID, round: RoundID) -> Self {
-        Self::none(year, round)
+    pub fn new(season: SeasonID, round: RoundID) -> Self {
+        Self::none(season, round)
     }
 
     /// Alias for [`LapTimeFilters::new`], provided in order to support consistency with
@@ -446,14 +446,14 @@ impl LapTimeFilters {
     ///     ..LapTimeFilters::none(2023, 4)
     /// };
     ///
-    /// assert_eq!(filters.year, 2023);
+    /// assert_eq!(filters.season, 2023);
     /// assert_eq!(filters.round, 4);
     /// assert_eq!(filters.lap, Some(1));
     /// assert!(filters.driver_id.is_none());
     /// ```
-    pub fn none(year: SeasonID, round: RoundID) -> Self {
+    pub fn none(season: SeasonID, round: RoundID) -> Self {
         Self {
-            year,
+            season,
             round,
             lap: None,
             driver_id: None,
@@ -462,7 +462,7 @@ impl LapTimeFilters {
 }
 
 /// Can be used to filter [`Resource::PitStops`] from the Ergast API by a number of fields, some of
-/// which are required, e.g. [`years`](PitStopFilters::year) and [`round`](PitStopFilters::round),
+/// which are required, e.g. [`season`](PitStopFilters::season) and [`round`](PitStopFilters::round),
 /// and the rest are optional and can be set simultaneously. The methods [`PitStopFilters::new`] and
 /// [`PitStopFilters::none`] have parameters for the required fields, and set the rest to `None`.
 ///
@@ -474,19 +474,19 @@ impl LapTimeFilters {
 ///
 /// let filters = PitStopFilters::new(2023, 4);
 ///
-/// assert_eq!(filters.year, 2023);
+/// assert_eq!(filters.season, 2023);
 /// assert_eq!(filters.round, 4);
 /// assert!(filters.lap.is_none() && filters.driver_id.is_none() && filters.pit_stop.is_none());
 ///
 /// let filters = PitStopFilters {
-///     year: 2023,
+///     season: 2023,
 ///     round: 4,
 ///     lap: Some(1),
 ///     driver_id: Some(DriverID::from("alonso")),
 ///     pit_stop: Some(1),
 /// };
 ///
-/// assert_eq!(filters.year, 2023);
+/// assert_eq!(filters.season, 2023);
 /// assert_eq!(filters.round, 4);
 /// assert_eq!(filters.lap, Some(1));
 /// assert_eq!(filters.driver_id, Some(DriverID::from("alonso")));
@@ -496,9 +496,9 @@ impl LapTimeFilters {
 pub struct PitStopFilters {
     /// Indicates a specific championship season, identified by the year it took place in.
     /// This is a required field, along with [`PitStopFilters::round`], to uniquely identify a race.
-    pub year: SeasonID,
+    pub season: SeasonID,
     /// Indicates a specific race in a season, identified by the round index, starting from `1`.
-    /// This is a required field, along with [`PitStopFilters::year`], to uniquely identify a race.
+    /// This is a required field, along with [`PitStopFilters::season`], to uniquely identify a race.
     pub round: RoundID,
     /// Restrict responses to pit stops that took place on a specific lap, identified by an index,
     /// starting from `1`. The response will be empty if no pit stops took place in that lap.
@@ -521,12 +521,12 @@ impl PitStopFilters {
     ///
     /// let filters = PitStopFilters::new(2023, 4);
     ///
-    /// assert_eq!(filters.year, 2023);
+    /// assert_eq!(filters.season, 2023);
     /// assert_eq!(filters.round, 4);
     /// assert!(filters.lap.is_none() && filters.driver_id.is_none() && filters.pit_stop.is_none());
     /// ```
-    pub fn new(year: SeasonID, round: RoundID) -> Self {
-        Self::none(year, round)
+    pub fn new(season: SeasonID, round: RoundID) -> Self {
+        Self::none(season, round)
     }
 
     /// Alias for [`PitStopFilters::new`], provided in order to support consistency with
@@ -541,14 +541,14 @@ impl PitStopFilters {
     ///     lap: Some(1),
     ///     ..PitStopFilters::none(2023, 4)
     /// };
-    /// assert_eq!(filters.year, 2023);
+    /// assert_eq!(filters.season, 2023);
     /// assert_eq!(filters.round, 4);
     /// assert_eq!(filters.lap, Some(1));
     /// assert!(filters.driver_id.is_none() && filters.pit_stop.is_none());
     /// ```
-    pub fn none(year: SeasonID, round: RoundID) -> Self {
+    pub fn none(season: SeasonID, round: RoundID) -> Self {
         Self {
-            year,
+            season,
             round,
             lap: None,
             driver_id: None,
@@ -568,11 +568,11 @@ fn fmt_from_opt<T: std::fmt::Display>(field: &Option<T>) -> String {
 
 impl FiltersFormatter for Filters {
     fn to_formatted_pairs(&self) -> Vec<(&'static str, String)> {
-        // .round cannot be set without .year
-        assert!(!(self.round.is_some() && self.year.is_none()));
+        // .round cannot be set without .season
+        assert!(!(self.round.is_some() && self.season.is_none()));
 
         Vec::from([
-            ("", fmt_from_opt(&self.year)),
+            ("", fmt_from_opt(&self.season)),
             ("", fmt_from_opt(&self.round)),
             ("/drivers", fmt_from_opt(&self.driver_id)),
             ("/constructors", fmt_from_opt(&self.constructor_id)),
@@ -589,7 +589,7 @@ impl FiltersFormatter for Filters {
 impl FiltersFormatter for LapTimeFilters {
     fn to_formatted_pairs(&self) -> Vec<(&'static str, String)> {
         Vec::from([
-            ("", fmt_from_opt(&Some(self.year))),
+            ("", fmt_from_opt(&Some(self.season))),
             ("", fmt_from_opt(&Some(self.round))),
             ("/laps", fmt_from_opt(&self.lap)),
             ("/drivers", fmt_from_opt(&self.driver_id)),
@@ -600,7 +600,7 @@ impl FiltersFormatter for LapTimeFilters {
 impl FiltersFormatter for PitStopFilters {
     fn to_formatted_pairs(&self) -> Vec<(&'static str, String)> {
         Vec::from([
-            ("", fmt_from_opt(&Some(self.year))),
+            ("", fmt_from_opt(&Some(self.season))),
             ("", fmt_from_opt(&Some(self.round))),
             ("/laps", fmt_from_opt(&self.lap)),
             ("/drivers", fmt_from_opt(&self.driver_id)),
@@ -772,10 +772,10 @@ mod tests {
     }
 
     #[test]
-    fn resource_to_url_year_round_filters() {
+    fn resource_to_url_season_round_filters() {
         assert_eq!(
             Resource::DriverInfo(Filters {
-                year: Some(2023),
+                season: Some(2023),
                 ..Filters::none()
             })
             .to_url(),
@@ -784,7 +784,7 @@ mod tests {
 
         assert_eq!(
             Resource::SeasonList(Filters {
-                year: Some(2023),
+                season: Some(2023),
                 round: Some(1),
                 ..Filters::none()
             })
@@ -794,7 +794,7 @@ mod tests {
 
         assert_eq!(
             Resource::RaceSchedule(Filters {
-                year: Some(2023),
+                season: Some(2023),
                 round: Some(4),
                 ..Filters::none()
             })
@@ -823,7 +823,7 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn resource_to_url_round_without_year_filter_panics() {
+    fn resource_to_url_round_without_season_filter_panics() {
         Resource::RaceSchedule(Filters {
             round: Some(1),
             ..Filters::none()
@@ -837,7 +837,7 @@ mod tests {
 
         assert_eq!(
             Resource::LapTimes(LapTimeFilters {
-                year: 2023,
+                season: 2023,
                 round: 4,
                 lap: Some(1),
                 driver_id: Some("alonso".into())
@@ -853,7 +853,7 @@ mod tests {
 
         assert_eq!(
             Resource::PitStops(PitStopFilters {
-                year: 2023,
+                season: 2023,
                 round: 4,
                 lap: Some(1),
                 driver_id: Some("alonso".into()),
@@ -868,7 +868,7 @@ mod tests {
     fn filters_fields() {
         let filters = Filters::none();
         assert!(
-            filters.year.is_none()
+            filters.season.is_none()
                 && filters.round.is_none()
                 && filters.driver_id.is_none()
                 && filters.constructor_id.is_none()
@@ -889,7 +889,7 @@ mod tests {
         assert_eq!(filters.circuit_id, Some("spa".into()));
 
         assert!(
-            filters.year.is_none()
+            filters.season.is_none()
                 && filters.round.is_none()
                 && filters.constructor_id.is_none()
                 && filters.qualifying_pos.is_none()
@@ -902,61 +902,61 @@ mod tests {
 
     #[test]
     fn lap_time_filters() {
-        let assert_year_round = |filters: &LapTimeFilters| {
-            assert_eq!(filters.year, 2023);
+        let assert_season_round = |filters: &LapTimeFilters| {
+            assert_eq!(filters.season, 2023);
             assert_eq!(filters.round, 4);
         };
 
         let filters = LapTimeFilters::new(2023, 4);
-        assert_year_round(&filters);
+        assert_season_round(&filters);
         assert!(filters.lap.is_none() && filters.driver_id.is_none());
 
         let filters = LapTimeFilters {
             lap: Some(1),
             ..LapTimeFilters::none(2023, 4)
         };
-        assert_year_round(&filters);
+        assert_season_round(&filters);
         assert_eq!(filters.lap, Some(1));
         assert!(filters.driver_id.is_none());
 
         let filters = LapTimeFilters {
-            year: 2023,
+            season: 2023,
             round: 4,
             lap: Some(1),
             driver_id: Some("alonso".into()),
         };
-        assert_year_round(&filters);
+        assert_season_round(&filters);
         assert_eq!(filters.lap, Some(1));
         assert_eq!(filters.driver_id, Some("alonso".into()));
     }
 
     #[test]
     fn pit_stop_filters() {
-        let assert_year_round = |filters: &PitStopFilters| {
-            assert_eq!(filters.year, 2023);
+        let assert_season_round = |filters: &PitStopFilters| {
+            assert_eq!(filters.season, 2023);
             assert_eq!(filters.round, 4);
         };
 
         let filters = PitStopFilters::new(2023, 4);
-        assert_year_round(&filters);
+        assert_season_round(&filters);
         assert!(filters.lap.is_none() && filters.driver_id.is_none() && filters.pit_stop.is_none());
 
         let filters = PitStopFilters {
             lap: Some(1),
             ..PitStopFilters::none(2023, 4)
         };
-        assert_year_round(&filters);
+        assert_season_round(&filters);
         assert_eq!(filters.lap, Some(1));
         assert!(filters.driver_id.is_none() && filters.pit_stop.is_none());
 
         let filters = PitStopFilters {
-            year: 2023,
+            season: 2023,
             round: 4,
             lap: Some(1),
             driver_id: Some("alonso".into()),
             pit_stop: Some(1),
         };
-        assert_year_round(&filters);
+        assert_season_round(&filters);
         assert_eq!(filters.lap, Some(1));
         assert_eq!(filters.driver_id, Some("alonso".into()));
         assert_eq!(filters.pit_stop, Some(1));

@@ -276,9 +276,9 @@ mod tests {
     // Resource::RaceSchedule
     // ----------------------
 
-    fn verify_single_race_schedule(year: SeasonID, round: RoundID, race_schedule: &Race) {
+    fn verify_single_race_schedule(season: SeasonID, round: RoundID, race_schedule: &Race) {
         let resp = get_response(Resource::RaceSchedule(Filters {
-            year: Some(year),
+            season: Some(season),
             round: Some(round),
             ..Filters::none()
         }))
@@ -307,7 +307,7 @@ mod tests {
     #[ignore]
     fn get_qualifying_results_2003_4() {
         let resp = get_response(Resource::QualifyingResults(Filters {
-            year: Some(2003),
+            season: Some(2003),
             round: Some(4),
             ..Filters::none()
         }))
@@ -334,7 +334,7 @@ mod tests {
     #[ignore]
     fn get_qualifying_results_2023_4() {
         let resp = get_response(Resource::QualifyingResults(Filters {
-            year: Some(2023),
+            season: Some(2023),
             round: Some(4),
             ..Filters::none()
         }))
@@ -362,7 +362,7 @@ mod tests {
     #[ignore]
     fn get_sprint_results_2023_4() {
         let resp = get_response(Resource::SprintResults(Filters {
-            year: Some(2023),
+            season: Some(2023),
             round: Some(4),
             ..Filters::none()
         }))
@@ -387,7 +387,7 @@ mod tests {
     #[ignore]
     fn get_sprint_results_no_sprint() {
         let resp = get_response(Resource::SprintResults(Filters {
-            year: Some(2023),
+            season: Some(2023),
             round: Some(1),
             ..Filters::none()
         }))
@@ -404,7 +404,7 @@ mod tests {
     #[ignore]
     fn get_race_results_2003_4() {
         let resp = get_response(Resource::RaceResults(Filters {
-            year: Some(2003),
+            season: Some(2003),
             round: Some(4),
             ..Filters::none()
         }))
@@ -431,7 +431,7 @@ mod tests {
     #[ignore]
     fn get_race_results_2023_4() {
         let resp = get_response(Resource::RaceResults(Filters {
-            year: Some(2023),
+            season: Some(2023),
             round: Some(4),
             ..Filters::none()
         }))
@@ -461,7 +461,7 @@ mod tests {
     #[ignore]
     fn get_finishing_status_2022() {
         let resp = get_response(Resource::FinishingStatus(Filters {
-            year: Some(2022),
+            season: Some(2022),
             ..Filters::none()
         }))
         .unwrap();
@@ -532,7 +532,7 @@ mod tests {
     #[ignore]
     fn pagination() {
         let req = Resource::RaceResults(Filters {
-            year: Some(2023),
+            season: Some(2023),
             round: Some(4),
             ..Filters::none()
         });
