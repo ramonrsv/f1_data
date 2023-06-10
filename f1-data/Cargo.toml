@@ -17,3 +17,10 @@ url = { version = "2.4", features = ["serde"] }
 time = { version = "0.3", features = ["serde-human-readable", "macros"] }
 regex = "1.8"
 enum-as-inner = "0.6"
+
+[dev-dependencies]
+criterion = { version = "0.4", features = ["html_reports"] }
+
+[[bench]]
+name = "ergast_resource"
+harness = false
