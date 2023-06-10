@@ -244,33 +244,60 @@ trait FiltersFormatter {
     fn to_formatted_pairs(&self) -> Vec<(&'static str, String)>;
 }
 
-/// Can be used to filter a given [`Resource`] from the Ergast API by a number of fields, all of
-/// which are optional and can be set simultaneously. [`Filters::none`] sets all fields to `None`,
-/// i.e. no filtering is performed.
+/// Can be used to filter a given [`Resource`] from the Ergast API by a number of parameters,
+/// identified by the struct fields, all of which are optional and can be set simultaneously.
+///
+/// Although most field combinations are valid, this interface makes no(few) efforts to verify or
+/// enforce the validity of constructed combinations. Error checking is left up to the Ergast API
+/// and error handling should be done at the API call site, e.g. via the [`crate::ergast::get`]
+/// module. [`Filters`] objects can be constructed in multiple ways, which are demonstrated in the
+/// examples and listed below:
+///
+///    1. Struct instantiation, explicitly setting all fields to `None` or `Some(value)`
+///    2. Methods [`Filters::new`] and [`Filters::none`], both of which set all fields to `None`
+///    3. _Struct update syntax_, setting relevant fields and filling the rest with above methods
+///    4. Field-update methods, which can be chained, and each of which overrides a single field
 ///
 /// # Examples
 ///
 /// ```
-/// use f1_data::id::{CircuitID, DriverID};
+/// use f1_data::id::{CircuitID, ConstructorID, DriverID, StatusID};
 /// use f1_data::ergast::resource::Filters;
 ///
 /// let filters = Filters {
+///     season: Some(2023),
+///     round: Some(1),
 ///     driver_id: Some(DriverID::from("alonso")),
-///     circuit_id: Some(CircuitID::from("spa")),
+///     constructor_id: Some(ConstructorID::from("aston_martin")),
+///     circuit_id: Some(CircuitID::from("baku")),
+///     qualifying_pos: Some(6),
+///     grid_pos: Some(6),
+///     finish_pos: Some(4),
+///     fastest_lap_rank: Some(3),
+///     finishing_status: Some(StatusID::from(1u32)),
+/// };
+///
+/// assert_eq!(filters.season, Some(2023));
+/// assert_eq!(filters.round, Some(1));
+/// /* ... */
+///
+/// let filters = Filters {
+///     season: Some(2023),
+///     round: Some(1),
 ///     ..Filters::none()
 /// };
-/// assert_eq!(filters.driver_id, Some(DriverID::from("alonso")));
-/// assert_eq!(filters.circuit_id, Some(CircuitID::from("spa")));
 ///
-/// assert!(
-///     filters.season.is_none()
-///         && filters.round.is_none()
-///         && filters.constructor_id.is_none()
-///         && filters.qualifying_pos.is_none()
-///         /* ... */
-/// );
+/// assert_eq!(filters.season, Some(2023));
+/// assert_eq!(filters.round, Some(1));
+/// assert!(filters.driver_id.is_none() /* ... */);
+///
+/// let filters = Filters::new().season(2023).round(1);
+///
+/// assert_eq!(filters.season, Some(2023));
+/// assert_eq!(filters.round, Some(1));
+/// assert!(filters.driver_id.is_none() /* ... */);
 /// ```
-#[derive(Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct Filters {
     /// Restrict responses to a given championship season, identified by the year it took place in,
     /// e.g. `2023` for the _2023 Formula One World Championship_. See [`Resource::SeasonList`] to
@@ -335,26 +362,18 @@ pub struct Filters {
 }
 
 impl Filters {
-    /// Value that can be set in [`Filters::grid_pos`] field to indicate a driver that started
-    /// the race from the pit lane.
+    /// Value that can be set in [`Filters::grid_pos`] field, or updated with field-update method,
+    /// to indicate a driver that started the race from the pit lane.
     pub const GRID_PIT_LANE: u32 = crate::ergast::response::GRID_PIT_LANE;
 
     /// Returns a [`Filters`] object with all fields set to `None`, i.e. requesting no filtering.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use f1_data::ergast::resource::Filters;
-    ///
-    /// let filters = Filters::none();
-    /// assert!(
-    ///     filters.season.is_none()
-    ///         && filters.round.is_none()
-    ///         && filters.constructor_id.is_none()
-    ///         && filters.qualifying_pos.is_none()
-    ///         /* ... */
-    /// );
-    /// ```
+    /// This method is identical to [`Filters::none`]; both are provided to maximize readability.
+    pub fn new() -> Self {
+        Self::none()
+    }
+
+    /// Returns a [`Filters`] object with all fields set to `None`, i.e. requesting no filtering.
+    /// This method is identical to [`Filters::new`]; both are provided to maximize readability.
     pub fn none() -> Self {
         Self {
             season: None,
@@ -369,24 +388,109 @@ impl Filters {
             finishing_status: None,
         }
     }
+
+    /// Field-update method for the `season` field.
+    pub fn season(self, season: SeasonID) -> Self {
+        Self {
+            season: Some(season),
+            ..self
+        }
+    }
+
+    /// Field-update method for the `round` field.
+    pub fn round(self, round: RoundID) -> Self {
+        Self {
+            round: Some(round),
+            ..self
+        }
+    }
+
+    /// Field-update method for the `driver_id` field.
+    pub fn driver_id(self, driver_id: DriverID) -> Self {
+        Self {
+            driver_id: Some(driver_id),
+            ..self
+        }
+    }
+
+    /// Field-update method for the `constructor_id` field.
+    pub fn constructor_id(self, constructor_id: ConstructorID) -> Self {
+        Self {
+            constructor_id: Some(constructor_id),
+            ..self
+        }
+    }
+
+    /// Field-update method for the `circuit_id` field.
+    pub fn circuit_id(self, circuit_id: CircuitID) -> Self {
+        Self {
+            circuit_id: Some(circuit_id),
+            ..self
+        }
+    }
+
+    /// Field-update method for the `qualifying_pos` field.
+    pub fn qualifying_pos(self, qualifying_pos: u32) -> Self {
+        Self {
+            qualifying_pos: Some(qualifying_pos),
+            ..self
+        }
+    }
+
+    /// Field-update method for the `grid_pos` field.
+    pub fn grid_pos(self, grid_pos: u32) -> Self {
+        Self {
+            grid_pos: Some(grid_pos),
+            ..self
+        }
+    }
+
+    /// Field-update method for the `finish_pos` field.
+    pub fn finish_pos(self, finish_pos: u32) -> Self {
+        Self {
+            finish_pos: Some(finish_pos),
+            ..self
+        }
+    }
+
+    /// Field-update method for the `fastest_lap_rank` field.
+    pub fn fastest_lap_rank(self, fastest_lap_rank: u32) -> Self {
+        Self {
+            fastest_lap_rank: Some(fastest_lap_rank),
+            ..self
+        }
+    }
+
+    /// Field-update method for the `finishing_status` field.
+    pub fn finishing_status(self, finishing_status: StatusID) -> Self {
+        Self {
+            finishing_status: Some(finishing_status),
+            ..self
+        }
+    }
 }
 
-/// Can be used to filter [`Resource::LapTimes`] from the Ergast API by a number of fields, some of
-/// which are required, e.g. [`season`](LapTimeFilters::season) and [`round`](LapTimeFilters::round),
-/// and the rest are optional and can be set simultaneously. The methods [`LapTimeFilters::new`] and
-/// [`LapTimeFilters::none`] have parameters for the required fields, and set the rest to `None`.
+impl Default for Filters {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Can be used to filter [`Resource::LapTimes`] from the Ergast API by a number of parameters,
+/// identified by the struct fields, some of which are required, and the rest are optional and can
+/// be set simultaneously.
+///
+/// Except for some additional enforcement of required fields, e.g. [`LapTimeFilters::season`], and
+/// a smaller supported subset of parameters, this type is meant to function similarly to
+/// [`Filters`], so any similar usage is not documented. One key difference is the changes to the
+/// signature of the [`new`](LapTimeFilters::new`) methods, which has parameters for the required
+/// fields in this type.
 ///
 /// # Examples
 ///
 /// ```
 /// use f1_data::id::DriverID;
 /// use f1_data::ergast::resource::LapTimeFilters;
-///
-/// let filters = LapTimeFilters::new(2023, 4);
-///
-/// assert_eq!(filters.season, 2023);
-/// assert_eq!(filters.round, 4);
-/// assert!(filters.lap.is_none() && filters.driver_id.is_none());
 ///
 /// let filters = LapTimeFilters {
 ///     season: 2023,
@@ -396,20 +500,37 @@ impl Filters {
 /// };
 ///
 /// assert_eq!(filters.season, 2023);
-/// assert_eq!(filters.round, 4);
 /// assert_eq!(filters.lap, Some(1));
-/// assert_eq!(filters.driver_id, Some(DriverID::from("alonso")));
+/// /* ... */
+///
+/// let filters = LapTimeFilters {
+///     lap: Some(1),
+///     ..LapTimeFilters::new(2023, 4)
+/// };
+///
+/// assert_eq!(filters.season, 2023);
+/// assert_eq!(filters.lap, Some(1));
+/// /* ... */
+///
+/// let filters = LapTimeFilters::new(2023, 4).lap(1);
+///
+/// assert_eq!(filters.season, 2023);
+/// assert_eq!(filters.lap, Some(1));
+/// /* ... */
 /// ```
-#[derive(Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct LapTimeFilters {
     /// Indicates a specific championship season, identified by the year it took place in.
     /// This is a required field, along with [`LapTimeFilters::round`], to uniquely identify a race.
     pub season: SeasonID,
+
     /// Indicates a specific race in a season, identified by the round index, starting from `1`.
     /// This is a required field, along with [`LapTimeFilters::season`], to uniquely identify a race.
     pub round: RoundID,
+
     /// Restrict responses to data for a single lap, identified by an index, starting from `1`.
     pub lap: Option<u32>,
+
     /// Restrict responses to data for a single driver's race laps, identified by a unique ID.
     pub driver_id: Option<DriverID>,
 }
@@ -417,41 +538,7 @@ pub struct LapTimeFilters {
 impl LapTimeFilters {
     /// Returns a [`LapTimeFilters`] object with the required fields set as per the arguments, and
     /// the rest of the fields set to `None`, i.e. requesting no filtering on those parameters.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use f1_data::ergast::resource::LapTimeFilters;
-    ///
-    /// let filters = LapTimeFilters::new(2023, 4);
-    ///
-    /// assert_eq!(filters.season, 2023);
-    /// assert_eq!(filters.round, 4);
-    /// assert!(filters.lap.is_none() && filters.driver_id.is_none());
-    /// ```
     pub fn new(season: SeasonID, round: RoundID) -> Self {
-        Self::none(season, round)
-    }
-
-    /// Alias for [`LapTimeFilters::new`], provided in order to support consistency with
-    /// [`Filters::none`] and the methods' use in construction using _struct update syntax_.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use f1_data::ergast::resource::LapTimeFilters;
-    ///
-    /// let filters = LapTimeFilters {
-    ///     lap: Some(1),
-    ///     ..LapTimeFilters::none(2023, 4)
-    /// };
-    ///
-    /// assert_eq!(filters.season, 2023);
-    /// assert_eq!(filters.round, 4);
-    /// assert_eq!(filters.lap, Some(1));
-    /// assert!(filters.driver_id.is_none());
-    /// ```
-    pub fn none(season: SeasonID, round: RoundID) -> Self {
         Self {
             season,
             round,
@@ -459,24 +546,36 @@ impl LapTimeFilters {
             driver_id: None,
         }
     }
+
+    // Field-update method for the `lap` field.
+    pub fn lap(self, lap: u32) -> Self {
+        Self { lap: Some(lap), ..self }
+    }
+
+    /// Field-update method for the `driver_id` field.
+    pub fn driver_id(self, driver_id: DriverID) -> Self {
+        Self {
+            driver_id: Some(driver_id),
+            ..self
+        }
+    }
 }
 
-/// Can be used to filter [`Resource::PitStops`] from the Ergast API by a number of fields, some of
-/// which are required, e.g. [`season`](PitStopFilters::season) and [`round`](PitStopFilters::round),
-/// and the rest are optional and can be set simultaneously. The methods [`PitStopFilters::new`] and
-/// [`PitStopFilters::none`] have parameters for the required fields, and set the rest to `None`.
+/// Can be used to filter [`Resource::PitStops`] from the Ergast API by a number of parameters,
+/// identified by the struct fields, some of which are required, and the rest are optional and can
+/// be set simultaneously.
+///
+/// Except for some additional enforcement of required fields, e.g. [`PitStopFilters::season`], and
+/// a smaller supported subset of parameters, this type is meant to function similarly to
+/// [`Filters`], so any similar usage is not documented. One key difference is the changes to the
+/// signature of the [`new`](PitStopFilters::new`) method, which has parameters for the required
+/// fields in this type.
 ///
 /// # Examples
 ///
 /// ```
 /// use f1_data::id::DriverID;
 /// use f1_data::ergast::resource::PitStopFilters;
-///
-/// let filters = PitStopFilters::new(2023, 4);
-///
-/// assert_eq!(filters.season, 2023);
-/// assert_eq!(filters.round, 4);
-/// assert!(filters.lap.is_none() && filters.driver_id.is_none() && filters.pit_stop.is_none());
 ///
 /// let filters = PitStopFilters {
 ///     season: 2023,
@@ -487,24 +586,41 @@ impl LapTimeFilters {
 /// };
 ///
 /// assert_eq!(filters.season, 2023);
-/// assert_eq!(filters.round, 4);
-/// assert_eq!(filters.lap, Some(1));
-/// assert_eq!(filters.driver_id, Some(DriverID::from("alonso")));
 /// assert_eq!(filters.pit_stop, Some(1));
+/// /* ... */
+///
+/// let filters = PitStopFilters {
+///     pit_stop: Some(1),
+///     ..PitStopFilters::new(2023, 4)
+/// };
+///
+/// assert_eq!(filters.season, 2023);
+/// assert_eq!(filters.pit_stop, Some(1));
+/// /* ... */
+///
+/// let filters = PitStopFilters::new(2023, 4).pit_stop(1);
+///
+/// assert_eq!(filters.season, 2023);
+/// assert_eq!(filters.pit_stop, Some(1));
+/// /* ... */
 /// ```
-#[derive(Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct PitStopFilters {
     /// Indicates a specific championship season, identified by the year it took place in.
     /// This is a required field, along with [`PitStopFilters::round`], to uniquely identify a race.
     pub season: SeasonID,
+
     /// Indicates a specific race in a season, identified by the round index, starting from `1`.
     /// This is a required field, along with [`PitStopFilters::season`], to uniquely identify a race.
     pub round: RoundID,
+
     /// Restrict responses to pit stops that took place on a specific lap, identified by an index,
     /// starting from `1`. The response will be empty if no pit stops took place in that lap.
     pub lap: Option<u32>,
+
     /// Restrict responses to pit stops for a single driver's car, identified by a unique ID.
     pub driver_id: Option<DriverID>,
+
     /// Restrict responses to specific pit stops, identified by an index, starting from `1`. The
     /// response will be empty if not enough pit stops took place, e.g. `2` for a one-stop race.
     pub pit_stop: Option<u32>,
@@ -513,46 +629,34 @@ pub struct PitStopFilters {
 impl PitStopFilters {
     /// Returns a [`PitStopFilters`] object with the required fields set as per the arguments, and
     /// the rest of the fields set to `None`, i.e. requesting no filtering on those parameters.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use f1_data::ergast::resource::PitStopFilters;
-    ///
-    /// let filters = PitStopFilters::new(2023, 4);
-    ///
-    /// assert_eq!(filters.season, 2023);
-    /// assert_eq!(filters.round, 4);
-    /// assert!(filters.lap.is_none() && filters.driver_id.is_none() && filters.pit_stop.is_none());
-    /// ```
     pub fn new(season: SeasonID, round: RoundID) -> Self {
-        Self::none(season, round)
-    }
-
-    /// Alias for [`PitStopFilters::new`], provided in order to support consistency with
-    /// [`Filters::none`] and the methods' use in construction using _struct update syntax_.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use f1_data::ergast::resource::PitStopFilters;
-    ///
-    /// let filters = PitStopFilters {
-    ///     lap: Some(1),
-    ///     ..PitStopFilters::none(2023, 4)
-    /// };
-    /// assert_eq!(filters.season, 2023);
-    /// assert_eq!(filters.round, 4);
-    /// assert_eq!(filters.lap, Some(1));
-    /// assert!(filters.driver_id.is_none() && filters.pit_stop.is_none());
-    /// ```
-    pub fn none(season: SeasonID, round: RoundID) -> Self {
         Self {
             season,
             round,
             lap: None,
             driver_id: None,
             pit_stop: None,
+        }
+    }
+
+    // Field-update method for the `lap` field.
+    pub fn lap(self, lap: u32) -> Self {
+        Self { lap: Some(lap), ..self }
+    }
+
+    /// Field-update method for the `driver_id` field.
+    pub fn driver_id(self, driver_id: DriverID) -> Self {
+        Self {
+            driver_id: Some(driver_id),
+            ..self
+        }
+    }
+
+    // Field-update method for the `pit_stop` field.
+    pub fn pit_stop(self, pit_stop: u32) -> Self {
+        Self {
+            pit_stop: Some(pit_stop),
+            ..self
         }
     }
 }
@@ -865,7 +969,7 @@ mod tests {
     }
 
     #[test]
-    fn filters_fields() {
+    fn filters() {
         let filters = Filters::none();
         assert!(
             filters.season.is_none()
@@ -898,68 +1002,105 @@ mod tests {
                 && filters.fastest_lap_rank.is_none()
                 && filters.finishing_status.is_none()
         );
+
+        let filters = Filters::new().driver_id("alonso".into()).circuit_id("spa".into());
+        assert_eq!(filters.driver_id, Some("alonso".into()));
+        assert_eq!(filters.circuit_id, Some("spa".into()));
+
+        assert!(
+            filters.season.is_none()
+                && filters.round.is_none()
+                && filters.constructor_id.is_none()
+                && filters.qualifying_pos.is_none()
+                && filters.grid_pos.is_none()
+                && filters.finish_pos.is_none()
+                && filters.fastest_lap_rank.is_none()
+                && filters.finishing_status.is_none()
+        );
+
+        assert_eq!(
+            Filters {
+                season: Some(2023),
+                round: Some(1),
+                driver_id: Some("alonso".into()),
+                constructor_id: Some("aston_martin".into()),
+                circuit_id: Some("baku".into()),
+                qualifying_pos: Some(6),
+                grid_pos: Some(6),
+                finish_pos: Some(4),
+                fastest_lap_rank: Some(3),
+                finishing_status: Some(1),
+            },
+            Filters::new()
+                .season(2023)
+                .round(1)
+                .driver_id("alonso".into())
+                .constructor_id("aston_martin".into())
+                .circuit_id("baku".into())
+                .qualifying_pos(6)
+                .grid_pos(6)
+                .finish_pos(4)
+                .fastest_lap_rank(3)
+                .finishing_status(1)
+        );
     }
 
     #[test]
     fn lap_time_filters() {
-        let assert_season_round = |filters: &LapTimeFilters| {
-            assert_eq!(filters.season, 2023);
-            assert_eq!(filters.round, 4);
-        };
-
         let filters = LapTimeFilters::new(2023, 4);
-        assert_season_round(&filters);
+        assert_eq!(filters.season, 2023);
+        assert_eq!(filters.round, 4);
         assert!(filters.lap.is_none() && filters.driver_id.is_none());
 
         let filters = LapTimeFilters {
             lap: Some(1),
-            ..LapTimeFilters::none(2023, 4)
+            ..LapTimeFilters::new(2023, 4)
         };
-        assert_season_round(&filters);
+        assert_eq!(filters.season, 2023);
+        assert_eq!(filters.round, 4);
         assert_eq!(filters.lap, Some(1));
         assert!(filters.driver_id.is_none());
 
-        let filters = LapTimeFilters {
-            season: 2023,
-            round: 4,
-            lap: Some(1),
-            driver_id: Some("alonso".into()),
-        };
-        assert_season_round(&filters);
-        assert_eq!(filters.lap, Some(1));
-        assert_eq!(filters.driver_id, Some("alonso".into()));
+        assert_eq!(
+            LapTimeFilters {
+                season: 2023,
+                round: 4,
+                lap: Some(1),
+                driver_id: Some("alonso".into()),
+            },
+            LapTimeFilters::new(2023, 4).lap(1).driver_id("alonso".into())
+        );
     }
 
     #[test]
     fn pit_stop_filters() {
-        let assert_season_round = |filters: &PitStopFilters| {
-            assert_eq!(filters.season, 2023);
-            assert_eq!(filters.round, 4);
-        };
-
         let filters = PitStopFilters::new(2023, 4);
-        assert_season_round(&filters);
+        assert_eq!(filters.season, 2023);
+        assert_eq!(filters.round, 4);
         assert!(filters.lap.is_none() && filters.driver_id.is_none() && filters.pit_stop.is_none());
 
         let filters = PitStopFilters {
             lap: Some(1),
-            ..PitStopFilters::none(2023, 4)
+            ..PitStopFilters::new(2023, 4)
         };
-        assert_season_round(&filters);
+        assert_eq!(filters.season, 2023);
+        assert_eq!(filters.round, 4);
         assert_eq!(filters.lap, Some(1));
         assert!(filters.driver_id.is_none() && filters.pit_stop.is_none());
 
-        let filters = PitStopFilters {
-            season: 2023,
-            round: 4,
-            lap: Some(1),
-            driver_id: Some("alonso".into()),
-            pit_stop: Some(1),
-        };
-        assert_season_round(&filters);
-        assert_eq!(filters.lap, Some(1));
-        assert_eq!(filters.driver_id, Some("alonso".into()));
-        assert_eq!(filters.pit_stop, Some(1));
+        assert_eq!(
+            PitStopFilters {
+                season: 2023,
+                round: 4,
+                lap: Some(1),
+                driver_id: Some("alonso".into()),
+                pit_stop: Some(1),
+            },
+            PitStopFilters::new(2023, 4)
+                .lap(1)
+                .driver_id("alonso".into())
+                .pit_stop(1)
+        );
     }
 
     #[test]
