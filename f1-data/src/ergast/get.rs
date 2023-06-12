@@ -3,9 +3,9 @@ use ureq;
 use crate::{
     ergast::{
         resource::{Filters, Page, Resource},
-        response::{Driver, Payload, Response, Season, Table},
+        response::{Constructor, Driver, Payload, Response, Season, Table},
     },
-    id::{DriverID, SeasonID},
+    id::{ConstructorID, DriverID, SeasonID},
 };
 
 /// An error that may occur while processing a [`Resource`](crate::ergast::resource::Resource)
@@ -277,6 +277,54 @@ pub fn get_driver(driver_id: DriverID) -> Result<Driver> {
         .and_then(verify_has_one_element_and_extract)
 }
 
+/// Performs a GET request to the Ergast API for [`Resource::ConstructorInfo`], with the passed
+/// argument [`Filters`], and return the resulting inner [`Constructor`]s from [`Table`] in
+/// `resp.mr_data.table`. An [`Error::MultiPage`] is returned if `constructors` would not fit in a
+/// [`Page::with_max_limit`].
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::ergast::{get::get_constructors, resource::Filters};
+///
+/// let constructors = get_constructors(Filters::new().season(2022)).unwrap();
+/// assert!(!constructors.is_empty());
+/// assert_eq!(
+///     constructors
+///         .iter()
+///         .find(|constructor| constructor.constructor_id == "ferrari".to_string())
+///         .unwrap()
+///         .name,
+///     "Ferrari".to_string()
+/// );
+/// ```
+pub fn get_constructors(filters: Filters) -> Result<Vec<Constructor>> {
+    get_response_max_limit(Resource::ConstructorInfo(filters))?
+        .mr_data
+        .table
+        .into_constructors()
+        .map_err(|e| e.into())
+}
+
+/// Performs a GET request to the Ergast API for a single [`Constructor`], identified by a
+/// [`ConstructorID`], from [`Resource::ConstructorInfo`]. An [`Error::NotFound`] is returned if the
+/// constructor is not found.
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::id::ConstructorID;
+/// use f1_data::ergast::get::{Error, get_constructor};
+///
+/// assert_eq!(get_constructor(ConstructorID::from("ferrari")).unwrap().name, "Ferrari".to_string());
+/// assert!(matches!(get_constructor(ConstructorID::from("unknown")), Err(Error::NotFound)));
+/// ```
+pub fn get_constructor(constructor_id: ConstructorID) -> Result<Constructor> {
+    get_constructors(Filters::new().constructor_id(constructor_id))
+        .map(|v| v.into_iter())
+        .and_then(verify_has_one_element_and_extract)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{
@@ -359,7 +407,7 @@ mod tests {
     }
 
     fn verify_single_driver(driver_id: &str, driver: &Driver) {
-        assert_eq!(&get_driver(DriverID::from(driver_id)).unwrap(), driver);
+        assert_eq!(&super::get_driver(DriverID::from(driver_id)).unwrap(), driver);
     }
 
     #[test]
@@ -398,16 +446,28 @@ mod tests {
     // Resource::ConstructorInfo
     // -------------------------
 
-    fn verify_single_constructor(constructor_id: &str, constructor: &Constructor) {
-        let resp = get_response(Resource::ConstructorInfo(Filters {
-            constructor_id: Some(constructor_id.into()),
-            ..Filters::none()
-        }))
-        .unwrap();
+    #[test]
+    #[ignore]
+    fn get_constructors() {
+        let actual_constructors = super::get_constructors(Filters::none()).unwrap();
+        assert!(actual_constructors.len() >= 211);
 
-        let constructors = resp.mr_data.table.as_constructors().unwrap();
-        assert_eq!(constructors.len(), 1);
-        assert_eq!(&constructors[0], constructor);
+        let expected_constructors = CONSTRUCTOR_TABLE.as_constructors().unwrap();
+        assert!(!expected_constructors.is_empty());
+
+        for expected in expected_constructors {
+            assert_eq!(
+                actual_constructors
+                    .iter()
+                    .find(|actual| actual.constructor_id == expected.constructor_id)
+                    .unwrap(),
+                expected
+            );
+        }
+    }
+
+    fn verify_single_constructor(constructor_id: &str, constructor: &Constructor) {
+        assert_eq!(&super::get_constructor(ConstructorID::from(constructor_id)).unwrap(), constructor);
     }
 
     #[test]
@@ -419,6 +479,18 @@ mod tests {
         verify_single_constructor("minardi", &CONSTRUCTOR_MINARDI);
         verify_single_constructor("alphatauri", &CONSTRUCTOR_ALPHA_TAURI);
         verify_single_constructor("red_bull", &CONSTRUCTOR_RED_BULL);
+    }
+
+    #[test]
+    #[ignore]
+    fn get_constructors_empty() {
+        assert!(super::get_constructors(Filters::new().season(1949)).unwrap().is_empty());
+    }
+
+    #[test]
+    #[ignore]
+    fn get_constructor_error_not_found() {
+        assert!(matches!(super::get_constructor(ConstructorID::from("unknown")), Err(Error::NotFound)));
     }
 
     // Resource::CircuitInfo
