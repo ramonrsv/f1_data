@@ -3,9 +3,9 @@ use ureq;
 use crate::{
     ergast::{
         resource::{Filters, Page, Resource},
-        response::{Payload, Response, Season, Table},
+        response::{Driver, Payload, Response, Season, Table},
     },
-    id::SeasonID,
+    id::{DriverID, SeasonID},
 };
 
 /// An error that may occur while processing a [`Resource`](crate::ergast::resource::Resource)
@@ -231,6 +231,52 @@ pub fn get_season(season: SeasonID) -> Result<Season> {
         .and_then(verify_has_one_element_and_extract)
 }
 
+/// Performs a GET request to the Ergast API for [`Resource::DriverInfo`], with the passed argument
+/// [`Filters`], and return the resulting inner [`Driver`]s from [`Table`] in `resp.mr_data.table`.
+/// An [`Error::MultiPage`] is returned if `drivers` would not fit in a [`Page::with_max_limit`].
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::ergast::{get::get_drivers, resource::Filters};
+///
+/// let drivers = get_drivers(Filters::new().season(2022)).unwrap();
+/// assert!(!drivers.is_empty());
+/// assert_eq!(
+///     drivers
+///         .iter()
+///         .find(|driver| driver.driver_id == "alonso".to_string())
+///         .unwrap()
+///         .given_name,
+///     "Fernando".to_string()
+/// );
+/// ```
+pub fn get_drivers(filters: Filters) -> Result<Vec<Driver>> {
+    get_response_max_limit(Resource::DriverInfo(filters))?
+        .mr_data
+        .table
+        .into_drivers()
+        .map_err(|e| e.into())
+}
+
+/// Performs a GET request to the Ergast API for a single [`Driver`], identified by a [`DriverID`],
+/// from [`Resource::DriverInfo`]. An [`Error::NotFound`] is returned if the driver is not found.
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::id::DriverID;
+/// use f1_data::ergast::get::{Error, get_driver};
+///
+/// assert_eq!(get_driver(DriverID::from("alonso")).unwrap().given_name, "Fernando".to_string());
+/// assert!(matches!(get_driver(DriverID::from("unknown")), Err(Error::NotFound)));
+/// ```
+pub fn get_driver(driver_id: DriverID) -> Result<Driver> {
+    get_drivers(Filters::new().driver_id(driver_id))
+        .map(|v| v.into_iter())
+        .and_then(verify_has_one_element_and_extract)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{
@@ -285,23 +331,35 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_season_error_bad_count() {
+    fn get_season_error_not_found() {
         assert!(matches!(super::get_season(1949), Err(Error::NotFound)));
     }
 
     // Resource::DriverInfo
     // --------------------
 
-    fn verify_single_driver(driver_id: &str, driver: &Driver) {
-        let resp = get_response(Resource::DriverInfo(Filters {
-            driver_id: Some(driver_id.into()),
-            ..Filters::none()
-        }))
-        .unwrap();
+    #[test]
+    #[ignore]
+    fn get_drivers() {
+        let actual_drivers = super::get_drivers(Filters::none()).unwrap();
+        assert!(actual_drivers.len() >= 857);
 
-        let drivers = resp.mr_data.table.as_drivers().unwrap();
-        assert_eq!(drivers.len(), 1);
-        assert_eq!(&drivers[0], driver);
+        let expected_drivers = DRIVER_TABLE.as_drivers().unwrap();
+        assert!(!expected_drivers.is_empty());
+
+        for expected in expected_drivers {
+            assert_eq!(
+                actual_drivers
+                    .iter()
+                    .find(|actual| actual.driver_id == expected.driver_id)
+                    .unwrap(),
+                expected
+            );
+        }
+    }
+
+    fn verify_single_driver(driver_id: &str, driver: &Driver) {
+        assert_eq!(&get_driver(DriverID::from(driver_id)).unwrap(), driver);
     }
 
     #[test]
@@ -323,6 +381,18 @@ mod tests {
         verify_single_driver("de_vries", &DRIVER_DE_VRIES);
         verify_single_driver("max_verstappen", &DRIVER_MAX);
         verify_single_driver("leclerc", &DRIVER_LECLERC);
+    }
+
+    #[test]
+    #[ignore]
+    fn get_drivers_empty() {
+        assert!(super::get_drivers(Filters::new().season(1949)).unwrap().is_empty());
+    }
+
+    #[test]
+    #[ignore]
+    fn get_driver_error_not_found() {
+        assert!(matches!(super::get_driver(DriverID::from("unknown")), Err(Error::NotFound)));
     }
 
     // Resource::ConstructorInfo
