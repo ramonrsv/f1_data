@@ -1,7 +1,12 @@
 use ureq;
 
-use crate::ergast::resource::{Page, Resource};
-use crate::ergast::response::Response;
+use crate::{
+    ergast::{
+        resource::{Filters, Page, Resource},
+        response::{Payload, Response, Season, Table},
+    },
+    id::SeasonID,
+};
 
 /// An error that may occur while processing a [`Resource`](crate::ergast::resource::Resource)
 /// HTTP request from the Ergast API, via the provided family of `get_*` methods. These may be
@@ -22,6 +27,14 @@ pub enum Error {
 
     /// A request by a method supporting only single-page responses resulted in a multi-page one.
     MultiPage,
+    /// A request resulted in a response that did not contain the expected [`Table`] variant.
+    BadTableVariant,
+    /// A request resulted in a response that did not contain the expected [`Payload`] variant.
+    BadPayloadVariant,
+    /// A request resulted in a response that did not contain any of the expected elements.
+    NotFound,
+    /// A request resulted in a response that contained more than the expected number of elements.
+    TooMany,
 }
 
 impl std::fmt::Display for Error {
@@ -44,6 +57,20 @@ impl From<std::io::Error> for Error {
     }
 }
 
+impl From<Table> for Error {
+    fn from(_: Table) -> Self {
+        Self::BadTableVariant
+    }
+}
+
+impl From<Payload> for Error {
+    fn from(_: Payload) -> Self {
+        Self::BadPayloadVariant
+    }
+}
+
+pub type Result<T> = std::result::Result<T, Error>;
+
 /// Performs a GET request to the Ergast API for a specific page of the argument specified
 /// [`Resource`] and returns a [`Response`] with a single page, parsed from the JSON response, of a
 /// possibly multi-page response. `Response::mr_data::pagination` can be used to check for
@@ -53,7 +80,7 @@ impl From<std::io::Error> for Error {
 ///
 /// This method performs no additional processing; it returns the top-level [`Response`] type that
 /// is a direct representation of the full JSON response. It is expected that users will use one of
-/// the other convenience `get_*` methods, e.g. `get_driver_info`, in almost all cases, but this
+/// the other convenience `get_*` methods, e.g. [`get_seasons`], in almost all cases, but this
 /// method is provided for maximum flexibility.
 ///
 /// # Examples
@@ -80,10 +107,11 @@ impl From<std::io::Error> for Error {
 /// assert_eq!(seasons.first().unwrap().season, 2000);
 /// assert!(resp.mr_data.pagination.is_last_page());
 /// ```
-pub fn get_response_page(resource: Resource, page: Page) -> Result<Response, Error> {
-    Ok(ureq::request_url("GET", &resource.to_url_with(page))
+pub fn get_response_page(resource: Resource, page: Page) -> Result<Response> {
+    ureq::request_url("GET", &resource.to_url_with(page))
         .call()?
-        .into_json::<Response>()?)
+        .into_json::<Response>()
+        .map_err(|e| e.into())
 }
 
 /// Performs a GET request to the Ergast API for the argument specified [`Resource`] and returns a
@@ -92,7 +120,7 @@ pub fn get_response_page(resource: Resource, page: Page) -> Result<Response, Err
 ///
 /// This method performs no additional processing, it returns the top-level [`Response`] type that
 /// is a direct representation of the full JSON response. It is expected that users will use one of
-/// the other convenience `get_*` methods, e.g. `get_driver_info`, in almost all cases, but this
+/// the other convenience `get_*` methods, e.g. [`get_seasons`], in almost all cases, but this
 /// method is provided for maximum flexibility.
 ///
 /// # Examples
@@ -109,8 +137,8 @@ pub fn get_response_page(resource: Resource, page: Page) -> Result<Response, Err
 ///
 /// assert_eq!(resp.mr_data.table.as_drivers().unwrap()[0].given_name, "Charles".to_string());
 /// ```
-pub fn get_response(resource: Resource) -> Result<Response, Error> {
-    single_page_or_err(get_response_page(resource, Page::default())?)
+pub fn get_response(resource: Resource) -> Result<Response> {
+    get_response_page(resource, Page::default()).and_then(verify_is_single_page)
 }
 
 /// Performs a GET request to the Ergast API for the argument specified [`Resource`] and returns a
@@ -136,17 +164,71 @@ pub fn get_response(resource: Resource) -> Result<Response, Error> {
 /// assert_eq!(seasons[0].season, 1950);
 /// assert_eq!(seasons[73].season, 2023);
 /// ```
-pub fn get_response_max_limit(resource: Resource) -> Result<Response, Error> {
-    single_page_or_err(get_response_page(resource, Page::with_max_limit())?)
+pub fn get_response_max_limit(resource: Resource) -> Result<Response> {
+    get_response_page(resource, Page::with_max_limit()).and_then(verify_is_single_page)
 }
 
-/// Convert [`Response`] to `Result<Response, Error>`, enforcing that [`Response`] is single-page
-fn single_page_or_err(response: Response) -> Result<Response, Error> {
+/// Convert a [`Response`] to [`Result<Response>`], enforcing that [`Response`] is single-page, via
+/// `response::Pagination::is_single_page`, and returning [`Error::MultiPage`] if it's not.
+fn verify_is_single_page(response: Response) -> Result<Response> {
     if response.mr_data.pagination.is_single_page() {
         Ok(response)
     } else {
         Err(Error::MultiPage)
     }
+}
+
+/// Extract single element from [`Iterator`] into [`Result<T::Item>`], enforcing that there is only
+/// one element in the [`Iterator`], returning [`Error::NotFound`] if the iterator contained no
+/// elements, or [`Error::TooMany`] if it contained more than one.
+fn verify_has_one_element_and_extract<T: Iterator>(mut sequence: T) -> Result<T::Item> {
+    if let Some(val) = sequence.next() {
+        if sequence.next().is_none() {
+            Ok(val)
+        } else {
+            Err(Error::TooMany)
+        }
+    } else {
+        Err(Error::NotFound)
+    }
+}
+
+/// Performs a GET request to the Ergast API for [`Resource::SeasonList`], with the passed argument
+/// [`Filters`], and return the resulting inner [`Season`]s from [`Table`] in `resp.mr_data.table`.
+/// An [`Error::MultiPage`] is returned if `seasons` would not fit in a [`Page::with_max_limit`].
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::ergast::{get::get_seasons, resource::Filters};
+///
+/// let seasons = get_seasons(Filters::none()).unwrap();
+/// assert!(!seasons.is_empty());
+/// assert_eq!(seasons[0].season, 1950);
+/// ```
+pub fn get_seasons(filters: Filters) -> Result<Vec<Season>> {
+    get_response_max_limit(Resource::SeasonList(filters))?
+        .mr_data
+        .table
+        .into_seasons()
+        .map_err(|e| e.into())
+}
+
+/// Performs a GET request to the Ergast API for a single [`Season`], identified by a [`SeasonID`],
+/// from [`Resource::SeasonList`]. An [`Error::NotFound`] is returned if the season is not found.
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::ergast::get::{Error, get_season};
+///
+/// assert_eq!(get_season(1950).unwrap().season, 1950);
+/// assert!(matches!(get_season(1940), Err(Error::NotFound)));
+/// ```
+pub fn get_season(season: SeasonID) -> Result<Season> {
+    get_seasons(Filters::new().season(season))
+        .map(|v| v.into_iter())
+        .and_then(verify_has_one_element_and_extract)
 }
 
 #[cfg(test)]
@@ -178,13 +260,33 @@ mod tests {
     #[test]
     #[ignore]
     fn get_seasons() {
-        let resp = get_response_max_limit(Resource::SeasonList(Filters::none())).unwrap();
-
-        let seasons = resp.mr_data.table.as_seasons().unwrap();
+        let seasons = super::get_seasons(Filters::none()).unwrap();
         assert!(seasons.len() >= 74);
 
         assert_eq!(seasons[0], *SEASON_1950);
         assert_eq!(seasons[29], *SEASON_1979);
+        assert_eq!(seasons[50], *SEASON_2000);
+        assert_eq!(seasons[73], *SEASON_2023);
+    }
+
+    #[test]
+    #[ignore]
+    fn get_season() {
+        for season in [&SEASON_1950, &SEASON_1979, &SEASON_2000, &SEASON_2023] {
+            assert_eq!(super::get_season(season.season).unwrap(), **season);
+        }
+    }
+
+    #[test]
+    #[ignore]
+    fn get_seasons_empty() {
+        assert!(super::get_seasons(Filters::new().season(1949)).unwrap().is_empty());
+    }
+
+    #[test]
+    #[ignore]
+    fn get_season_error_bad_count() {
+        assert!(matches!(super::get_season(1949), Err(Error::NotFound)));
     }
 
     // Resource::DriverInfo
