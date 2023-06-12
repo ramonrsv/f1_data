@@ -525,74 +525,101 @@ mod tests {
         assert_eq!(actual_pit_stops[11], expected_pit_stops[1]);
     }
 
-    // Pagination
-    // ----------
+    // Pagination, get_response_page, get_response, get_response_max_limit
+    // -------------------------------------------------------------------
 
     #[test]
     #[ignore]
-    fn pagination() {
-        let req = Resource::RaceResults(Filters {
-            season: Some(2023),
-            round: Some(4),
-            ..Filters::none()
-        });
+    fn get_response_single_page() {
+        let resp = get_response(Resource::SeasonList(Filters::new().season(1950))).unwrap();
 
-        let expected_results = RACE_2023_4_RACE_RESULTS.payload.as_race_results().unwrap();
+        let pagination = resp.mr_data.pagination;
+        assert!(pagination.is_single_page());
+        assert!(pagination.is_last_page());
+        assert_eq!(pagination.limit, 30);
+        assert_eq!(pagination.offset, 0);
+        assert_eq!(pagination.total, 1);
 
-        let get_actual_results = |resp: &Response| {
-            let races = resp.mr_data.table.as_races().unwrap();
-            let race_results = races[0].payload.as_race_results().unwrap();
-            race_results.clone()
-        };
-
-        {
-            let resp = get_response(req.clone()).unwrap();
-            assert!(resp.mr_data.pagination.is_last_page());
-            assert_eq!(resp.mr_data.pagination.limit, 30);
-            assert_eq!(resp.mr_data.pagination.offset, 0);
-            assert_eq!(resp.mr_data.pagination.total, 20);
-
-            let actual_results = get_actual_results(&resp);
-
-            assert_eq!(actual_results.len(), 20);
-            assert_eq!(actual_results[0..1], expected_results[0..1]);
-            assert_eq!(actual_results[19], expected_results[2]);
-        }
-
-        {
-            let mut resp = get_response_page(req.clone(), Page::with_limit(5)).unwrap();
-            assert!(!resp.mr_data.pagination.is_last_page());
-
-            let actual_results = get_actual_results(&resp);
-            assert_eq!(actual_results[0..1], expected_results[0..1]);
-
-            let mut current_offset: u32 = 0;
-
-            while !resp.mr_data.pagination.is_last_page() {
-                assert_eq!(resp.mr_data.pagination.limit, 5);
-                assert_eq!(resp.mr_data.pagination.offset, current_offset);
-                assert_eq!(resp.mr_data.pagination.total, 20);
-
-                assert_eq!(get_actual_results(&resp).len(), 5);
-
-                resp = get_response_page(req.clone(), resp.mr_data.pagination.next_page().unwrap().into()).unwrap();
-
-                current_offset += 5;
-            }
-
-            let actual_results = get_actual_results(&resp);
-            assert_eq!(actual_results[4], expected_results[2]);
-
-            assert!(resp.mr_data.pagination.next_page().is_none());
-        }
+        let seasons = resp.mr_data.table.as_seasons().unwrap();
+        assert_eq!(seasons.len(), 1);
+        assert_eq!(seasons[0], *SEASON_1950);
     }
 
-    // Error::MultiPage
-    // ----------------
+    #[test]
+    #[ignore]
+    fn get_response_multi_page_error() {
+        let resp = get_response(Resource::SeasonList(Filters::none()));
+        assert!(matches!(resp, Err(Error::MultiPage)));
+    }
 
     #[test]
     #[ignore]
-    fn pagination_multi_page_error() {
-        assert!(matches!(get_response(Resource::SeasonList(Filters::none())), Err(Error::MultiPage)));
+    fn get_response_max_limit_single_page() {
+        let resp = get_response_max_limit(Resource::SeasonList(Filters::none())).unwrap();
+
+        let pagination = resp.mr_data.pagination;
+        assert!(pagination.is_single_page());
+        assert!(pagination.is_last_page());
+        assert_eq!(pagination.limit, 1000);
+        assert_eq!(pagination.offset, 0);
+        assert!(pagination.total >= 74);
+
+        let seasons = resp.mr_data.table.as_seasons().unwrap();
+        assert_eq!(seasons[0], *SEASON_1950);
+        assert_eq!(seasons[29], *SEASON_1979);
+        assert_eq!(seasons[50], *SEASON_2000);
+        assert_eq!(seasons[73], *SEASON_2023);
+    }
+
+    #[test]
+    #[ignore]
+    fn get_response_max_limit_multi_page_error() {
+        let resp = get_response_max_limit(Resource::LapTimes(LapTimeFilters::new(2023, 1)));
+        assert!(matches!(resp, Err(Error::MultiPage)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_response_page_multi_page() {
+        let req = Resource::SeasonList(Filters::none());
+        let page = Page::with_limit(5);
+
+        let mut resp = get_response_page(req.clone(), page.clone()).unwrap();
+        assert!(!resp.mr_data.pagination.is_last_page());
+
+        let mut current_offset: u32 = 0;
+
+        while !resp.mr_data.pagination.is_last_page() {
+            let pagination = resp.mr_data.pagination;
+            assert!(!pagination.is_single_page());
+            assert_eq!(pagination.limit, page.limit());
+            assert_eq!(pagination.offset, current_offset);
+            assert!(pagination.total >= 74);
+
+            let seasons = resp.mr_data.table.as_seasons().unwrap();
+            assert_eq!(seasons.len(), page.limit() as usize);
+
+            match current_offset {
+                0 => assert_eq!(seasons[0], *SEASON_1950),
+                25 => assert_eq!(seasons[4], *SEASON_1979),
+                50 => assert_eq!(seasons[0], *SEASON_2000),
+                70 => assert_eq!(seasons[3], *SEASON_2023),
+                _ => (),
+            }
+
+            resp = get_response_page(req.clone(), pagination.next_page().unwrap().into()).unwrap();
+
+            current_offset += page.limit();
+        }
+
+        let pagination = resp.mr_data.pagination;
+        assert!(!pagination.is_single_page());
+        assert!(pagination.is_last_page());
+        assert_eq!(pagination.limit, page.limit());
+        assert_eq!(pagination.offset, current_offset);
+        assert!(pagination.total >= 74);
+
+        let seasons = resp.mr_data.table.as_seasons().unwrap();
+        assert_eq!(seasons.last().unwrap().season, 1950 + current_offset + (seasons.len() as u32) - 1);
     }
 }

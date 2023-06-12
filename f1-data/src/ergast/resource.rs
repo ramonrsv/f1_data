@@ -713,7 +713,7 @@ impl FiltersFormatter for PitStopFilters {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct Page {
     limit: u32,
     offset: u32,
