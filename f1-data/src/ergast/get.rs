@@ -3,9 +3,9 @@ use ureq;
 use crate::{
     ergast::{
         resource::{Filters, Page, Resource},
-        response::{Constructor, Driver, Payload, Response, Season, Table},
+        response::{Circuit, Constructor, Driver, Payload, Response, Season, Table},
     },
-    id::{ConstructorID, DriverID, SeasonID},
+    id::{CircuitID, ConstructorID, DriverID, SeasonID},
 };
 
 /// An error that may occur while processing a [`Resource`](crate::ergast::resource::Resource)
@@ -325,6 +325,55 @@ pub fn get_constructor(constructor_id: ConstructorID) -> Result<Constructor> {
         .and_then(verify_has_one_element_and_extract)
 }
 
+/// Performs a GET request to the Ergast API for [`Resource::CircuitInfo`], with the passed argument
+/// [`Filters`], and return the resulting inner [`Circuit`]s from [`Table`] in `resp.mr_data.table`.
+/// An [`Error::MultiPage`] is returned if `circuits` would not fit in a [`Page::with_max_limit`].
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::ergast::{get::get_circuits, resource::Filters};
+///
+/// let circuits = get_circuits(Filters::new().season(2022)).unwrap();
+/// assert!(!circuits.is_empty());
+/// assert_eq!(
+///     circuits
+///         .iter()
+///         .find(|circuit| circuit.circuit_id == "spa".to_string())
+///         .unwrap()
+///         .circuit_name,
+///     "Circuit de Spa-Francorchamps".to_string()
+/// );
+/// ```
+pub fn get_circuits(filters: Filters) -> Result<Vec<Circuit>> {
+    get_response_max_limit(Resource::CircuitInfo(filters))?
+        .mr_data
+        .table
+        .into_circuits()
+        .map_err(|e| e.into())
+}
+
+/// Performs a GET request to the Ergast API for a single [`Circuit`], identified by a [`CircuitID`]
+/// from [`Resource::CircuitInfo`]. An [`Error::NotFound`] is returned if the circuit is not found.
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::id::CircuitID;
+/// use f1_data::ergast::get::{Error, get_circuit};
+///
+/// assert_eq!(
+///     get_circuit(CircuitID::from("spa")).unwrap().circuit_name,
+///     "Circuit de Spa-Francorchamps".to_string()
+/// );
+/// assert!(matches!(get_circuit(CircuitID::from("unknown")), Err(Error::NotFound)));
+/// ```
+pub fn get_circuit(circuit_id: CircuitID) -> Result<Circuit> {
+    get_circuits(Filters::new().circuit_id(circuit_id))
+        .map(|v| v.into_iter())
+        .and_then(verify_has_one_element_and_extract)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{
@@ -496,16 +545,28 @@ mod tests {
     // Resource::CircuitInfo
     // ---------------------
 
-    fn verify_single_circuit(circuit_id: &str, circuit: &Circuit) {
-        let resp = get_response(Resource::CircuitInfo(Filters {
-            circuit_id: Some(circuit_id.into()),
-            ..Filters::none()
-        }))
-        .unwrap();
+    #[test]
+    #[ignore]
+    fn get_circuits() {
+        let actual_circuits = super::get_circuits(Filters::none()).unwrap();
+        assert!(actual_circuits.len() >= 77);
 
-        let circuits = resp.mr_data.table.as_circuits().unwrap();
-        assert_eq!(circuits.len(), 1);
-        assert_eq!(&circuits[0], circuit);
+        let expected_circuits = CIRCUIT_TABLE.as_circuits().unwrap();
+        assert!(!expected_circuits.is_empty());
+
+        for expected in expected_circuits {
+            assert_eq!(
+                actual_circuits
+                    .iter()
+                    .find(|actual| actual.circuit_id == expected.circuit_id)
+                    .unwrap(),
+                expected
+            );
+        }
+    }
+
+    fn verify_single_circuit(circuit_id: &str, circuit: &Circuit) {
+        assert_eq!(&super::get_circuit(CircuitID::from(circuit_id)).unwrap(), circuit);
     }
 
     #[test]
@@ -515,6 +576,18 @@ mod tests {
         verify_single_circuit("silverstone", &CIRCUIT_SILVERSTONE);
         verify_single_circuit("imola", &CIRCUIT_IMOLA);
         verify_single_circuit("baku", &CIRCUIT_BAKU);
+    }
+
+    #[test]
+    #[ignore]
+    fn get_circuits_empty() {
+        assert!(super::get_circuits(Filters::new().season(1949)).unwrap().is_empty());
+    }
+
+    #[test]
+    #[ignore]
+    fn get_circuit_error_not_found() {
+        assert!(matches!(super::get_circuit(CircuitID::from("unknown")), Err(Error::NotFound)));
     }
 
     // Resource::RaceSchedule
