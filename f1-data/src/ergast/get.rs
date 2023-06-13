@@ -397,27 +397,52 @@ mod tests {
         assert_eq!(left.time, right.time);
     }
 
+    fn assert_each_expected_in_actual<T: PartialEq + core::fmt::Debug>(
+        actual_list: &[T],
+        expected_list: &[T],
+        min_actual_list_len: usize,
+    ) {
+        assert!(actual_list.len() >= min_actual_list_len);
+        assert!(!expected_list.is_empty());
+
+        for expected in expected_list {
+            assert!(actual_list.iter().find(|actual| actual == &expected).is_some());
+        }
+    }
+
+    fn assert_each_get_eq_expected<G, T>(get: G, expected_list: &[T])
+    where
+        G: Fn(&T) -> Result<T>,
+        T: PartialEq + core::fmt::Debug,
+    {
+        assert!(!expected_list.is_empty());
+
+        for expected in expected_list {
+            assert_eq!(&get(expected).unwrap(), expected);
+        }
+    }
+
+    fn assert_not_found<T>(result: Result<T>) {
+        assert!(matches!(result, Err(Error::NotFound)));
+    }
+
     // Resource::SeasonList
     // --------------------
 
     #[test]
     #[ignore]
     fn get_seasons() {
-        let seasons = super::get_seasons(Filters::none()).unwrap();
-        assert!(seasons.len() >= 74);
-
-        assert_eq!(seasons[0], *SEASON_1950);
-        assert_eq!(seasons[29], *SEASON_1979);
-        assert_eq!(seasons[50], *SEASON_2000);
-        assert_eq!(seasons[73], *SEASON_2023);
+        assert_each_expected_in_actual(
+            &super::get_seasons(Filters::none()).unwrap(),
+            &SEASON_TABLE.as_seasons().unwrap(),
+            74,
+        );
     }
 
     #[test]
     #[ignore]
     fn get_season() {
-        for season in [&SEASON_1950, &SEASON_1979, &SEASON_2000, &SEASON_2023] {
-            assert_eq!(super::get_season(season.season).unwrap(), **season);
-        }
+        assert_each_get_eq_expected(|season| super::get_season(season.season), SEASON_TABLE.as_seasons().unwrap());
     }
 
     #[test]
@@ -429,7 +454,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_season_error_not_found() {
-        assert!(matches!(super::get_season(1949), Err(Error::NotFound)));
+        assert_not_found(super::get_season(1949));
     }
 
     // Resource::DriverInfo
@@ -438,46 +463,20 @@ mod tests {
     #[test]
     #[ignore]
     fn get_drivers() {
-        let actual_drivers = super::get_drivers(Filters::none()).unwrap();
-        assert!(actual_drivers.len() >= 857);
-
-        let expected_drivers = DRIVER_TABLE.as_drivers().unwrap();
-        assert!(!expected_drivers.is_empty());
-
-        for expected in expected_drivers {
-            assert_eq!(
-                actual_drivers
-                    .iter()
-                    .find(|actual| actual.driver_id == expected.driver_id)
-                    .unwrap(),
-                expected
-            );
-        }
-    }
-
-    fn verify_single_driver(driver_id: &str, driver: &Driver) {
-        assert_eq!(&super::get_driver(DriverID::from(driver_id)).unwrap(), driver);
+        assert_each_expected_in_actual(
+            &super::get_drivers(Filters::none()).unwrap(),
+            &DRIVER_TABLE.as_drivers().unwrap(),
+            857,
+        );
     }
 
     #[test]
     #[ignore]
-    fn get_driver_some_fields_missing() {
-        verify_single_driver("abate", &DRIVER_ABATE);
-        verify_single_driver("michael_schumacher", &DRIVER_MICHAEL);
-        verify_single_driver("verstappen", &DRIVER_JOS);
-        verify_single_driver("ralf_schumacher", &DRIVER_RALF);
-        verify_single_driver("wilson", &DRIVER_WILSON);
-    }
-
-    #[test]
-    #[ignore]
-    fn get_driver_all_fields_present() {
-        verify_single_driver("raikkonen", &DRIVER_KIMI);
-        verify_single_driver("alonso", &DRIVER_ALONSO);
-        verify_single_driver("perez", &DRIVER_PEREZ);
-        verify_single_driver("de_vries", &DRIVER_DE_VRIES);
-        verify_single_driver("max_verstappen", &DRIVER_MAX);
-        verify_single_driver("leclerc", &DRIVER_LECLERC);
+    fn get_driver() {
+        assert_each_get_eq_expected(
+            |driver| super::get_driver(driver.driver_id.clone()),
+            DRIVER_TABLE.as_drivers().unwrap(),
+        );
     }
 
     #[test]
@@ -489,7 +488,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_driver_error_not_found() {
-        assert!(matches!(super::get_driver(DriverID::from("unknown")), Err(Error::NotFound)));
+        assert_not_found(super::get_driver(DriverID::from("unknown")));
     }
 
     // Resource::ConstructorInfo
@@ -498,36 +497,20 @@ mod tests {
     #[test]
     #[ignore]
     fn get_constructors() {
-        let actual_constructors = super::get_constructors(Filters::none()).unwrap();
-        assert!(actual_constructors.len() >= 211);
-
-        let expected_constructors = CONSTRUCTOR_TABLE.as_constructors().unwrap();
-        assert!(!expected_constructors.is_empty());
-
-        for expected in expected_constructors {
-            assert_eq!(
-                actual_constructors
-                    .iter()
-                    .find(|actual| actual.constructor_id == expected.constructor_id)
-                    .unwrap(),
-                expected
-            );
-        }
-    }
-
-    fn verify_single_constructor(constructor_id: &str, constructor: &Constructor) {
-        assert_eq!(&super::get_constructor(ConstructorID::from(constructor_id)).unwrap(), constructor);
+        assert_each_expected_in_actual(
+            &super::get_constructors(Filters::none()).unwrap(),
+            &CONSTRUCTOR_TABLE.as_constructors().unwrap(),
+            211,
+        );
     }
 
     #[test]
     #[ignore]
     fn get_constructor() {
-        verify_single_constructor("mclaren", &CONSTRUCTOR_MCLAREN);
-        verify_single_constructor("ferrari", &CONSTRUCTOR_FERRARI);
-        verify_single_constructor("williams", &CONSTRUCTOR_WILLIAMS);
-        verify_single_constructor("minardi", &CONSTRUCTOR_MINARDI);
-        verify_single_constructor("alphatauri", &CONSTRUCTOR_ALPHA_TAURI);
-        verify_single_constructor("red_bull", &CONSTRUCTOR_RED_BULL);
+        assert_each_get_eq_expected(
+            |constructor| super::get_constructor(constructor.constructor_id.clone()),
+            CONSTRUCTOR_TABLE.as_constructors().unwrap(),
+        );
     }
 
     #[test]
@@ -539,7 +522,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_constructor_error_not_found() {
-        assert!(matches!(super::get_constructor(ConstructorID::from("unknown")), Err(Error::NotFound)));
+        assert_not_found(super::get_constructor(ConstructorID::from("unknown")));
     }
 
     // Resource::CircuitInfo
@@ -548,34 +531,20 @@ mod tests {
     #[test]
     #[ignore]
     fn get_circuits() {
-        let actual_circuits = super::get_circuits(Filters::none()).unwrap();
-        assert!(actual_circuits.len() >= 77);
-
-        let expected_circuits = CIRCUIT_TABLE.as_circuits().unwrap();
-        assert!(!expected_circuits.is_empty());
-
-        for expected in expected_circuits {
-            assert_eq!(
-                actual_circuits
-                    .iter()
-                    .find(|actual| actual.circuit_id == expected.circuit_id)
-                    .unwrap(),
-                expected
-            );
-        }
-    }
-
-    fn verify_single_circuit(circuit_id: &str, circuit: &Circuit) {
-        assert_eq!(&super::get_circuit(CircuitID::from(circuit_id)).unwrap(), circuit);
+        assert_each_expected_in_actual(
+            &super::get_circuits(Filters::none()).unwrap(),
+            &CIRCUIT_TABLE.as_circuits().unwrap(),
+            77,
+        );
     }
 
     #[test]
     #[ignore]
     fn get_circuit() {
-        verify_single_circuit("spa", &CIRCUIT_SPA);
-        verify_single_circuit("silverstone", &CIRCUIT_SILVERSTONE);
-        verify_single_circuit("imola", &CIRCUIT_IMOLA);
-        verify_single_circuit("baku", &CIRCUIT_BAKU);
+        assert_each_get_eq_expected(
+            |circuit| super::get_circuit(circuit.circuit_id.clone()),
+            CIRCUIT_TABLE.as_circuits().unwrap(),
+        );
     }
 
     #[test]
@@ -587,7 +556,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_circuit_error_not_found() {
-        assert!(matches!(super::get_circuit(CircuitID::from("unknown")), Err(Error::NotFound)));
+        assert_not_found(super::get_circuit(CircuitID::from("unknown")));
     }
 
     // Resource::RaceSchedule
