@@ -425,12 +425,21 @@ mod tests {
         assert_eq!(left.time, right.time);
     }
 
+    enum LenConstraint {
+        Exactly(usize),
+        Minimum(usize),
+    }
+
     fn assert_each_expected_in_actual<T: PartialEq + core::fmt::Debug>(
         actual_list: &[T],
         expected_list: &[T],
-        min_actual_list_len: usize,
+        actual_list_len_constraint: LenConstraint,
     ) {
-        assert!(actual_list.len() >= min_actual_list_len);
+        match actual_list_len_constraint {
+            LenConstraint::Exactly(exact_len) => assert_eq!(actual_list.len(), exact_len),
+            LenConstraint::Minimum(min_len) => assert!(actual_list.len() >= min_len),
+        };
+
         assert!(!expected_list.is_empty());
 
         for expected in expected_list {
@@ -463,7 +472,7 @@ mod tests {
         assert_each_expected_in_actual(
             &super::get_seasons(Filters::none()).unwrap(),
             &SEASON_TABLE.as_seasons().unwrap(),
-            74,
+            LenConstraint::Minimum(74),
         );
     }
 
@@ -494,7 +503,7 @@ mod tests {
         assert_each_expected_in_actual(
             &super::get_drivers(Filters::none()).unwrap(),
             &DRIVER_TABLE.as_drivers().unwrap(),
-            857,
+            LenConstraint::Minimum(857),
         );
     }
 
@@ -528,7 +537,7 @@ mod tests {
         assert_each_expected_in_actual(
             &super::get_constructors(Filters::none()).unwrap(),
             &CONSTRUCTOR_TABLE.as_constructors().unwrap(),
-            211,
+            LenConstraint::Minimum(211),
         );
     }
 
@@ -562,7 +571,7 @@ mod tests {
         assert_each_expected_in_actual(
             &super::get_circuits(Filters::none()).unwrap(),
             &CIRCUIT_TABLE.as_circuits().unwrap(),
-            77,
+            LenConstraint::Minimum(77),
         );
     }
 
@@ -777,7 +786,7 @@ mod tests {
         assert_each_expected_in_actual(
             &super::get_statuses(Filters::new().season(2022)).unwrap(),
             &STATUS_TABLE_2022.as_status().unwrap(),
-            29,
+            LenConstraint::Exactly(29),
         );
     }
 
