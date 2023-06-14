@@ -3,7 +3,7 @@ use ureq;
 use crate::{
     ergast::{
         resource::{Filters, Page, Resource},
-        response::{Circuit, Constructor, Driver, Payload, Response, Season, Table},
+        response::{Circuit, Constructor, Driver, Payload, Response, Season, Status, Table},
     },
     id::{CircuitID, ConstructorID, DriverID, SeasonID},
 };
@@ -372,6 +372,34 @@ pub fn get_circuit(circuit_id: CircuitID) -> Result<Circuit> {
     get_circuits(Filters::new().circuit_id(circuit_id))
         .map(|v| v.into_iter())
         .and_then(verify_has_one_element_and_extract)
+}
+
+/// Performs a GET request to the Ergast API for [`Resource::FinishingStatus`], with the argument
+/// [`Filters`], and return the resulting inner [`Status`]s from [`Table`] in `resp.mr_data.table`.
+/// An [`Error::MultiPage`] is returned if `status` would not fit in a [`Page::with_max_limit`].
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::ergast::{get::get_statuses, resource::Filters};
+///
+/// let statuses = get_statuses(Filters::none()).unwrap();
+/// assert!(!statuses.is_empty());
+/// assert_eq!(
+///     statuses
+///         .iter()
+///         .find(|status| status.status_id == 1)
+///         .unwrap()
+///         .status,
+///     "Finished".to_string()
+/// );
+/// ```
+pub fn get_statuses(filters: Filters) -> Result<Vec<Status>> {
+    get_response_max_limit(Resource::FinishingStatus(filters))?
+        .mr_data
+        .table
+        .into_status()
+        .map_err(|e| e.into())
 }
 
 #[cfg(test)]
@@ -745,18 +773,18 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_finishing_status_2022() {
-        let resp = get_response(Resource::FinishingStatus(Filters {
-            season: Some(2022),
-            ..Filters::none()
-        }))
-        .unwrap();
+    fn get_statuses() {
+        assert_each_expected_in_actual(
+            &super::get_statuses(Filters::new().season(2022)).unwrap(),
+            &STATUS_TABLE_2022.as_status().unwrap(),
+            29,
+        );
+    }
 
-        let actual = resp.mr_data.table.as_status().unwrap();
-        let expected = STATUS_TABLE_2022.as_status().unwrap();
-
-        assert!(!actual.is_empty());
-        assert_eq!(actual[0..expected.len()], expected[..]);
+    #[test]
+    #[ignore]
+    fn get_statuses_empty() {
+        assert!(super::get_statuses(Filters::new().season(1949)).unwrap().is_empty());
     }
 
     // Resource::LapTimes
