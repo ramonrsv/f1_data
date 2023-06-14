@@ -2,8 +2,8 @@ use ureq;
 
 use crate::{
     ergast::{
-        resource::{Filters, Page, Resource},
-        response::{Circuit, Constructor, Driver, Payload, Response, Season, Status, Table},
+        resource::{Filters, Page, PitStopFilters, Resource},
+        response::{Circuit, Constructor, Driver, Payload, PitStop, Response, Season, Status, Table},
     },
     id::{CircuitID, ConstructorID, DriverID, SeasonID},
 };
@@ -193,7 +193,7 @@ fn verify_has_one_element_and_extract<T: Iterator>(mut sequence: T) -> Result<T:
     }
 }
 
-/// Performs a GET request to the Ergast API for [`Resource::SeasonList`], with the passed argument
+/// Performs a GET request to the Ergast API for [`Resource::SeasonList`], with the argument
 /// [`Filters`], and return the resulting inner [`Season`]s from [`Table`] in `resp.mr_data.table`.
 /// An [`Error::MultiPage`] is returned if `seasons` would not fit in a [`Page::with_max_limit`].
 ///
@@ -231,7 +231,7 @@ pub fn get_season(season: SeasonID) -> Result<Season> {
         .and_then(verify_has_one_element_and_extract)
 }
 
-/// Performs a GET request to the Ergast API for [`Resource::DriverInfo`], with the passed argument
+/// Performs a GET request to the Ergast API for [`Resource::DriverInfo`], with the argument
 /// [`Filters`], and return the resulting inner [`Driver`]s from [`Table`] in `resp.mr_data.table`.
 /// An [`Error::MultiPage`] is returned if `drivers` would not fit in a [`Page::with_max_limit`].
 ///
@@ -277,8 +277,8 @@ pub fn get_driver(driver_id: DriverID) -> Result<Driver> {
         .and_then(verify_has_one_element_and_extract)
 }
 
-/// Performs a GET request to the Ergast API for [`Resource::ConstructorInfo`], with the passed
-/// argument [`Filters`], and return the resulting inner [`Constructor`]s from [`Table`] in
+/// Performs a GET request to the Ergast API for [`Resource::ConstructorInfo`], with the argument
+/// [`Filters`], and return the resulting inner [`Constructor`]s from [`Table`] in
 /// `resp.mr_data.table`. An [`Error::MultiPage`] is returned if `constructors` would not fit in a
 /// [`Page::with_max_limit`].
 ///
@@ -325,7 +325,7 @@ pub fn get_constructor(constructor_id: ConstructorID) -> Result<Constructor> {
         .and_then(verify_has_one_element_and_extract)
 }
 
-/// Performs a GET request to the Ergast API for [`Resource::CircuitInfo`], with the passed argument
+/// Performs a GET request to the Ergast API for [`Resource::CircuitInfo`], with the argument
 /// [`Filters`], and return the resulting inner [`Circuit`]s from [`Table`] in `resp.mr_data.table`.
 /// An [`Error::MultiPage`] is returned if `circuits` would not fit in a [`Page::with_max_limit`].
 ///
@@ -399,6 +399,42 @@ pub fn get_statuses(filters: Filters) -> Result<Vec<Status>> {
         .mr_data
         .table
         .into_status()
+        .map_err(|e| e.into())
+}
+
+/// Performs a GET request to the Ergast API for [`Resource::PitStops`], with the passed argument
+/// [`PitStopFilters`], and return the resulting inner [`PitStop`]s from `race.payload` in the
+/// expected single `Race` element from [`Table`] in `resp.mr_data.table`. An [`Error::MultiPage`]
+/// is returned if `payload` would not fit in a [`Page::with_max_limit`].
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::id::DriverID;
+/// use f1_data::ergast::{get::get_pit_stops, resource::PitStopFilters, time::Duration, response::PitStop};
+///
+/// let pit_stops = get_pit_stops(PitStopFilters::new(2023, 4)).unwrap();
+/// assert_eq!(!pit_stops.len(), 23);
+/// assert_eq!(
+///     pit_stops[0],
+///     PitStop {
+///         driver_id: DriverID::from("gasly"),
+///         lap: 5,
+///         stop: 1,
+///         duration: Duration::from_m_s_ms(0, 20, 235)
+///     }
+/// );
+/// ```
+pub fn get_pit_stops(filters: PitStopFilters) -> Result<Vec<PitStop>> {
+    get_response_max_limit(Resource::PitStops(filters))?
+        .mr_data
+        .table
+        .into_races()
+        .map_err(|e| e.into())
+        .map(|v| v.into_iter())
+        .and_then(verify_has_one_element_and_extract)?
+        .payload
+        .into_pit_stops()
         .map_err(|e| e.into())
 }
 
@@ -827,25 +863,22 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_pit_stops_2023_4() {
+    fn get_pit_stops() {
+        assert_each_expected_in_actual(
+            &super::get_pit_stops(PitStopFilters::new(2023, 4)).unwrap(),
+            &RACE_2023_4_PIT_STOPS.payload.as_pit_stops().unwrap(),
+            LenConstraint::Exactly(23),
+        );
+    }
+
+    #[test]
+    #[ignore]
+    fn get_response_pit_stops_race_2023_4() {
         let resp = get_response(Resource::PitStops(PitStopFilters::new(2023, 4))).unwrap();
+        let race = verify_has_one_element_and_extract(resp.mr_data.table.as_races().unwrap().into_iter()).unwrap();
 
-        let races = resp.mr_data.table.as_races().unwrap();
-        assert_eq!(races.len(), 1);
-
-        let actual = &races[0];
-        let expected = &RACE_2023_4_PIT_STOPS;
-
-        assert_eq_race(actual, expected);
-
-        let actual_pit_stops = actual.payload.as_pit_stops().unwrap();
-        let expected_pit_stops = expected.payload.as_pit_stops().unwrap();
-
-        assert!(actual_pit_stops.len() >= 2);
-        assert_eq!(expected_pit_stops.len(), 2);
-
-        assert_eq!(actual_pit_stops[8], expected_pit_stops[0]);
-        assert_eq!(actual_pit_stops[11], expected_pit_stops[1]);
+        assert_eq_race(race, &RACE_2023_4_PIT_STOPS);
+        assert_eq!(race.payload.as_pit_stops().unwrap().len(), 23);
     }
 
     // Pagination, get_response_page, get_response, get_response_max_limit
