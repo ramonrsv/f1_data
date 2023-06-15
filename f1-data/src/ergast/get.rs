@@ -405,13 +405,8 @@ pub fn get_statuses(filters: Filters) -> Result<Vec<Status>> {
 /// );
 /// ```
 pub fn get_pit_stops(filters: PitStopFilters) -> Result<Vec<PitStop>> {
-    get_response_max_limit(Resource::PitStops(filters))?
-        .mr_data
-        .table
-        .into_races()
-        .map_err(|e| e.into())
-        .map(|v| v.into_iter())
-        .and_then(verify_has_one_element_and_extract)?
+    get_response_max_limit(Resource::PitStops(filters))
+        .and_then(verify_has_one_race_and_extract)?
         .payload
         .into_pit_stops()
         .map_err(|e| e.into())
@@ -722,9 +717,7 @@ mod tests {
         }))
         .unwrap();
 
-        let races = resp.mr_data.table.as_races().unwrap();
-        assert_eq!(races.len(), 1);
-        assert_eq!(&races[0], race_schedule);
+        assert_eq!(&verify_has_one_race_and_extract(resp).unwrap(), race_schedule);
     }
 
     #[test]
@@ -751,13 +744,10 @@ mod tests {
         }))
         .unwrap();
 
-        let races = resp.mr_data.table.as_races().unwrap();
-        assert_eq!(races.len(), 1);
-
-        let actual = &races[0];
+        let actual = verify_has_one_race_and_extract(resp).unwrap();
         let expected = &RACE_2003_4_QUALIFYING_RESULTS;
 
-        assert_eq_race(actual, expected);
+        assert_eq_race(&actual, expected);
 
         let actual_results = actual.payload.as_qualifying_results().unwrap();
         let expected_results = expected.payload.as_qualifying_results().unwrap();
@@ -778,13 +768,10 @@ mod tests {
         }))
         .unwrap();
 
-        let races = resp.mr_data.table.as_races().unwrap();
-        assert_eq!(races.len(), 1);
-
-        let actual = &races[0];
+        let actual = verify_has_one_race_and_extract(resp).unwrap();
         let expected = &RACE_2023_4_QUALIFYING_RESULTS;
 
-        assert_eq_race(actual, expected);
+        assert_eq_race(&actual, expected);
 
         let actual_results = actual.payload.as_qualifying_results().unwrap();
         let expected_results = expected.payload.as_qualifying_results().unwrap();
@@ -806,13 +793,10 @@ mod tests {
         }))
         .unwrap();
 
-        let races = resp.mr_data.table.as_races().unwrap();
-        assert_eq!(races.len(), 1);
-
-        let actual = &races[0];
+        let actual = verify_has_one_race_and_extract(resp).unwrap();
         let expected = &RACE_2023_4_SPRINT_RESULTS;
 
-        assert_eq_race(actual, expected);
+        assert_eq_race(&actual, expected);
 
         let actual_results = actual.payload.as_sprint_results().unwrap();
         let expected_results = expected.payload.as_sprint_results().unwrap();
@@ -848,13 +832,10 @@ mod tests {
         }))
         .unwrap();
 
-        let races = resp.mr_data.table.as_races().unwrap();
-        assert_eq!(races.len(), 1);
-
-        let actual = &races[0];
+        let actual = verify_has_one_race_and_extract(resp).unwrap();
         let expected = &RACE_2003_4_RACE_RESULTS;
 
-        assert_eq_race(actual, expected);
+        assert_eq_race(&actual, expected);
 
         let actual_results = actual.payload.as_race_results().unwrap();
         let expected_results = expected.payload.as_race_results().unwrap();
@@ -875,13 +856,10 @@ mod tests {
         }))
         .unwrap();
 
-        let races = resp.mr_data.table.as_races().unwrap();
-        assert_eq!(races.len(), 1);
-
-        let actual = &races[0];
+        let actual = verify_has_one_race_and_extract(resp).unwrap();
         let expected = &RACE_2023_4_RACE_RESULTS;
 
-        assert_eq_race(actual, expected);
+        assert_eq_race(&actual, expected);
 
         let actual_results = actual.payload.as_race_results().unwrap();
         let expected_results = expected.payload.as_race_results().unwrap();
@@ -960,12 +938,14 @@ mod tests {
     #[ignore]
     fn get_response_page_lap_times_race_2023_4() {
         let resp = get_response_page(Resource::LapTimes(LapTimeFilters::new(2023, 4)), Page::default()).unwrap();
-        let race = verify_has_one_race_and_extract(resp).unwrap();
 
-        assert_eq_race(&race, &RACE_2023_4_LAPS);
+        let actual = verify_has_one_race_and_extract(resp).unwrap();
+        let expected = &RACE_2023_4_LAPS;
 
-        let actual_laps = race.payload.as_laps().unwrap();
-        let expected_laps = RACE_2023_4_LAPS.payload.as_laps().unwrap();
+        assert_eq_race(&actual, expected);
+
+        let actual_laps = actual.payload.as_laps().unwrap();
+        let expected_laps = expected.payload.as_laps().unwrap();
 
         assert!(actual_laps.len() >= 2);
         assert_eq!(expected_laps.len(), 2);
@@ -997,9 +977,9 @@ mod tests {
     #[ignore]
     fn get_response_pit_stops_race_2023_4() {
         let resp = get_response(Resource::PitStops(PitStopFilters::new(2023, 4))).unwrap();
-        let race = verify_has_one_element_and_extract(resp.mr_data.table.as_races().unwrap().into_iter()).unwrap();
+        let race = verify_has_one_race_and_extract(resp).unwrap();
 
-        assert_eq_race(race, &RACE_2023_4_PIT_STOPS);
+        assert_eq_race(&race, &RACE_2023_4_PIT_STOPS);
         assert_eq!(race.payload.as_pit_stops().unwrap().len(), 23);
     }
 
