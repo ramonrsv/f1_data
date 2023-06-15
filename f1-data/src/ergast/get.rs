@@ -989,6 +989,12 @@ mod tests {
 
     #[test]
     #[ignore]
+    fn get_pit_stops_error_not_found() {
+        assert_not_found(super::get_pit_stops(PitStopFilters::new(1949, 1)));
+    }
+
+    #[test]
+    #[ignore]
     fn get_response_pit_stops_race_2023_4() {
         let resp = get_response(Resource::PitStops(PitStopFilters::new(2023, 4))).unwrap();
         let race = verify_has_one_element_and_extract(resp.mr_data.table.as_races().unwrap().into_iter()).unwrap();
