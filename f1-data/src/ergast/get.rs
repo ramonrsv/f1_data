@@ -168,31 +168,6 @@ pub fn get_response_max_limit(resource: Resource) -> Result<Response> {
     get_response_page(resource, Page::with_max_limit()).and_then(verify_is_single_page)
 }
 
-/// Convert a [`Response`] to [`Result<Response>`], enforcing that [`Response`] is single-page, via
-/// `response::Pagination::is_single_page`, and returning [`Error::MultiPage`] if it's not.
-fn verify_is_single_page(response: Response) -> Result<Response> {
-    if response.mr_data.pagination.is_single_page() {
-        Ok(response)
-    } else {
-        Err(Error::MultiPage)
-    }
-}
-
-/// Extract single element from [`Iterator`] into [`Result<T::Item>`], enforcing that there is only
-/// one element in the [`Iterator`], returning [`Error::NotFound`] if the iterator contained no
-/// elements, or [`Error::TooMany`] if it contained more than one.
-fn verify_has_one_element_and_extract<T: Iterator>(mut sequence: T) -> Result<T::Item> {
-    if let Some(val) = sequence.next() {
-        if sequence.next().is_none() {
-            Ok(val)
-        } else {
-            Err(Error::TooMany)
-        }
-    } else {
-        Err(Error::NotFound)
-    }
-}
-
 /// Performs a GET request to the Ergast API for [`Resource::SeasonList`], with the argument
 /// [`Filters`], and return the resulting inner [`Season`]s from [`Table`] in `resp.mr_data.table`.
 /// An [`Error::MultiPage`] is returned if `seasons` would not fit in a [`Page::with_max_limit`].
@@ -436,6 +411,31 @@ pub fn get_pit_stops(filters: PitStopFilters) -> Result<Vec<PitStop>> {
         .payload
         .into_pit_stops()
         .map_err(|e| e.into())
+}
+
+/// Convert a [`Response`] to [`Result<Response>`], enforcing that [`Response`] is single-page, via
+/// `response::Pagination::is_single_page`, and returning [`Error::MultiPage`] if it's not.
+fn verify_is_single_page(response: Response) -> Result<Response> {
+    if response.mr_data.pagination.is_single_page() {
+        Ok(response)
+    } else {
+        Err(Error::MultiPage)
+    }
+}
+
+/// Extract single element from [`Iterator`] into [`Result<T::Item>`], enforcing that there is only
+/// one element in the [`Iterator`], returning [`Error::NotFound`] if the iterator contained no
+/// elements, or [`Error::TooMany`] if it contained more than one.
+fn verify_has_one_element_and_extract<T: Iterator>(mut sequence: T) -> Result<T::Item> {
+    if let Some(val) = sequence.next() {
+        if sequence.next().is_none() {
+            Ok(val)
+        } else {
+            Err(Error::TooMany)
+        }
+    } else {
+        Err(Error::NotFound)
+    }
 }
 
 #[cfg(test)]
