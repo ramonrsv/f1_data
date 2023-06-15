@@ -620,7 +620,7 @@ impl RaceTime {
         let has_delta = proxy.time.starts_with('+');
 
         let total = Duration::milliseconds(proxy.millis as i64);
-        let delta = Duration::parse(if has_delta { &proxy.time[1..] } else { &proxy.time })?;
+        let delta = Duration::parse(&proxy.time[(has_delta as usize)..])?;
 
         if !has_delta && (total != delta) {
             return Err(ParseError::InvalidRaceTime(format!("Non-delta 'time' must match 'millis': {:?}", proxy)));
@@ -630,11 +630,11 @@ impl RaceTime {
             return Err(ParseError::InvalidRaceTime(format!("Delta 'time' must be less than 'millis': {:?}", proxy)));
         }
 
-        Ok(if has_delta {
-            Self::with_delta(total, delta)
+        if has_delta {
+            Ok(Self::with_delta(total, delta))
         } else {
-            Self::lead(total)
-        })
+            Ok(Self::lead(total))
+        }
     }
 }
 
