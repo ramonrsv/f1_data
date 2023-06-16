@@ -4,7 +4,7 @@ use crate::{
     ergast::{
         resource::{Filters, LapTimeFilters, Page, PitStopFilters, Resource},
         response::{
-            Circuit, Constructor, Driver, Lap, LapTime, Payload, PitStop, Race, Response, Season, Status, Table,
+            Circuit, Constructor, Driver, Lap, LapTime, Payload, PitStop, Race, Response, Season, Status, Table, Timing,
         },
     },
     id::{CircuitID, ConstructorID, DriverID, RaceID, SeasonID},
@@ -412,22 +412,21 @@ pub fn get_pit_stops(filters: PitStopFilters) -> Result<Vec<PitStop>> {
         .map_err(|e| e.into())
 }
 
-/// Represents a flattened combination of a [`response::Lap`](crate::ergast::response::Lap) and a
-/// [`response::Timing`](crate::ergast::response::Timing) for a single driver, indented to make use
-/// more ergonomic, without nesting, when accessing lap and timing data for a single driver.
+/// Represents a flattened combination of a [`Lap`] and [`Timing`] for a single driver, indented to
+/// make use more ergonomic, without nesting, when accessing a single driver's lap and timing data.
 pub struct DriverLap {
-    /// Maps directly to [`response::Lap::number`](crate::ergast::response::Lap::number).
+    /// Directly maps to [`Lap::number`] for a given [`Lap`].
     pub number: u32,
-    /// Maps directly to [`response::Timing::position`](crate::ergast::response::Timing::position).
+    /// Directly maps to [`Timing::position`] for a given driver's [`Timing`] in a given [`Lap`].
     pub position: u32,
-    /// Maps directly to [`response::Timing::time`](crate::ergast::response::Timing::time).
+    /// Directly maps to [`Timing::time`] for a given driver's [`Timing`] in a given [`Lap`].
     pub time: LapTime,
 }
 
 impl DriverLap {
     /// Returns a [`Result<DriverLap>`] from the given [`Lap`], verifying that it contains a single
-    /// [`Timing`](crate::ergast::response::Timing) and that its `driver_id` field matches the
-    /// passed [`DriverID`]. It returns [`Error::UnexpectedData`] if the `driver_id` does not match.
+    /// [`Timing`] and that its `driver_id` field matches the passed [`DriverID`]. It returns
+    /// [`Error::UnexpectedData`] if the data's `driver_id` does not match the argument's.
     pub fn try_from(lap: Lap, driver_id: &DriverID) -> Result<Self> {
         let timing = verify_has_one_element_and_extract(lap.timings.into_iter())?;
 
@@ -448,8 +447,7 @@ impl DriverLap {
 
 /// Performs a GET request to the Ergast API for [`Resource::LapTimes`] from a specified [`RaceID`]
 /// and for a specified single [`DriverID`], returning a list of [`DriverLap`]s, which is a
-/// flattened combination of [`response::Lap`](crate::ergast::response::Lap)s and
-/// [`response::Timing`](crate::ergast::response::Timing)s. An [`Error::MultiPage`] is returned if
+/// flattened combination of [`Lap`]s and [`Timing`]s. An [`Error::MultiPage`] is returned if
 /// `lap_times` would not fit in a [`Page::with_max_limit`].
 ///
 /// # Examples
@@ -472,6 +470,33 @@ pub fn get_driver_laps(race_id: RaceID, driver_id: DriverID) -> Result<Vec<Drive
     .map_err(|e| e.into())
     .map(|v| v.into_iter())
     .and_then(|laps| laps.map(|lap| DriverLap::try_from(lap, &driver_id)).collect())
+}
+
+/// Performs a GET request to the Ergast API for [`Resource::LapTimes`] from a specified [`RaceID`]
+/// and for a specified single lap, returning a list of [`Timing`]s from the requested [`Lap`].
+/// An [`Error::MultiPage`] is returned if `lap_times` would not fit in a [`Page::with_max_limit`].
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::id::RaceID;
+/// use f1_data::ergast::get::get_lap_timings;
+///
+/// ```
+pub fn get_lap_timings(race_id: RaceID, lap: u32) -> Result<Vec<Timing>> {
+    get_response_max_limit(Resource::LapTimes(LapTimeFilters {
+        season: race_id.season,
+        round: race_id.round,
+        lap: Some(lap),
+        driver_id: None,
+    }))
+    .and_then(verify_has_one_race_and_extract)?
+    .payload
+    .into_laps()
+    .map_err(|e| e.into())
+    .map(|v| v.into_iter())
+    .and_then(verify_has_one_element_and_extract)
+    .map(|lap| lap.timings)
 }
 
 /// Convert a [`Response`] to [`Result<Response>`], enforcing that [`Response`] is single-page, via
@@ -929,9 +954,26 @@ mod tests {
 
     #[test]
     #[ignore]
+    fn get_driver_timings() {
+        let l1 = super::get_lap_timings(RaceID::from(2023, 4), 1).unwrap();
+        let l2 = super::get_lap_timings(RaceID::from(2023, 4), 2).unwrap();
+
+        assert_each_expected_in_actual(&l1, &LAP_2023_4_L1.timings, LenConstraint::Exactly(20));
+        assert_each_expected_in_actual(&l2, &LAP_2023_4_L2.timings, LenConstraint::Exactly(20));
+    }
+
+    #[test]
+    #[ignore]
     fn get_driver_laps_error_not_found() {
         assert_not_found(super::get_driver_laps(RaceID::from(1949, 1), DriverID::from("leclerc")));
         assert_not_found(super::get_driver_laps(RaceID::from(2023, 4), DriverID::from("abate")));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_lap_timings_error_not_found() {
+        assert_not_found(super::get_lap_timings(RaceID::from(1949, 1), 1));
+        assert_not_found(super::get_lap_timings(RaceID::from(2023, 4), 100));
     }
 
     #[test]
