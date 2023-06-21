@@ -393,7 +393,7 @@ pub fn get_statuses(filters: Filters) -> Result<Vec<Status>> {
 /// use f1_data::ergast::{get::get_pit_stops, resource::PitStopFilters, time::Duration, response::PitStop};
 ///
 /// let pit_stops = get_pit_stops(PitStopFilters::new(2023, 4)).unwrap();
-/// assert_eq!(!pit_stops.len(), 23);
+/// assert_eq!(pit_stops.len(), 23);
 /// assert_eq!(
 ///     pit_stops[0],
 ///     PitStop {
@@ -454,8 +454,15 @@ impl DriverLap {
 ///
 /// ```no_run
 /// use f1_data::id::{DriverID, RaceID};
-/// use f1_data::ergast::get::get_driver_laps;
+/// use f1_data::ergast::{get::get_driver_laps, time::Duration};
 ///
+/// let laps = get_driver_laps(RaceID::from(2023, 4), DriverID::from("leclerc")).unwrap();
+/// assert_eq!(laps.len(), 51);
+/// assert_eq!(laps[0].number, 1);
+/// assert_eq!(laps[0].time, Duration::from_m_s_ms(1, 50, 109));
+///
+/// assert_eq!(laps[0].position, 1);
+/// assert_eq!(laps[2].position, 2)
 /// ```
 pub fn get_driver_laps(race_id: RaceID, driver_id: DriverID) -> Result<Vec<DriverLap>> {
     get_response_max_limit(Resource::LapTimes(LapTimeFilters {
@@ -479,9 +486,14 @@ pub fn get_driver_laps(race_id: RaceID, driver_id: DriverID) -> Result<Vec<Drive
 /// # Examples
 ///
 /// ```no_run
-/// use f1_data::id::RaceID;
-/// use f1_data::ergast::get::get_lap_timings;
+/// use f1_data::id::{DriverID, RaceID};
+/// use f1_data::ergast::{get::get_lap_timings, time::Duration};
 ///
+/// let timings = get_lap_timings(RaceID::from(2023, 4), 1).unwrap();
+/// assert_eq!(timings.len(), 20);
+/// assert_eq!(timings[0].driver_id, DriverID::from("leclerc"));
+/// assert_eq!(timings[0].position, 1);
+/// assert_eq!(timings[0].time, Duration::from_m_s_ms(1, 50, 109));
 /// ```
 pub fn get_lap_timings(race_id: RaceID, lap: u32) -> Result<Vec<Timing>> {
     get_response_max_limit(Resource::LapTimes(LapTimeFilters {
@@ -954,7 +966,7 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_driver_timings() {
+    fn get_lap_timings() {
         let l1 = super::get_lap_timings(RaceID::from(2023, 4), 1).unwrap();
         let l2 = super::get_lap_timings(RaceID::from(2023, 4), 2).unwrap();
 
