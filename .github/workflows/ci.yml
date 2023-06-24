@@ -3,7 +3,6 @@
 # only be run if the workflow was triggered by a nightly cron job, as these depend on network and
 # Ergast API availability, so they could produce problematic spurious failures on every CI check.
 name: CI
-run-name: Run CI checks, triggered by ${{ github.event_name }}, @${{ github.actor }}
 
 on:
   push:
