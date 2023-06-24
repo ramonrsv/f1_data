@@ -536,7 +536,7 @@ fn verify_has_one_element_and_extract<T: Iterator>(mut sequence: T) -> Result<T:
     }
 }
 
-/// Extract single [`Race`], from a [`Response`], into [`Result<Race`], enforcing that there is only
+/// Extract single [`Race`] from a [`Response`], into [`Result<Race>`], enforcing that there is only
 /// one race in the [`Response`], returning [`Error::NotFound`] if the it contained no races, or
 /// [`Error::TooMany`] if it contained more than one.
 fn verify_has_one_race_and_extract(response: Response) -> Result<Race> {
