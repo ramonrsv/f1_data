@@ -1,0 +1,68 @@
+# This workflow will install Rust toolchain dependencies, build the workspace, run tests, build
+# docs, run clippy, and run rustfmt. Non-ignored tests will always be run, but ignored tests will
+# only be run if the workflow was triggered by a nightly cron job, as these depend on network and
+# Ergast API availability, so they could produce problematic spurious failures on every CI check.
+name: CI
+run-name: Run CI checks, triggered by ${{ github.event_name }}, @${{ github.actor }}
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '00 01 * * *'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      - name: build
+        env:
+          RUSTFLAGS: -D warnings
+        run: cargo build --workspace --all-features
+      - name: test (non-ignored)
+        run: cargo test --workspace --all-features
+      - name: test (ignored)
+        if: github.event_name == 'schedule'
+        run: cargo test --workspace --all-features -- --ignored
+
+  build_docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      - env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --document-private-items --no-deps --workspace --all-features
+
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: clippy
+      - env:
+          RUSTFLAGS: -D warnings
+        run: cargo clippy --no-deps
+
+  rustfmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: rustfmt
+      - run: cargo fmt --all -- --check
