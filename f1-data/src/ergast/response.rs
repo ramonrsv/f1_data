@@ -18,7 +18,6 @@ pub struct Response {
     pub mr_data: MrData,
 }
 
-#[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct MrData {
     pub xmlns: String,
@@ -186,10 +185,16 @@ pub struct Circuit {
     pub location: Location,
 }
 
+/// This generic struct represents a race weekend event, corresponding to the list element type
+/// under the `"RaceTable.Races"` property key in the JSON response from the Ergast API. The generic
+/// type parameter `T` represents the type of payload that may be returned, depending on the
+/// requested [`Resource`](crate::ergast::resource::Resource). The default `T = `[`Payload`] accepts
+/// all possible payload types, but the `T` parameter may be specified during postprocessing to
+/// restrict the payload type, e.g. by `get_*` API functions that know the expected payload variant.
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct Race {
+pub struct Race<T = Payload> {
     #[serde_as(as = "DisplayFromStr")]
     pub season: SeasonID,
     #[serde_as(as = "DisplayFromStr")]
@@ -201,7 +206,25 @@ pub struct Race {
     pub date: Date,
     pub time: Option<Time>,
     #[serde(flatten)]
-    pub payload: Payload,
+    pub payload: T,
+}
+
+impl<T> Race<T> {
+    /// Constructs a [`Race<T>`] from a [`Race<U>`] and a payload argument of type `T`.
+    // @todo This implementation can be simplified if/once the type_chaining_struct_update feature
+    // is implemented and stabilized; see tracking https://github.com/rust-lang/rust/issues/86555.
+    pub fn from<U>(race: Race<U>, payload: T) -> Self {
+        Self {
+            season: race.season,
+            round: race.round,
+            url: race.url,
+            race_name: race.race_name,
+            circuit: race.circuit,
+            date: race.date,
+            time: race.time,
+            payload,
+        }
+    }
 }
 
 #[derive(Deserialize, PartialEq, Clone, Debug)]
@@ -881,6 +904,22 @@ mod tests {
             .pagination,
             REF_PAGINATION
         );
+    }
+
+    #[test]
+    fn race_from() {
+        let from = RACE_2023_4.clone();
+        let into = Race::<String>::from(from.clone(), String::from("some"));
+
+        assert_eq!(into.season, from.season);
+        assert_eq!(into.round, from.round);
+        assert_eq!(into.url, from.url);
+        assert_eq!(into.race_name, from.race_name);
+        assert_eq!(into.circuit, from.circuit);
+        assert_eq!(into.date, from.date);
+        assert_eq!(into.time, from.time);
+
+        assert_eq!(into.payload, String::from("some"));
     }
 
     #[test]
