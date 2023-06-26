@@ -547,7 +547,7 @@ impl LapTimeFilters {
         }
     }
 
-    // Field-update method for the `lap` field.
+    /// Field-update method for the `lap` field.
     pub fn lap(self, lap: u32) -> Self {
         Self { lap: Some(lap), ..self }
     }
@@ -639,7 +639,7 @@ impl PitStopFilters {
         }
     }
 
-    // Field-update method for the `lap` field.
+    /// Field-update method for the `lap` field.
     pub fn lap(self, lap: u32) -> Self {
         Self { lap: Some(lap), ..self }
     }
@@ -652,7 +652,7 @@ impl PitStopFilters {
         }
     }
 
-    // Field-update method for the `pit_stop` field.
+    /// Field-update method for the `pit_stop` field.
     pub fn pit_stop(self, pit_stop: u32) -> Self {
         Self {
             pit_stop: Some(pit_stop),
