@@ -66,7 +66,8 @@ impl Pagination {
 /// [`Response`] from the Ergast API, e.g. [`Table::Seasons`] corresponds to the `"SeasonTable"`
 /// property key in the JSON response, containing a list of [`Season`]s which corresponds to the
 /// `"Seasons"` property key. One and only of these tables may be returned in a given response,
-/// which is represented by the different variants of this enum.
+/// depending on the requested [`Resource`](crate::ergast::resource::Resource), which is represented
+/// by the different variants of this enum.
 ///
 /// The variants and inner fields may be matched and accessed via the usual pattern matching, or
 /// via accessor functions provided by [`enum-as-inner`](https://crates.io/crates/enum-as-inner).
@@ -200,8 +201,6 @@ pub struct Race {
     pub date: Date,
     pub time: Option<Time>,
     #[serde(flatten)]
-    pub schedule: Schedule,
-    #[serde(flatten)]
     pub payload: Payload,
 }
 
@@ -222,9 +221,9 @@ pub struct Schedule {
 /// [`Payload`] represents all the possible different data elements that be me returned as part of
 /// a [`Race`] in a [`Response`] from the Eergast API, e.g. [`Payload::SprintResults`] corresponds
 /// to the `"SprintResults"` property key in the JSON response, which is a list of [`SprintResult`].
-/// Only one of these payloads may be returned in a given response, which is represented by the
-/// different variants of this enum, as well as no payload may be returned, which is represented by
-/// [`Payload::NoPayload`].
+/// One and only one of these payloads may be returned in a given response, depending on the
+/// requested [`Resource`](crate::ergast::resource::Resource), which is represented by the different
+/// variants of this enum.
 ///
 /// The variants and inner values may be matched and accessed via the usual pattern matching, or via
 /// accessor functions provided by  [`enum-as-inner`](https://crates.io/crates/enum-as-inner).
@@ -242,7 +241,7 @@ pub struct Schedule {
 ///
 /// assert!(payload.as_laps().unwrap().is_empty());
 /// ```
-#[derive(EnumAsInner, PartialEq, Clone, Debug)]
+#[derive(Deserialize, EnumAsInner, PartialEq, Clone, Debug)]
 pub enum Payload {
     /// Contains a list of [`QualifyingResult`]s, and corresponds to the `"QualifyingResults"`
     /// property key in the JSON response from the Ergast API.
@@ -254,6 +253,7 @@ pub enum Payload {
 
     /// Contains a list of [`RaceResult`]s, and corresponds to the `"Results"` property key in the
     /// JSON response from the Ergast API.
+    #[serde(rename = "Results")]
     RaceResults(Vec<RaceResult>),
 
     /// Contains a list of [`Lap`]s, and corresponds to the `"Laps"` property key in the JSON
@@ -264,54 +264,17 @@ pub enum Payload {
     /// JSON response from the Ergast API.
     PitStops(Vec<PitStop>),
 
-    /// Only one kind of payload may be returned in a response, but it may also contain no payload,
-    /// e.g. when [`Resource::RaceSchedule`](crate::ergast::resource::Resource::RaceSchedule) is
-    /// requested. While that could be handled via `Option<Payload>`, it's more ergonomic to handle
-    /// it with this [`Payload::NoPayload`] variant. The [`Payload::has_payload`] method is provided
-    /// to query the presence of a payload, i.e. any variant that is not [`Payload::NoPayload`].
-    NoPayload,
-}
-
-impl Payload {
-    /// Returns true if any of the payload variants is held, i.e. any variant that in't
-    /// [`Payload::NoPayload`].
-    pub fn has_payload(&self) -> bool {
-        !matches!(self, Self::NoPayload)
-    }
-}
-
-impl From<PayloadProxy> for Payload {
-    fn from(proxy: PayloadProxy) -> Self {
-        type Proxy = PayloadProxy;
-
-        match proxy {
-            Proxy::QualifyingResults(inner) => Self::QualifyingResults(inner),
-            Proxy::SprintResults(inner) => Self::SprintResults(inner),
-            Proxy::RaceResults(inner) => Self::RaceResults(inner),
-            Proxy::Laps(inner) => Self::Laps(inner),
-            Proxy::PitStops(inner) => Self::PitStops(inner),
-        }
-    }
-}
-
-#[derive(Deserialize, PartialEq, Clone, Debug)]
-enum PayloadProxy {
-    QualifyingResults(Vec<QualifyingResult>),
-    SprintResults(Vec<SprintResult>),
-    #[serde(rename = "Results")]
-    RaceResults(Vec<RaceResult>),
-    Laps(Vec<Lap>),
-    PitStops(Vec<PitStop>),
-}
-
-impl<'de> Deserialize<'de> for Payload {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        if let Some(proxy) = Option::<PayloadProxy>::deserialize(deserializer)? {
-            Ok(Payload::from(proxy))
-        } else {
-            Ok(Payload::NoPayload)
-        }
-    }
+    /// Contains a [`Schedule`] object, and corresponds to the absence of a tag property key in the
+    /// JSON response from the Ergast API. That is, all the elements of a schedule are flattened
+    /// directly into the [`Race`] object in JSON.
+    ///
+    /// **Note:** Because of the untagged nature of this variant, and because all of the fields of
+    /// [`Schedule`] are optional, it no payload is returned this variant will be the one being set.
+    /// This is also a valid response from the Ergast API, e.g. for races prior to 2022, where
+    /// scheduling information was limited to the date/time of the Grand Prix (race), which is
+    /// already included in the [`Race`] object, as it does not depend on the `Resource` request.
+    #[serde(untagged)]
+    Schedule(Schedule),
 }
 
 #[serde_as]
