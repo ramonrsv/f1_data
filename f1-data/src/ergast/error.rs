@@ -2,21 +2,21 @@ use ureq;
 
 use crate::ergast::response::{Payload, Table};
 
-/// An error that may occur while processing a [`Resource`](crate::ergast::resource::Resource)
-/// HTTP request from the Ergast API, via the provided family of `get_*` methods. These may be
-/// underlying HTTP errors, represented by [`Error::Http`], errors parsing the JSON response,
-/// represented by [`Error::Parse`], or errors due to unmet restrictions imposed on the response,
-/// e.g. a request by a method supporting only single-page responses resulted in a multi-page
-/// response, represented by [`Error::MultiPage`].
+#[cfg(doc)]
+use crate::ergast::{resource::Resource, response};
+
+/// An error that may occur while processing a [`Resource`] HTTP request from the Ergast API, via
+/// the provided family of `get_*` methods. These may be underlying HTTP errors, represented by
+/// [`Error::Http`], errors parsing the JSON response, represented by [`Error::Parse`], or errors
+/// due to unmet restrictions imposed on the response, e.g. a request by a method supporting only
+/// single-page responses resulted in a multi-page response, represented by [`Error::MultiPage`].
 #[derive(Debug)]
 pub enum Error {
-    /// Underlying HTTP error, passing through the [`ureq::Error`] returned by
-    /// [`ureq::Request::call`].
+    /// Underlying HTTP error, passing through the [`ureq::Error`] from [`ureq::Request::call`].
     Http(Box<ureq::Error>),
 
-    /// Error parsing the JSON response into a serializable type from
-    /// [`response`](crate::ergast::response), presumably an error from [`serde_json`] but passing
-    /// through the [`std::io::Error`] returned by [`ureq::Response::into_json`].
+    /// Error parsing the JSON response into a serializable type from [`response`], passing through
+    /// the error from [`serde_json`] as [`std::io::Error`] from [`ureq::Response::into_json`].
     Parse(std::io::Error),
 
     /// A request by a method supporting only single-page responses resulted in a multi-page one.

@@ -11,6 +11,9 @@ use crate::{
     id::{CircuitID, ConstructorID, DriverID, RoundID, SeasonID, StatusID},
 };
 
+#[cfg(doc)]
+use crate::ergast::resource::Resource;
+
 pub const GRID_PIT_LANE: u32 = 0;
 
 #[derive(Deserialize, PartialEq, Clone, Debug)]
@@ -66,8 +69,7 @@ impl Pagination {
 /// [`Response`] from the Ergast API, e.g. [`Table::Seasons`] corresponds to the `"SeasonTable"`
 /// property key in the JSON response, containing a list of [`Season`]s which corresponds to the
 /// `"Seasons"` property key. One and only of these tables may be returned in a given response,
-/// depending on the requested [`Resource`](crate::ergast::resource::Resource), which is represented
-/// by the different variants of this enum.
+/// depending on the requested [`Resource`], which is represented by this enum's different variants.
 ///
 /// The variants and inner fields may be matched and accessed via the usual pattern matching, or
 /// via accessor functions provided by [`enum-as-inner`](https://crates.io/crates/enum-as-inner).
@@ -189,9 +191,9 @@ pub struct Circuit {
 /// This generic struct represents a race weekend event, corresponding to the list element type
 /// under the `"RaceTable.Races"` property key in the JSON response from the Ergast API. The generic
 /// type parameter `T` represents the type of payload that may be returned, depending on the
-/// requested [`Resource`](crate::ergast::resource::Resource). The default `T = `[`Payload`] accepts
-/// all possible payload types, but the `T` parameter may be specified during postprocessing to
-/// restrict the payload type, e.g. by `get_*` API functions that know the expected payload variant.
+/// requested [`Resource`]. The default `T = `[`Payload`] accepts all possible payload types, but
+/// the `T` parameter may be specified during postprocessing to restrict the payload type, e.g. by
+/// `get_*` API functions that know the expected payload variant.
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -265,8 +267,7 @@ pub struct Schedule {
 /// a [`Race`] in a [`Response`] from the Eergast API, e.g. [`Payload::SprintResults`] corresponds
 /// to the `"SprintResults"` property key in the JSON response, which is a list of [`SprintResult`].
 /// One and only one of these payloads may be returned in a given response, depending on the
-/// requested [`Resource`](crate::ergast::resource::Resource), which is represented by the different
-/// variants of this enum.
+/// requested [`Resource`], which is represented by the different variants of this enum.
 ///
 /// The variants and inner values may be matched and accessed via the usual pattern matching, or via
 /// accessor functions provided by  [`enum-as-inner`](https://crates.io/crates/enum-as-inner).

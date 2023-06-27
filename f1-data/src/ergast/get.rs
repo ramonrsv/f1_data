@@ -10,14 +10,13 @@ use crate::{
 };
 
 #[cfg(doc)]
-use crate::ergast::response::Table;
+use crate::ergast::response::{Pagination, Table};
 
 /// Performs a GET request to the Ergast API for a specific page of the argument specified
 /// [`Resource`] and returns a [`Response`] with a single page, parsed from the JSON response, of a
 /// possibly multi-page response. `Response::mr_data::pagination` can be used to check for
-/// [`response::Pagination::is_last_page`](crate::ergast::response::Pagination::is_last_page) and
-/// get [`response::Pagination::next_page`](crate::ergast::response::Pagination::next_page) to
-/// request the following page of the response, via another call to this method.
+/// [`Pagination::is_last_page`] and get [`Pagination::next_page`] to request the following page of
+/// the response, via another call to this method.
 ///
 /// This method performs no additional processing; it returns the top-level [`Response`] type that
 /// is a direct representation of the full JSON response. It is expected that users will use one of
