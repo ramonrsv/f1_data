@@ -4,6 +4,7 @@ use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Deserializer};
 use serde_with::{serde_as, DisplayFromStr};
 use url::Url;
+use void::Void;
 
 use crate::{
     ergast::time::{Date, Duration, ParseError, Time},
@@ -210,20 +211,39 @@ pub struct Race<T = Payload> {
 }
 
 impl<T> Race<T> {
-    /// Constructs a [`Race<T>`] from a [`Race<U>`] and a payload argument of type `T`.
+    /// Maps a [`Race<T>`] to a [`Result<Race<U>, E>`] by applying a type `T` -> `U` conversion
+    /// function, which may fail with error `E`, to the payload, and keeping all the other fields.
     // @todo This implementation can be simplified if/once the type_chaining_struct_update feature
     // is implemented and stabilized; see tracking https://github.com/rust-lang/rust/issues/86555.
+    pub fn try_map<U, F, E>(self, op: F) -> Result<Race<U>, E>
+    where
+        F: FnOnce(T) -> Result<U, E>,
+        E: std::error::Error,
+    {
+        Ok(Race::<U> {
+            season: self.season,
+            round: self.round,
+            url: self.url,
+            race_name: self.race_name,
+            circuit: self.circuit,
+            date: self.date,
+            time: self.time,
+            payload: op(self.payload)?,
+        })
+    }
+
+    /// Maps a [`Race<T>`] to a [`Race<U>`] by applying a type `T` -> `U` conversion function to the
+    /// payload and keeping all other fields unchanged.
+    pub fn map<U, F>(self, op: F) -> Race<U>
+    where
+        F: FnOnce(T) -> U,
+    {
+        self.try_map(|payload| Ok::<_, Void>(op(payload))).unwrap()
+    }
+
+    /// Constructs a [`Race<T>`] from a [`Race<U>`] and a payload argument of type `T`.
     pub fn from<U>(race: Race<U>, payload: T) -> Self {
-        Self {
-            season: race.season,
-            round: race.round,
-            url: race.url,
-            race_name: race.race_name,
-            circuit: race.circuit,
-            date: race.date,
-            time: race.time,
-            payload,
-        }
+        race.map(|_| payload)
     }
 }
 
@@ -906,19 +926,54 @@ mod tests {
         );
     }
 
+    fn assert_eq_race<T, U>(lhs: &Race<T>, rhs: &Race<U>) {
+        assert_eq!(lhs.season, rhs.season);
+        assert_eq!(lhs.round, rhs.round);
+        assert_eq!(lhs.url, rhs.url);
+        assert_eq!(lhs.race_name, rhs.race_name);
+        assert_eq!(lhs.circuit, rhs.circuit);
+        assert_eq!(lhs.date, rhs.date);
+        assert_eq!(lhs.time, rhs.time);
+    }
+
+    #[test]
+    fn race_try_map() {
+        let from = Race::from(RACE_2023_4.clone(), true);
+
+        let into = from.clone().try_map::<_, _, Void>(|_| Ok(String::from("true")));
+        assert_eq_race(&into.as_ref().unwrap(), &from);
+        assert_eq!(into.unwrap().payload, String::from("true"));
+
+        #[derive(Debug)]
+        struct DummyError;
+
+        impl std::fmt::Display for DummyError {
+            fn fmt(&self, _: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                Ok(())
+            }
+        }
+
+        impl std::error::Error for DummyError {}
+
+        let into = from.clone().try_map::<Void, _, _>(|_| Err(DummyError));
+        assert!(into.is_err());
+    }
+
+    #[test]
+    fn race_map() {
+        let from = Race::from(RACE_2023_4.clone(), 1);
+
+        let into = from.clone().map(|payload_i32| payload_i32.to_string());
+        assert_eq_race(&into, &from);
+        assert_eq!(into.payload, String::from("1"));
+    }
+
     #[test]
     fn race_from() {
         let from = RACE_2023_4.clone();
-        let into = Race::<String>::from(from.clone(), String::from("some"));
 
-        assert_eq!(into.season, from.season);
-        assert_eq!(into.round, from.round);
-        assert_eq!(into.url, from.url);
-        assert_eq!(into.race_name, from.race_name);
-        assert_eq!(into.circuit, from.circuit);
-        assert_eq!(into.date, from.date);
-        assert_eq!(into.time, from.time);
-
+        let into = Race::from(from.clone(), String::from("some"));
+        assert_eq_race(&into, &from);
         assert_eq!(into.payload, String::from("some"));
     }
 
