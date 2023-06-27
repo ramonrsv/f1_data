@@ -2,78 +2,15 @@ use ureq;
 
 use crate::{
     ergast::{
+        error::{Error, Result},
         resource::{Filters, LapTimeFilters, Page, PitStopFilters, Resource},
-        response::{
-            Circuit, Constructor, Driver, Lap, LapTime, Payload, PitStop, Race, Response, Season, Status, Table, Timing,
-        },
+        response::{Circuit, Constructor, Driver, Lap, LapTime, PitStop, Race, Response, Season, Status, Timing},
     },
     id::{CircuitID, ConstructorID, DriverID, RaceID, SeasonID},
 };
 
-/// An error that may occur while processing a [`Resource`](crate::ergast::resource::Resource)
-/// HTTP request from the Ergast API, via the provided family of `get_*` methods. These may be
-/// underlying HTTP errors, represented by [`Error::Http`], errors parsing the JSON response,
-/// represented by [`Error::Parse`], or errors due to unmet restrictions imposed on the response,
-/// e.g. a request by a method supporting only single-page responses resulted in a multi-page
-/// response, represented by [`Error::MultiPage`].
-#[derive(Debug)]
-pub enum Error {
-    /// Underlying HTTP error, passing through the [`ureq::Error`] returned by
-    /// [`ureq::Request::call`].
-    Http(Box<ureq::Error>),
-
-    /// Error parsing the JSON response into a serializable type from
-    /// [`response`](crate::ergast::response), presumably an error from [`serde_json`] but passing
-    /// through the [`std::io::Error`] returned by [`ureq::Response::into_json`].
-    Parse(std::io::Error),
-
-    /// A request by a method supporting only single-page responses resulted in a multi-page one.
-    MultiPage,
-    /// A request resulted in a response that did not contain the expected [`Table`] variant.
-    BadTableVariant,
-    /// A request resulted in a response that did not contain the expected [`Payload`] variant.
-    BadPayloadVariant,
-    /// A request resulted in a response that did not contain any of the expected elements.
-    NotFound,
-    /// A request resulted in a response that contained more than the expected number of elements.
-    TooMany,
-    /// A generic error for when unexpected data was found during processing of a response.
-    UnexpectedData(String),
-}
-
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-impl std::error::Error for Error {}
-
-impl From<ureq::Error> for Error {
-    fn from(error: ureq::Error) -> Self {
-        Self::Http(Box::new(error))
-    }
-}
-
-impl From<std::io::Error> for Error {
-    fn from(error: std::io::Error) -> Self {
-        Self::Parse(error)
-    }
-}
-
-impl From<Table> for Error {
-    fn from(_: Table) -> Self {
-        Self::BadTableVariant
-    }
-}
-
-impl From<Payload> for Error {
-    fn from(_: Payload) -> Self {
-        Self::BadPayloadVariant
-    }
-}
-
-pub type Result<T> = std::result::Result<T, Error>;
+#[cfg(doc)]
+use crate::ergast::response::Table;
 
 /// Performs a GET request to the Ergast API for a specific page of the argument specified
 /// [`Resource`] and returns a [`Response`] with a single page, parsed from the JSON response, of a
@@ -199,7 +136,7 @@ pub fn get_seasons(filters: Filters) -> Result<Vec<Season>> {
 /// # Examples
 ///
 /// ```no_run
-/// use f1_data::ergast::get::{Error, get_season};
+/// use f1_data::ergast::{error::Error, get::get_season};
 ///
 /// assert_eq!(get_season(1950).unwrap().season, 1950);
 /// assert!(matches!(get_season(1940), Err(Error::NotFound)));
@@ -245,7 +182,7 @@ pub fn get_drivers(filters: Filters) -> Result<Vec<Driver>> {
 ///
 /// ```no_run
 /// use f1_data::id::DriverID;
-/// use f1_data::ergast::get::{Error, get_driver};
+/// use f1_data::ergast::{error::Error, get::get_driver};
 ///
 /// assert_eq!(get_driver(DriverID::from("alonso")).unwrap().given_name, "Fernando".to_string());
 /// assert!(matches!(get_driver(DriverID::from("unknown")), Err(Error::NotFound)));
@@ -293,7 +230,7 @@ pub fn get_constructors(filters: Filters) -> Result<Vec<Constructor>> {
 ///
 /// ```no_run
 /// use f1_data::id::ConstructorID;
-/// use f1_data::ergast::get::{Error, get_constructor};
+/// use f1_data::ergast::{error::Error, get::get_constructor};
 ///
 /// assert_eq!(get_constructor(ConstructorID::from("ferrari")).unwrap().name, "Ferrari".to_string());
 /// assert!(matches!(get_constructor(ConstructorID::from("unknown")), Err(Error::NotFound)));
@@ -339,7 +276,7 @@ pub fn get_circuits(filters: Filters) -> Result<Vec<Circuit>> {
 ///
 /// ```no_run
 /// use f1_data::id::CircuitID;
-/// use f1_data::ergast::get::{Error, get_circuit};
+/// use f1_data::ergast::{error::Error, get::get_circuit};
 ///
 /// assert_eq!(
 ///     get_circuit(CircuitID::from("spa")).unwrap().circuit_name,
