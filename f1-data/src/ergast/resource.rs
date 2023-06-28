@@ -175,19 +175,22 @@ impl Resource {
     pub fn to_url(&self) -> Url {
         type DynFF<'a> = &'a dyn FiltersFormatter;
 
+        // re. the lints, I don't see a clean way to remove the cast without making the code worse
+        // or using type ascription, which is De-RFCed: https://github.com/rust-lang/rfcs/pull/3307
+        #[allow(trivial_casts)]
         let (resource_key, filters) = match self {
-            Self::SeasonList(f) => ("/seasons", f as DynFF),
-            Self::DriverInfo(f) => ("/drivers", f as DynFF),
-            Self::ConstructorInfo(f) => ("/constructors", f as DynFF),
-            Self::CircuitInfo(f) => ("/circuits", f as DynFF),
-            Self::RaceSchedule(f) => ("/races", f as DynFF),
-            Self::QualifyingResults(f) => ("/qualifying", f as DynFF),
-            Self::SprintResults(f) => ("/sprint", f as DynFF),
-            Self::RaceResults(f) => ("/results", f as DynFF),
-            Self::FinishingStatus(f) => ("/status", f as DynFF),
-            Self::LapTimes(f) => ("/laps", f as DynFF),
-            Self::PitStops(f) => ("/pitstops", f as DynFF),
-            _ => panic!("Unsupported resource: {:?}", self),
+            Self::SeasonList(f) => ("/seasons", f as DynFF<'_>),
+            Self::DriverInfo(f) => ("/drivers", f as DynFF<'_>),
+            Self::ConstructorInfo(f) => ("/constructors", f as DynFF<'_>),
+            Self::CircuitInfo(f) => ("/circuits", f as DynFF<'_>),
+            Self::RaceSchedule(f) => ("/races", f as DynFF<'_>),
+            Self::QualifyingResults(f) => ("/qualifying", f as DynFF<'_>),
+            Self::SprintResults(f) => ("/sprint", f as DynFF<'_>),
+            Self::RaceResults(f) => ("/results", f as DynFF<'_>),
+            Self::FinishingStatus(f) => ("/status", f as DynFF<'_>),
+            Self::LapTimes(f) => ("/laps", f as DynFF<'_>),
+            Self::PitStops(f) => ("/pitstops", f as DynFF<'_>),
+            _ => panic!("Unsupported resource: {self:?}"),
         };
 
         let mut filters = filters.to_formatted_pairs();
@@ -199,7 +202,7 @@ impl Resource {
         let resource = if let Some((idx, _)) = found {
             filters.remove(idx)
         } else {
-            (resource_key, "".to_string())
+            (resource_key, String::new())
         };
 
         filters.push(resource);
@@ -210,9 +213,8 @@ impl Resource {
             filters
                 .iter()
                 .filter(|(key, val)| !val.is_empty() || key == &resource_key)
-                .map(|(key, val)| format!("{}{}", key, val))
-                .collect::<Vec<_>>()
-                .join("")
+                .map(|(key, val)| format!("{key}{val}"))
+                .collect::<String>()
         ))
         .unwrap()
     }
@@ -220,7 +222,10 @@ impl Resource {
     pub fn to_url_with(&self, page: Page) -> Url {
         let mut url = self.to_url();
 
-        url.query_pairs_mut()
+        // re. the lint, this use case is by design, according to `Url`'s docs.
+        #[allow(unused_results)]
+        let _ = url
+            .query_pairs_mut()
             .extend_pairs([("limit", page.limit.to_string()), ("offset", page.offset.to_string())]);
 
         url
@@ -229,7 +234,7 @@ impl Resource {
 
 /// Trait that all filter structs for [`Resource`]s must implement, used to format resource URLs
 trait FiltersFormatter {
-    /// Return a list of (<resource_key>, <formatted_value>) for all possible filters
+    /// Return a list of (`resource_key`, `formatted_value`) for all possible filters
     fn to_formatted_pairs(&self) -> Vec<(&'static str, String)>;
 }
 
@@ -702,7 +707,7 @@ impl FiltersFormatter for PitStopFilters {
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct Page {
     limit: u32,
     offset: u32,
@@ -917,7 +922,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn resource_to_url_round_without_season_filter_panics() {
-        Resource::RaceSchedule(Filters {
+        let _unused = Resource::RaceSchedule(Filters {
             round: Some(1),
             ..Filters::none()
         })
@@ -1137,7 +1142,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn page_construction_panics() {
-        Page::with_limit(2000);
+        let _ = Page::with_limit(2000);
     }
 
     #[test]

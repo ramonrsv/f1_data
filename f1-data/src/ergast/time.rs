@@ -13,14 +13,14 @@ pub enum ParseError {
 }
 
 impl std::fmt::Display for ParseError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
     }
 }
 
 impl std::error::Error for ParseError {}
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub struct Duration(time::Duration);
 
 impl Duration {
@@ -56,7 +56,7 @@ impl Duration {
     fn parse_milli(milli_str: &str) -> i64 {
         debug_assert!(!milli_str.is_empty() && milli_str.len() <= 3);
 
-        milli_str.parse::<i64>().unwrap() * (10_i64.pow(3_u32 - milli_str.len() as u32))
+        milli_str.parse::<i64>().unwrap() * (10_i64.pow(3_u32 - u32::try_from(milli_str.len()).unwrap()))
     }
 
     pub fn parse(d_str: &str) -> Result<Self, ParseError> {
@@ -117,7 +117,7 @@ impl Sub for Duration {
     }
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub struct Time(time::Time);
 
 impl Time {

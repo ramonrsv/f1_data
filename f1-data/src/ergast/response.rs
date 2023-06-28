@@ -34,7 +34,7 @@ pub struct MrData {
 }
 
 #[serde_as]
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Copy, Debug)]
 pub struct Pagination {
     #[serde_as(as = "DisplayFromStr")]
     pub limit: u32,
@@ -249,7 +249,7 @@ impl<T> Race<T> {
     }
 }
 
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Copy, Debug)]
 pub struct Schedule {
     #[serde(rename = "FirstPractice")]
     pub first_practice: Option<DateTime>,
@@ -395,7 +395,7 @@ pub struct RaceResult {
     pub fastest_lap: Option<FastestLap>,
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum Position {
     Finished(u32),
     Retired,
@@ -487,14 +487,14 @@ pub struct Location {
     pub country: String,
 }
 
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Copy, Debug)]
 pub struct DateTime {
     pub date: Date,
     pub time: Option<Time>,
 }
 
 #[serde_as]
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Copy, Debug)]
 pub struct FastestLap {
     #[serde_as(as = "Option<DisplayFromStr>")]
     pub rank: Option<u32>,
@@ -515,14 +515,14 @@ fn extract_nested_lap_time<'de, D: Deserializer<'de>>(deserializer: D) -> Result
 }
 
 #[serde_as]
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Copy, Debug)]
 pub struct AverageSpeed {
     pub units: SpeedUnits,
     #[serde_as(as = "DisplayFromStr")]
     pub speed: f32,
 }
 
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, PartialEq, Clone, Copy, Debug)]
 pub enum SpeedUnits {
     #[serde(rename = "kph")]
     Kph,
@@ -530,7 +530,7 @@ pub enum SpeedUnits {
 
 pub type LapTime = Duration;
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum QualifyingTime {
     Time(LapTime),
     NoTimeSet,
@@ -542,10 +542,10 @@ impl QualifyingTime {
     }
 
     pub fn parse(t_str: &str) -> Result<Self, ParseError> {
-        if !t_str.is_empty() {
-            LapTime::parse(t_str).map(QualifyingTime::Time)
-        } else {
+        if t_str.is_empty() {
             Ok(QualifyingTime::NoTimeSet)
+        } else {
+            LapTime::parse(t_str).map(QualifyingTime::Time)
         }
     }
 
@@ -560,7 +560,7 @@ impl QualifyingTime {
     pub fn time(&self) -> &LapTime {
         match &self {
             Self::Time(time) => time,
-            _ => panic!("Cannot get time of NoTimeSet"),
+            Self::NoTimeSet => panic!("Cannot get time of NoTimeSet"),
         }
     }
 }
@@ -583,11 +583,11 @@ impl FromStr for QualifyingTime {
 #[derive(Deserialize, Debug)]
 struct RaceTimeProxy {
     #[serde_as(as = "DisplayFromStr")]
-    pub millis: u32,
-    pub time: String,
+    millis: u32,
+    time: String,
 }
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub struct RaceTime {
     total: Duration,
     delta: Duration,
@@ -626,15 +626,15 @@ impl RaceTime {
 
         let has_delta = proxy.time.starts_with('+');
 
-        let total = Duration::milliseconds(proxy.millis as i64);
-        let delta = Duration::parse(&proxy.time[(has_delta as usize)..])?;
+        let total = Duration::milliseconds(i64::from(proxy.millis));
+        let delta = Duration::parse(&proxy.time[usize::from(has_delta)..])?;
 
         if !has_delta && (total != delta) {
-            return Err(ParseError::InvalidRaceTime(format!("Non-delta 'time' must match 'millis': {:?}", proxy)));
+            return Err(ParseError::InvalidRaceTime(format!("Non-delta 'time' must match 'millis': {proxy:?}")));
         }
 
         if delta > total {
-            return Err(ParseError::InvalidRaceTime(format!("Delta 'time' must be less than 'millis': {:?}", proxy)));
+            return Err(ParseError::InvalidRaceTime(format!("Delta 'time' must be less than 'millis': {proxy:?}")));
         }
 
         if has_delta {
@@ -1080,7 +1080,7 @@ mod tests {
         assert!(!quali.has_time());
         assert!(quali.no_time_set());
 
-        quali.time();
+        let _ = quali.time();
     }
 
     #[test]

@@ -75,6 +75,8 @@ impl SeasonPrices {
     where
         ID: From<&'a str> + Eq + Hash,
     {
+        // `idx as RoundID` is safe, we won't have more than 2^32 rounds
+        #![allow(clippy::cast_possible_truncation)]
         map.iter()
             .map(|(id, prices)| {
                 (
@@ -89,7 +91,7 @@ impl SeasonPrices {
             .collect::<HashMap<_, _>>()
     }
 
-    pub fn from_str_price_map(drivers: &StrPriceMap, constructors: &StrPriceMap) -> SeasonPrices {
+    pub fn from_str_price_map(drivers: &StrPriceMap<'_>, constructors: &StrPriceMap<'_>) -> SeasonPrices {
         SeasonPrices {
             drivers: Self::str_price_map_to_id_price_map(drivers),
             constructors: Self::str_price_map_to_id_price_map(constructors),
@@ -102,6 +104,8 @@ impl SeasonPrices {
     where
         ID: From<&'a str> + Eq + Hash,
     {
+        // `idx as RoundID` is safe, we won't have more than 2^32 rounds
+        #![allow(clippy::cast_possible_truncation)]
         yaml.as_hash()
             .unwrap()
             .into_iter()

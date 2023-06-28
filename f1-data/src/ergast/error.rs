@@ -16,7 +16,7 @@ pub enum Error {
     Http(Box<ureq::Error>),
 
     /// Error parsing the JSON response into a serializable type from [`response`], passing through
-    /// the error from [`serde_json`] as [`std::io::Error`] from [`ureq::Response::into_json`].
+    /// the [`std::io::Error`] from [`ureq::Response::into_json`], presumably using `serde_json`.
     Parse(std::io::Error),
 
     /// A request by a method supporting only single-page responses resulted in a multi-page one.
@@ -34,8 +34,8 @@ pub enum Error {
 }
 
 impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
     }
 }
 

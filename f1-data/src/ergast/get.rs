@@ -350,6 +350,7 @@ pub fn get_pit_stops(filters: PitStopFilters) -> Result<Vec<PitStop>> {
 
 /// Represents a flattened combination of a [`Lap`] and [`Timing`] for a single driver, indented to
 /// make use more ergonomic, without nesting, when accessing a single driver's lap and timing data.
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct DriverLap {
     /// Directly maps to [`Lap::number`] for a given [`Lap`].
     pub number: u32,
