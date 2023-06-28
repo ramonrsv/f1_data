@@ -462,6 +462,8 @@ fn verify_is_single_page(response: Response) -> Result<Response> {
 /// one element in the [`Iterator`], returning [`Error::NotFound`] if the iterator contained no
 /// elements, or [`Error::TooMany`] if it contained more than one.
 fn verify_has_one_element_and_extract<T: Iterator>(mut sequence: T) -> Result<T::Item> {
+    // Using .map_or_else is less readable than this
+    #![allow(clippy::option_if_let_else)]
     if let Some(val) = sequence.next() {
         if sequence.next().is_none() {
             Ok(val)

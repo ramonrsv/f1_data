@@ -66,7 +66,7 @@ impl Duration {
 
         let matches = RE
             .captures(d_str)
-            .ok_or(ParseError::InvalidDuration(d_str.to_string()))?;
+            .ok_or_else(|| ParseError::InvalidDuration(d_str.to_string()))?;
 
         let (hours, minutes) = if matches[1].is_empty() {
             (0, 0)

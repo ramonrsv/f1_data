@@ -43,6 +43,8 @@
     clippy::all,
     clippy::cargo,
     clippy::suspicious,
+    clippy::pedantic,
+    clippy::nursery,
 
     // rustdoc
     rustdoc::all,
@@ -51,24 +53,19 @@
 // Clippy lints from the `pedantic`, `nursery`, and `restriction` groups are more finicky and
 // require a combination of opt-in and opt-out strategies to minimize false positives and verbosity.
 #![deny(
-    // groups
-    clippy::pedantic,
-    // clippy::nursery,
-    // clippy::restriction,
-
-    // restriction
+    // restriction, opt-in
     clippy::dbg_macro,
     clippy::print_stdout,
     clippy::unimplemented,
     clippy::todo,
 )]
 #![allow(
-    // pedantic
+    // pedantic, opt-out
     clippy::must_use_candidate,
     clippy::return_self_not_must_use,
 
-    // restriction
-    clippy::missing_docs_in_private_items
+    // nursery, opt-out
+    clippy::missing_const_for_fn,
 )]
 //
 // These lints are temporarily allowed while fixes for associated violations are being worked on.
@@ -84,7 +81,8 @@
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
     clippy::needless_pass_by_value,
-    clippy::doc_markdown
+    clippy::doc_markdown,
+    clippy::derive_partial_eq_without_eq
 )]
 
 // Silence unused-extern-crates lint for criterion; lint doesn't seem to see the use in /benches

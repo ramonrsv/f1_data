@@ -657,11 +657,7 @@ impl PitStopFilters {
 
 /// Format a generic `Option<T>`; None as "", and Some(val) as "/{val}"
 fn fmt_from_opt<T: std::fmt::Display>(field: &Option<T>) -> String {
-    if let Some(val) = field {
-        format!("/{val}")
-    } else {
-        String::new()
-    }
+    field.as_ref().map_or(String::new(), |val| format!("/{val}"))
 }
 
 impl FiltersFormatter for Filters {
