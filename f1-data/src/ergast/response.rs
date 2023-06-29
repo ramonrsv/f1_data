@@ -249,6 +249,20 @@ impl<T> Race<T> {
     }
 }
 
+/// Compares two [`Race`]s for equality, ignoring the payload.
+// @todo If a new field is added to [`Race`], and this implementation isn't updated accordingly,
+// it will silently fail - unit tests won't catch it. I haven't figured out a way to solve this
+// problem without a lot of inefficient cloning to discard payload and compare [`Race<Void>`]s.
+pub fn eq_race_info<T, U>(lhs: &Race<T>, rhs: &Race<U>) -> bool {
+    (lhs.season == rhs.season)
+        && (lhs.round == rhs.round)
+        && (lhs.url == rhs.url)
+        && (lhs.race_name == rhs.race_name)
+        && (lhs.circuit == rhs.circuit)
+        && (lhs.date == rhs.date)
+        && (lhs.time == rhs.time)
+}
+
 #[derive(Deserialize, PartialEq, Eq, Clone, Copy, Debug)]
 pub struct Schedule {
     #[serde(rename = "FirstPractice")]
@@ -927,14 +941,38 @@ mod tests {
         );
     }
 
-    fn assert_eq_race<T, U>(lhs: &Race<T>, rhs: &Race<U>) {
-        assert_eq!(lhs.season, rhs.season);
-        assert_eq!(lhs.round, rhs.round);
-        assert_eq!(lhs.url, rhs.url);
-        assert_eq!(lhs.race_name, rhs.race_name);
-        assert_eq!(lhs.circuit, rhs.circuit);
-        assert_eq!(lhs.date, rhs.date);
-        assert_eq!(lhs.time, rhs.time);
+    fn verify_eq_race_info<T, U, V, F>(lhs: &Race<T>, mut rhs: Race<U>, mut field: F, new_val: V)
+    where
+        V: Clone + PartialEq + std::fmt::Debug,
+        F: FnMut(&mut Race<U>) -> &mut V,
+    {
+        let old_val = field(&mut rhs).clone();
+        assert_ne!(old_val, new_val);
+
+        assert!(eq_race_info(lhs, &rhs));
+        field(&mut rhs).clone_from(&new_val);
+        assert!(!eq_race_info(lhs, &rhs));
+
+        field(&mut rhs).clone_from(&old_val);
+        assert!(eq_race_info(lhs, &rhs));
+    }
+
+    #[test]
+    fn race_eq_race_info() {
+        let lhs = RACE_2023_4.clone();
+
+        assert!(eq_race_info(&lhs, &lhs));
+        assert!(eq_race_info(&lhs, &Race::from(lhs.clone(), true)));
+
+        let rhs = lhs.clone();
+
+        verify_eq_race_info(&lhs, rhs.clone(), |r| &mut r.season, RACE_NONE.season);
+        verify_eq_race_info(&lhs, rhs.clone(), |r| &mut r.round, RACE_NONE.round);
+        verify_eq_race_info(&lhs, rhs.clone(), |r| &mut r.url, RACE_NONE.url.clone());
+        verify_eq_race_info(&lhs, rhs.clone(), |r| &mut r.race_name, RACE_NONE.race_name.clone());
+        verify_eq_race_info(&lhs, rhs.clone(), |r| &mut r.circuit, RACE_NONE.circuit.clone());
+        verify_eq_race_info(&lhs, rhs.clone(), |r| &mut r.date, RACE_NONE.date);
+        verify_eq_race_info(&lhs, rhs.clone(), |r| &mut r.time, RACE_NONE.time);
     }
 
     #[test]
@@ -942,7 +980,7 @@ mod tests {
         let from = Race::from(RACE_2023_4.clone(), true);
 
         let into = from.clone().try_map::<_, _, Void>(|_| Ok(String::from("true")));
-        assert_eq_race(&into.as_ref().unwrap(), &from);
+        assert!(eq_race_info(&into.as_ref().unwrap(), &from));
         assert_eq!(into.unwrap().payload, String::from("true"));
 
         #[derive(Debug)]
@@ -965,7 +1003,7 @@ mod tests {
         let from = Race::from(RACE_2023_4.clone(), 1);
 
         let into = from.clone().map(|payload_i32| payload_i32.to_string());
-        assert_eq_race(&into, &from);
+        assert!(eq_race_info(&into, &from));
         assert_eq!(into.payload, String::from("1"));
     }
 
@@ -974,7 +1012,7 @@ mod tests {
         let from = RACE_2023_4.clone();
 
         let into = Race::from(from.clone(), String::from("some"));
-        assert_eq_race(&into, &from);
+        assert!(eq_race_info(&into, &from));
         assert_eq!(into.payload, String::from("some"));
     }
 

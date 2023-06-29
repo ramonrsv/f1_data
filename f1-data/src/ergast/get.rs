@@ -511,16 +511,6 @@ mod tests {
     use super::*;
     use crate::ergast::tests::*;
 
-    fn assert_eq_race(left: &Race, right: &Race) {
-        assert_eq!(left.season, right.season);
-        assert_eq!(left.round, right.round);
-        assert_eq!(left.url, right.url);
-        assert_eq!(left.race_name, right.race_name);
-        assert_eq!(left.circuit, right.circuit);
-        assert_eq!(left.date, right.date);
-        assert_eq!(left.time, right.time);
-    }
-
     enum LenConstraint {
         Exactly(usize),
         Minimum(usize),
@@ -733,7 +723,7 @@ mod tests {
         let actual = verify_has_one_race_and_extract(resp).unwrap();
         let expected = &RACE_2003_4_QUALIFYING_RESULTS;
 
-        assert_eq_race(&actual, expected);
+        assert!(eq_race_info(&actual, expected));
 
         let actual_results = actual.payload.as_qualifying_results().unwrap();
         let expected_results = expected.payload.as_qualifying_results().unwrap();
@@ -757,7 +747,7 @@ mod tests {
         let actual = verify_has_one_race_and_extract(resp).unwrap();
         let expected = &RACE_2023_4_QUALIFYING_RESULTS;
 
-        assert_eq_race(&actual, expected);
+        assert!(eq_race_info(&actual, expected));
 
         let actual_results = actual.payload.as_qualifying_results().unwrap();
         let expected_results = expected.payload.as_qualifying_results().unwrap();
@@ -782,7 +772,7 @@ mod tests {
         let actual = verify_has_one_race_and_extract(resp).unwrap();
         let expected = &RACE_2023_4_SPRINT_RESULTS;
 
-        assert_eq_race(&actual, expected);
+        assert!(eq_race_info(&actual, expected));
 
         let actual_results = actual.payload.as_sprint_results().unwrap();
         let expected_results = expected.payload.as_sprint_results().unwrap();
@@ -821,7 +811,7 @@ mod tests {
         let actual = verify_has_one_race_and_extract(resp).unwrap();
         let expected = &RACE_2003_4_RACE_RESULTS;
 
-        assert_eq_race(&actual, expected);
+        assert!(eq_race_info(&actual, expected));
 
         let actual_results = actual.payload.as_race_results().unwrap();
         let expected_results = expected.payload.as_race_results().unwrap();
@@ -845,7 +835,7 @@ mod tests {
         let actual = verify_has_one_race_and_extract(resp).unwrap();
         let expected = &RACE_2023_4_RACE_RESULTS;
 
-        assert_eq_race(&actual, expected);
+        assert!(eq_race_info(&actual, expected));
 
         let actual_results = actual.payload.as_race_results().unwrap();
         let expected_results = expected.payload.as_race_results().unwrap();
@@ -945,7 +935,7 @@ mod tests {
         let actual = verify_has_one_race_and_extract(resp).unwrap();
         let expected = &RACE_2023_4_LAPS;
 
-        assert_eq_race(&actual, expected);
+        assert!(eq_race_info(&actual, expected));
 
         let actual_laps = actual.payload.as_laps().unwrap();
         let expected_laps = expected.payload.as_laps().unwrap();
@@ -982,7 +972,7 @@ mod tests {
         let resp = get_response(&Resource::PitStops(PitStopFilters::new(2023, 4))).unwrap();
         let race = verify_has_one_race_and_extract(resp).unwrap();
 
-        assert_eq_race(&race, &RACE_2023_4_PIT_STOPS);
+        assert!(eq_race_info(&race, &RACE_2023_4_PIT_STOPS));
         assert_eq!(race.payload.as_pit_stops().unwrap().len(), 23);
     }
 
