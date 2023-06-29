@@ -51,7 +51,7 @@ pub fn get_response_page(resource: &Resource, page: Page) -> Result<Response> {
     ureq::request_url("GET", &resource.to_url_with(page))
         .call()?
         .into_json::<Response>()
-        .map_err(|e| e.into())
+        .map_err(into)
 }
 
 /// Performs a GET request to the Ergast API for the argument specified [`Resource`] and returns a
@@ -126,7 +126,7 @@ pub fn get_seasons(filters: Filters) -> Result<Vec<Season>> {
         .mr_data
         .table
         .into_seasons()
-        .map_err(|e| e.into())
+        .map_err(into)
 }
 
 /// Performs a GET request to the Ergast API for a single [`Season`], identified by a [`SeasonID`],
@@ -142,7 +142,7 @@ pub fn get_seasons(filters: Filters) -> Result<Vec<Season>> {
 /// ```
 pub fn get_season(season: SeasonID) -> Result<Season> {
     get_seasons(Filters::new().season(season))
-        .map(|v| v.into_iter())
+        .map(into_iter)
         .and_then(verify_has_one_element_and_extract)
 }
 
@@ -171,7 +171,7 @@ pub fn get_drivers(filters: Filters) -> Result<Vec<Driver>> {
         .mr_data
         .table
         .into_drivers()
-        .map_err(|e| e.into())
+        .map_err(into)
 }
 
 /// Performs a GET request to the Ergast API for a single [`Driver`], identified by a [`DriverID`],
@@ -188,7 +188,7 @@ pub fn get_drivers(filters: Filters) -> Result<Vec<Driver>> {
 /// ```
 pub fn get_driver(driver_id: DriverID) -> Result<Driver> {
     get_drivers(Filters::new().driver_id(driver_id))
-        .map(|v| v.into_iter())
+        .map(into_iter)
         .and_then(verify_has_one_element_and_extract)
 }
 
@@ -218,7 +218,7 @@ pub fn get_constructors(filters: Filters) -> Result<Vec<Constructor>> {
         .mr_data
         .table
         .into_constructors()
-        .map_err(|e| e.into())
+        .map_err(into)
 }
 
 /// Performs a GET request to the Ergast API for a single [`Constructor`], identified by a
@@ -236,7 +236,7 @@ pub fn get_constructors(filters: Filters) -> Result<Vec<Constructor>> {
 /// ```
 pub fn get_constructor(constructor_id: ConstructorID) -> Result<Constructor> {
     get_constructors(Filters::new().constructor_id(constructor_id))
-        .map(|v| v.into_iter())
+        .map(into_iter)
         .and_then(verify_has_one_element_and_extract)
 }
 
@@ -265,7 +265,7 @@ pub fn get_circuits(filters: Filters) -> Result<Vec<Circuit>> {
         .mr_data
         .table
         .into_circuits()
-        .map_err(|e| e.into())
+        .map_err(into)
 }
 
 /// Performs a GET request to the Ergast API for a single [`Circuit`], identified by a [`CircuitID`]
@@ -285,7 +285,7 @@ pub fn get_circuits(filters: Filters) -> Result<Vec<Circuit>> {
 /// ```
 pub fn get_circuit(circuit_id: CircuitID) -> Result<Circuit> {
     get_circuits(Filters::new().circuit_id(circuit_id))
-        .map(|v| v.into_iter())
+        .map(into_iter)
         .and_then(verify_has_one_element_and_extract)
 }
 
@@ -314,7 +314,7 @@ pub fn get_statuses(filters: Filters) -> Result<Vec<Status>> {
         .mr_data
         .table
         .into_status()
-        .map_err(|e| e.into())
+        .map_err(into)
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::PitStops`], with the passed argument
@@ -345,7 +345,7 @@ pub fn get_pit_stops(filters: PitStopFilters) -> Result<Vec<PitStop>> {
         .and_then(verify_has_one_race_and_extract)?
         .payload
         .into_pit_stops()
-        .map_err(|e| e.into())
+        .map_err(into)
 }
 
 /// Represents a flattened combination of a [`Lap`] and [`Timing`] for a single driver, indented to
@@ -411,8 +411,8 @@ pub fn get_driver_laps(race_id: RaceID, driver_id: &DriverID) -> Result<Vec<Driv
     .and_then(verify_has_one_race_and_extract)?
     .payload
     .into_laps()
-    .map_err(|e| e.into())
-    .map(|v| v.into_iter())
+    .map_err(into)
+    .map(into_iter)
     .and_then(|laps| laps.map(|lap| DriverLap::try_from(lap, driver_id)).collect())
 }
 
@@ -442,8 +442,8 @@ pub fn get_lap_timings(race_id: RaceID, lap: u32) -> Result<Vec<Timing>> {
     .and_then(verify_has_one_race_and_extract)?
     .payload
     .into_laps()
-    .map_err(|e| e.into())
-    .map(|v| v.into_iter())
+    .map_err(into)
+    .map(into_iter)
     .and_then(verify_has_one_element_and_extract)
     .map(|lap| lap.timings)
 }
@@ -483,9 +483,19 @@ fn verify_has_one_race_and_extract(response: Response) -> Result<Race> {
         .mr_data
         .table
         .into_races()
-        .map_err(|e| e.into())
-        .map(|v| v.into_iter())
+        .map_err(into)
+        .map(into_iter)
         .and_then(verify_has_one_element_and_extract)
+}
+
+/// Shorthand for closure `|e| e.into()` and/or `std::convert::Into::into`.
+fn into<T: Into<U>, U>(t: T) -> U {
+    t.into()
+}
+
+/// Shorthand for closure `|v| v.into_iter()` and/or `std::iter::IntoIterator::into_iter`.
+fn into_iter<T: IntoIterator>(t: T) -> T::IntoIter {
+    t.into_iter()
 }
 
 #[cfg(test)]

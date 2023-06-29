@@ -78,7 +78,6 @@
     rustdoc::missing_crate_level_docs,
     clippy::cargo,
     clippy::module_name_repetitions,
-    clippy::redundant_closure_for_method_calls,
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
     clippy::doc_markdown
