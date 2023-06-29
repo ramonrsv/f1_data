@@ -34,7 +34,7 @@ pub struct MrData {
 }
 
 #[serde_as]
-#[derive(Deserialize, PartialEq, Clone, Copy, Debug)]
+#[derive(Deserialize, PartialEq, Eq, Clone, Copy, Debug)]
 pub struct Pagination {
     #[serde_as(as = "DisplayFromStr")]
     pub limit: u32,
@@ -147,7 +147,7 @@ pub enum Table {
 }
 
 #[serde_as]
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 pub struct Season {
     #[serde_as(as = "DisplayFromStr")]
     pub season: u32,
@@ -155,7 +155,7 @@ pub struct Season {
 }
 
 #[serde_as]
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Driver {
     pub driver_id: DriverID,
@@ -169,7 +169,7 @@ pub struct Driver {
     pub nationality: String,
 }
 
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Constructor {
     pub constructor_id: ConstructorID,
@@ -249,7 +249,7 @@ impl<T> Race<T> {
     }
 }
 
-#[derive(Deserialize, PartialEq, Clone, Copy, Debug)]
+#[derive(Deserialize, PartialEq, Eq, Clone, Copy, Debug)]
 pub struct Schedule {
     #[serde(rename = "FirstPractice")]
     pub first_practice: Option<DateTime>,
@@ -322,7 +322,7 @@ pub enum Payload {
 }
 
 #[serde_as]
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 pub struct QualifyingResult {
     #[serde_as(as = "DisplayFromStr")]
     pub number: u32,
@@ -433,7 +433,7 @@ impl<'de> Deserialize<'de> for Position {
 }
 
 #[serde_as]
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 pub struct Lap {
     #[serde_as(as = "DisplayFromStr")]
     pub number: u32,
@@ -442,7 +442,7 @@ pub struct Lap {
 }
 
 #[serde_as]
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Timing {
     pub driver_id: DriverID,
@@ -452,7 +452,7 @@ pub struct Timing {
 }
 
 #[serde_as]
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PitStop {
     pub driver_id: DriverID,
@@ -466,7 +466,7 @@ pub struct PitStop {
 }
 
 #[serde_as]
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Status {
     #[serde_as(as = "DisplayFromStr")]
@@ -487,7 +487,7 @@ pub struct Location {
     pub country: String,
 }
 
-#[derive(Deserialize, PartialEq, Clone, Copy, Debug)]
+#[derive(Deserialize, PartialEq, Eq, Clone, Copy, Debug)]
 pub struct DateTime {
     pub date: Date,
     pub time: Option<Time>,
@@ -522,7 +522,7 @@ pub struct AverageSpeed {
     pub speed: f32,
 }
 
-#[derive(Deserialize, PartialEq, Clone, Copy, Debug)]
+#[derive(Deserialize, PartialEq, Eq, Clone, Copy, Debug)]
 pub enum SpeedUnits {
     #[serde(rename = "kph")]
     Kph,
@@ -530,7 +530,7 @@ pub enum SpeedUnits {
 
 pub type LapTime = Duration;
 
-#[derive(PartialEq, Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum QualifyingTime {
     Time(LapTime),
     NoTimeSet,
@@ -587,7 +587,7 @@ struct RaceTimeProxy {
     time: String,
 }
 
-#[derive(PartialEq, Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct RaceTime {
     total: Duration,
     delta: Duration,

@@ -81,8 +81,7 @@
     clippy::redundant_closure_for_method_calls,
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
-    clippy::doc_markdown,
-    clippy::derive_partial_eq_without_eq
+    clippy::doc_markdown
 )]
 
 // Silence unused-extern-crates lint for criterion; lint doesn't seem to see the use in /benches
