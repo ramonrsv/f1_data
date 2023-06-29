@@ -91,8 +91,8 @@ impl SeasonPrices {
             .collect::<HashMap<_, _>>()
     }
 
-    pub fn from_str_price_map(drivers: &StrPriceMap<'_>, constructors: &StrPriceMap<'_>) -> SeasonPrices {
-        SeasonPrices {
+    pub fn from_str_price_map(drivers: &StrPriceMap<'_>, constructors: &StrPriceMap<'_>) -> Self {
+        Self {
             drivers: Self::str_price_map_to_id_price_map(drivers),
             constructors: Self::str_price_map_to_id_price_map(constructors),
         }
@@ -125,14 +125,14 @@ impl SeasonPrices {
             .collect::<HashMap<_, _>>()
     }
 
-    pub fn load_from_yaml_str(yaml: &str) -> SeasonPrices {
+    pub fn load_from_yaml_str(yaml: &str) -> Self {
         const DRIVER_KEY: &str = "driver";
         const CONSTRUCTOR_KEY: &str = "constructor";
 
         let docs = YamlLoader::load_from_str(yaml).unwrap();
         assert!(docs.len() == 1);
 
-        SeasonPrices {
+        Self {
             drivers: Self::yaml_price_map_to_id_price_map(&docs[0][DRIVER_KEY]),
             constructors: Self::yaml_price_map_to_id_price_map(&docs[0][CONSTRUCTOR_KEY]),
         }

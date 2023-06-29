@@ -83,7 +83,7 @@ impl Duration {
 
 impl<'de> Deserialize<'de> for Duration {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        Duration::parse(&String::deserialize(deserializer)?).map_err(|err| serde::de::Error::custom(err.to_string()))
+        Self::parse(&String::deserialize(deserializer)?).map_err(|err| serde::de::Error::custom(err.to_string()))
     }
 }
 
@@ -91,7 +91,7 @@ impl FromStr for Duration {
     type Err = ParseError;
 
     fn from_str(d_str: &str) -> Result<Self, Self::Err> {
-        Duration::parse(d_str)
+        Self::parse(d_str)
     }
 }
 
@@ -137,7 +137,7 @@ impl Time {
 
 impl<'de> Deserialize<'de> for Time {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        Time::parse(&String::deserialize(deserializer)?).map_err(|err| serde::de::Error::custom(err.to_string()))
+        Self::parse(&String::deserialize(deserializer)?).map_err(|err| serde::de::Error::custom(err.to_string()))
     }
 }
 
@@ -145,7 +145,7 @@ impl FromStr for Time {
     type Err = ParseError;
 
     fn from_str(t_str: &str) -> Result<Self, Self::Err> {
-        Time::parse(t_str)
+        Self::parse(t_str)
     }
 }
 

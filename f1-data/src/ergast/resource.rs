@@ -209,7 +209,7 @@ impl Resource {
 
         Url::parse(&format!(
             "{}{}.json",
-            Resource::ERGAST_BASE_URL,
+            Self::ERGAST_BASE_URL,
             filters
                 .iter()
                 .filter(|(key, val)| !val.is_empty() || key == &resource_key)

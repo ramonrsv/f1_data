@@ -77,7 +77,6 @@
     missing_docs,
     rustdoc::missing_crate_level_docs,
     clippy::cargo,
-    clippy::use_self,
     clippy::module_name_repetitions,
     clippy::redundant_closure_for_method_calls,
     clippy::missing_errors_doc,

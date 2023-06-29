@@ -44,8 +44,8 @@ pub struct RaceID {
 }
 
 impl RaceID {
-    pub fn from(season: SeasonID, round: RoundID) -> RaceID {
-        RaceID { season, round }
+    pub fn from(season: SeasonID, round: RoundID) -> Self {
+        Self { season, round }
     }
 }
 

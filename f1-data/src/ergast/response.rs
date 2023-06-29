@@ -407,12 +407,12 @@ pub enum Position {
 }
 
 impl Position {
-    pub const R: Position = Position::Retired;
-    pub const D: Position = Position::Disqualified;
-    pub const E: Position = Position::Excluded;
-    pub const W: Position = Position::Withdrawn;
-    pub const F: Position = Position::FailedToQualify;
-    pub const N: Position = Position::NotClassified;
+    pub const R: Self = Self::Retired;
+    pub const D: Self = Self::Disqualified;
+    pub const E: Self = Self::Excluded;
+    pub const W: Self = Self::Withdrawn;
+    pub const F: Self = Self::FailedToQualify;
+    pub const N: Self = Self::NotClassified;
 }
 
 impl<'de> Deserialize<'de> for Position {
@@ -543,7 +543,7 @@ impl QualifyingTime {
 
     pub fn parse(t_str: &str) -> Result<Self, ParseError> {
         if t_str.is_empty() {
-            Ok(QualifyingTime::NoTimeSet)
+            Ok(Self::NoTimeSet)
         } else {
             LapTime::parse(t_str).map(QualifyingTime::Time)
         }
@@ -566,8 +566,8 @@ impl QualifyingTime {
 }
 
 impl From<LapTime> for QualifyingTime {
-    fn from(lap_time: LapTime) -> QualifyingTime {
-        QualifyingTime::Time(lap_time)
+    fn from(lap_time: LapTime) -> Self {
+        Self::Time(lap_time)
     }
 }
 
@@ -594,17 +594,17 @@ pub struct RaceTime {
 }
 
 impl RaceTime {
-    pub fn lead(total: Duration) -> RaceTime {
-        RaceTime {
+    pub fn lead(total: Duration) -> Self {
+        Self {
             total,
             delta: Duration::ZERO,
         }
     }
 
-    pub fn with_delta(total: Duration, delta: Duration) -> RaceTime {
+    pub fn with_delta(total: Duration, delta: Duration) -> Self {
         assert!(delta < total);
 
-        RaceTime { total, delta }
+        Self { total, delta }
     }
 
     pub fn is_lead(&self) -> bool {
@@ -649,13 +649,13 @@ impl TryFrom<RaceTimeProxy> for RaceTime {
     type Error = ParseError;
 
     fn try_from(proxy: RaceTimeProxy) -> Result<Self, Self::Error> {
-        RaceTime::parse_from_proxy(&proxy)
+        Self::parse_from_proxy(&proxy)
     }
 }
 
 impl<'de> Deserialize<'de> for RaceTime {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        RaceTime::parse_from_proxy(&RaceTimeProxy::deserialize(deserializer)?)
+        Self::parse_from_proxy(&RaceTimeProxy::deserialize(deserializer)?)
             .map_err(|err| serde::de::Error::custom(err.to_string()))
     }
 }
