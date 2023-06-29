@@ -28,7 +28,7 @@ use crate::ergast::response::{Pagination, Table};
 /// ```no_run
 /// use f1_data::ergast::{get::get_response_page, resource::{Filters, Page, Resource}};
 ///
-/// let resp = get_response_page(Resource::SeasonList(Filters::none()), Page::with_limit(50)).unwrap();
+/// let resp = get_response_page(&Resource::SeasonList(Filters::none()), Page::with_limit(50)).unwrap();
 ///
 /// let seasons = resp.mr_data.table.as_seasons().unwrap();
 /// assert_eq!(seasons.len(), 50);
@@ -37,7 +37,7 @@ use crate::ergast::response::{Pagination, Table};
 /// assert!(!resp.mr_data.pagination.is_last_page());
 ///
 /// let resp = get_response_page(
-///     Resource::SeasonList(Filters::none()),
+///     &Resource::SeasonList(Filters::none()),
 ///     resp.mr_data.pagination.next_page().unwrap().into(),
 /// )
 /// .unwrap();
@@ -47,7 +47,7 @@ use crate::ergast::response::{Pagination, Table};
 /// assert_eq!(seasons.first().unwrap().season, 2000);
 /// assert!(resp.mr_data.pagination.is_last_page());
 /// ```
-pub fn get_response_page(resource: Resource, page: Page) -> Result<Response> {
+pub fn get_response_page(resource: &Resource, page: Page) -> Result<Response> {
     ureq::request_url("GET", &resource.to_url_with(page))
         .call()?
         .into_json::<Response>()
@@ -69,7 +69,7 @@ pub fn get_response_page(resource: Resource, page: Page) -> Result<Response> {
 /// use f1_data::id::DriverID;
 /// use f1_data::ergast::{get::get_response, resource::{Filters, Resource}};
 ///
-/// let resp = get_response(Resource::DriverInfo(Filters {
+/// let resp = get_response(&Resource::DriverInfo(Filters {
 ///     driver_id: Some(DriverID::from("leclerc")),
 ///     ..Filters::none()
 /// }))
@@ -77,7 +77,7 @@ pub fn get_response_page(resource: Resource, page: Page) -> Result<Response> {
 ///
 /// assert_eq!(resp.mr_data.table.as_drivers().unwrap()[0].given_name, "Charles".to_string());
 /// ```
-pub fn get_response(resource: Resource) -> Result<Response> {
+pub fn get_response(resource: &Resource) -> Result<Response> {
     get_response_page(resource, Page::default()).and_then(verify_is_single_page)
 }
 
@@ -97,14 +97,14 @@ pub fn get_response(resource: Resource) -> Result<Response> {
 /// ```no_run
 /// use f1_data::ergast::{get::get_response_max_limit, resource::{Filters, Resource}};
 ///
-/// let resp = get_response_max_limit(Resource::SeasonList(Filters::none())).unwrap();
+/// let resp = get_response_max_limit(&Resource::SeasonList(Filters::none())).unwrap();
 ///
 /// let seasons = resp.mr_data.table.as_seasons().unwrap();
 /// assert!(seasons.len() >= 74);
 /// assert_eq!(seasons[0].season, 1950);
 /// assert_eq!(seasons[73].season, 2023);
 /// ```
-pub fn get_response_max_limit(resource: Resource) -> Result<Response> {
+pub fn get_response_max_limit(resource: &Resource) -> Result<Response> {
     get_response_page(resource, Page::with_max_limit()).and_then(verify_is_single_page)
 }
 
@@ -122,7 +122,7 @@ pub fn get_response_max_limit(resource: Resource) -> Result<Response> {
 /// assert_eq!(seasons[0].season, 1950);
 /// ```
 pub fn get_seasons(filters: Filters) -> Result<Vec<Season>> {
-    get_response_max_limit(Resource::SeasonList(filters))?
+    get_response_max_limit(&Resource::SeasonList(filters))?
         .mr_data
         .table
         .into_seasons()
@@ -167,7 +167,7 @@ pub fn get_season(season: SeasonID) -> Result<Season> {
 /// );
 /// ```
 pub fn get_drivers(filters: Filters) -> Result<Vec<Driver>> {
-    get_response_max_limit(Resource::DriverInfo(filters))?
+    get_response_max_limit(&Resource::DriverInfo(filters))?
         .mr_data
         .table
         .into_drivers()
@@ -214,7 +214,7 @@ pub fn get_driver(driver_id: DriverID) -> Result<Driver> {
 /// );
 /// ```
 pub fn get_constructors(filters: Filters) -> Result<Vec<Constructor>> {
-    get_response_max_limit(Resource::ConstructorInfo(filters))?
+    get_response_max_limit(&Resource::ConstructorInfo(filters))?
         .mr_data
         .table
         .into_constructors()
@@ -261,7 +261,7 @@ pub fn get_constructor(constructor_id: ConstructorID) -> Result<Constructor> {
 /// );
 /// ```
 pub fn get_circuits(filters: Filters) -> Result<Vec<Circuit>> {
-    get_response_max_limit(Resource::CircuitInfo(filters))?
+    get_response_max_limit(&Resource::CircuitInfo(filters))?
         .mr_data
         .table
         .into_circuits()
@@ -310,7 +310,7 @@ pub fn get_circuit(circuit_id: CircuitID) -> Result<Circuit> {
 /// );
 /// ```
 pub fn get_statuses(filters: Filters) -> Result<Vec<Status>> {
-    get_response_max_limit(Resource::FinishingStatus(filters))?
+    get_response_max_limit(&Resource::FinishingStatus(filters))?
         .mr_data
         .table
         .into_status()
@@ -341,7 +341,7 @@ pub fn get_statuses(filters: Filters) -> Result<Vec<Status>> {
 /// );
 /// ```
 pub fn get_pit_stops(filters: PitStopFilters) -> Result<Vec<PitStop>> {
-    get_response_max_limit(Resource::PitStops(filters))
+    get_response_max_limit(&Resource::PitStops(filters))
         .and_then(verify_has_one_race_and_extract)?
         .payload
         .into_pit_stops()
@@ -393,7 +393,7 @@ impl DriverLap {
 /// use f1_data::id::{DriverID, RaceID};
 /// use f1_data::ergast::{get::get_driver_laps, time::Duration};
 ///
-/// let laps = get_driver_laps(RaceID::from(2023, 4), DriverID::from("leclerc")).unwrap();
+/// let laps = get_driver_laps(RaceID::from(2023, 4), &DriverID::from("leclerc")).unwrap();
 /// assert_eq!(laps.len(), 51);
 /// assert_eq!(laps[0].number, 1);
 /// assert_eq!(laps[0].time, Duration::from_m_s_ms(1, 50, 109));
@@ -401,8 +401,8 @@ impl DriverLap {
 /// assert_eq!(laps[0].position, 1);
 /// assert_eq!(laps[2].position, 2)
 /// ```
-pub fn get_driver_laps(race_id: RaceID, driver_id: DriverID) -> Result<Vec<DriverLap>> {
-    get_response_max_limit(Resource::LapTimes(LapTimeFilters {
+pub fn get_driver_laps(race_id: RaceID, driver_id: &DriverID) -> Result<Vec<DriverLap>> {
+    get_response_max_limit(&Resource::LapTimes(LapTimeFilters {
         season: race_id.season,
         round: race_id.round,
         lap: None,
@@ -413,7 +413,7 @@ pub fn get_driver_laps(race_id: RaceID, driver_id: DriverID) -> Result<Vec<Drive
     .into_laps()
     .map_err(|e| e.into())
     .map(|v| v.into_iter())
-    .and_then(|laps| laps.map(|lap| DriverLap::try_from(lap, &driver_id)).collect())
+    .and_then(|laps| laps.map(|lap| DriverLap::try_from(lap, driver_id)).collect())
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::LapTimes`] from a specified [`RaceID`]
@@ -433,7 +433,7 @@ pub fn get_driver_laps(race_id: RaceID, driver_id: DriverID) -> Result<Vec<Drive
 /// assert_eq!(timings[0].time, Duration::from_m_s_ms(1, 50, 109));
 /// ```
 pub fn get_lap_timings(race_id: RaceID, lap: u32) -> Result<Vec<Timing>> {
-    get_response_max_limit(Resource::LapTimes(LapTimeFilters {
+    get_response_max_limit(&Resource::LapTimes(LapTimeFilters {
         season: race_id.season,
         round: race_id.round,
         lap: Some(lap),
@@ -686,7 +686,7 @@ mod tests {
     // ----------------------
 
     fn verify_single_race_schedule(season: SeasonID, round: RoundID, race_schedule: &Race) {
-        let resp = get_response(Resource::RaceSchedule(Filters {
+        let resp = get_response(&Resource::RaceSchedule(Filters {
             season: Some(season),
             round: Some(round),
             ..Filters::none()
@@ -713,7 +713,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_qualifying_results_2003_4() {
-        let resp = get_response(Resource::QualifyingResults(Filters {
+        let resp = get_response(&Resource::QualifyingResults(Filters {
             season: Some(2003),
             round: Some(4),
             ..Filters::none()
@@ -737,7 +737,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_qualifying_results_2023_4() {
-        let resp = get_response(Resource::QualifyingResults(Filters {
+        let resp = get_response(&Resource::QualifyingResults(Filters {
             season: Some(2023),
             round: Some(4),
             ..Filters::none()
@@ -762,7 +762,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_sprint_results_2023_4() {
-        let resp = get_response(Resource::SprintResults(Filters {
+        let resp = get_response(&Resource::SprintResults(Filters {
             season: Some(2023),
             round: Some(4),
             ..Filters::none()
@@ -784,7 +784,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_sprint_results_no_sprint() {
-        let resp = get_response(Resource::SprintResults(Filters {
+        let resp = get_response(&Resource::SprintResults(Filters {
             season: Some(2023),
             round: Some(1),
             ..Filters::none()
@@ -801,7 +801,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_race_results_2003_4() {
-        let resp = get_response(Resource::RaceResults(Filters {
+        let resp = get_response(&Resource::RaceResults(Filters {
             season: Some(2003),
             round: Some(4),
             ..Filters::none()
@@ -825,7 +825,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_race_results_2023_4() {
-        let resp = get_response(Resource::RaceResults(Filters {
+        let resp = get_response(&Resource::RaceResults(Filters {
             season: Some(2023),
             round: Some(4),
             ..Filters::none()
@@ -877,8 +877,8 @@ mod tests {
     #[test]
     #[ignore]
     fn get_driver_laps() {
-        let leclerc_laps = super::get_driver_laps(RaceID::from(2023, 4), DriverID::from("leclerc")).unwrap();
-        let max_laps = super::get_driver_laps(RaceID::from(2023, 4), DriverID::from("max_verstappen")).unwrap();
+        let leclerc_laps = super::get_driver_laps(RaceID::from(2023, 4), &DriverID::from("leclerc")).unwrap();
+        let max_laps = super::get_driver_laps(RaceID::from(2023, 4), &DriverID::from("max_verstappen")).unwrap();
 
         assert_driver_lap_eq(&leclerc_laps[0], &LAP_2023_4_L1, &TIMING_2023_4_L1_P1);
         assert_driver_lap_eq(&leclerc_laps[1], &LAP_2023_4_L2, &TIMING_2023_4_L2_P1);
@@ -916,8 +916,8 @@ mod tests {
     #[test]
     #[ignore]
     fn get_driver_laps_error_not_found() {
-        assert_not_found(super::get_driver_laps(RaceID::from(1949, 1), DriverID::from("leclerc")));
-        assert_not_found(super::get_driver_laps(RaceID::from(2023, 4), DriverID::from("abate")));
+        assert_not_found(super::get_driver_laps(RaceID::from(1949, 1), &DriverID::from("leclerc")));
+        assert_not_found(super::get_driver_laps(RaceID::from(2023, 4), &DriverID::from("abate")));
     }
 
     #[test]
@@ -930,7 +930,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_page_lap_times_race_2023_4() {
-        let resp = get_response_page(Resource::LapTimes(LapTimeFilters::new(2023, 4)), Page::default()).unwrap();
+        let resp = get_response_page(&Resource::LapTimes(LapTimeFilters::new(2023, 4)), Page::default()).unwrap();
 
         let actual = verify_has_one_race_and_extract(resp).unwrap();
         let expected = &RACE_2023_4_LAPS;
@@ -969,7 +969,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_pit_stops_race_2023_4() {
-        let resp = get_response(Resource::PitStops(PitStopFilters::new(2023, 4))).unwrap();
+        let resp = get_response(&Resource::PitStops(PitStopFilters::new(2023, 4))).unwrap();
         let race = verify_has_one_race_and_extract(resp).unwrap();
 
         assert_eq_race(&race, &RACE_2023_4_PIT_STOPS);
@@ -982,7 +982,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_single_page() {
-        let resp = get_response(Resource::SeasonList(Filters::new().season(1950))).unwrap();
+        let resp = get_response(&Resource::SeasonList(Filters::new().season(1950))).unwrap();
 
         let pagination = resp.mr_data.pagination;
         assert!(pagination.is_single_page());
@@ -999,14 +999,14 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_multi_page_error() {
-        let resp = get_response(Resource::SeasonList(Filters::none()));
+        let resp = get_response(&Resource::SeasonList(Filters::none()));
         assert!(matches!(resp, Err(Error::MultiPage)));
     }
 
     #[test]
     #[ignore]
     fn get_response_max_limit_single_page() {
-        let resp = get_response_max_limit(Resource::SeasonList(Filters::none())).unwrap();
+        let resp = get_response_max_limit(&Resource::SeasonList(Filters::none())).unwrap();
 
         let pagination = resp.mr_data.pagination;
         assert!(pagination.is_single_page());
@@ -1025,7 +1025,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_max_limit_multi_page_error() {
-        let resp = get_response_max_limit(Resource::LapTimes(LapTimeFilters::new(2023, 1)));
+        let resp = get_response_max_limit(&Resource::LapTimes(LapTimeFilters::new(2023, 1)));
         assert!(matches!(resp, Err(Error::MultiPage)));
     }
 
@@ -1035,7 +1035,7 @@ mod tests {
         let req = Resource::SeasonList(Filters::none());
         let page = Page::with_limit(5);
 
-        let mut resp = get_response_page(req.clone(), page.clone()).unwrap();
+        let mut resp = get_response_page(&req, page.clone()).unwrap();
         assert!(!resp.mr_data.pagination.is_last_page());
 
         let mut current_offset: u32 = 0;
@@ -1058,7 +1058,7 @@ mod tests {
                 _ => (),
             }
 
-            resp = get_response_page(req.clone(), pagination.next_page().unwrap().into()).unwrap();
+            resp = get_response_page(&req, pagination.next_page().unwrap().into()).unwrap();
 
             current_offset += page.limit();
         }

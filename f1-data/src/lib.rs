@@ -81,7 +81,6 @@
     clippy::redundant_closure_for_method_calls,
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
-    clippy::needless_pass_by_value,
     clippy::doc_markdown,
     clippy::derive_partial_eq_without_eq
 )]
