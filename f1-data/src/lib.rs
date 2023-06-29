@@ -39,12 +39,10 @@
     unused_tuple_struct_fields,
     variant_size_differences,
 
-    // clippy groups
+    // clippy
     clippy::all,
     clippy::cargo,
     clippy::suspicious,
-    clippy::pedantic,
-    clippy::nursery,
 
     // rustdoc
     rustdoc::all,
@@ -52,7 +50,11 @@
 //
 // Clippy lints from the `pedantic`, `nursery`, and `restriction` groups are more finicky and
 // require a combination of opt-in and opt-out strategies to minimize false positives and verbosity.
-#![deny(
+// For easy of new development these are set to `warn`, but note that CI will treat them as `deny`.
+#![warn(
+    clippy::pedantic,
+    clippy::nursery,
+
     // restriction, opt-in
     clippy::dbg_macro,
     clippy::print_stdout,
