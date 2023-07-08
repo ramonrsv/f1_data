@@ -1,10 +1,9 @@
-use std::str::FromStr;
+use std::{convert::Infallible, str::FromStr};
 
 use enum_as_inner::EnumAsInner;
 use serde::{Deserialize, Deserializer};
 use serde_with::{serde_as, DisplayFromStr};
 use url::Url;
-use void::Void;
 
 use crate::{
     ergast::time::{Date, Duration, ParseError, Time},
@@ -240,7 +239,7 @@ impl<T> Race<T> {
     where
         F: FnOnce(T) -> U,
     {
-        self.try_map(|payload| Ok::<_, Void>(op(payload))).unwrap()
+        self.try_map(|payload| Ok::<_, Infallible>(op(payload))).unwrap()
     }
 
     /// Constructs a [`Race<T>`] from a [`Race<U>`] and a payload argument of type `T`.
@@ -979,7 +978,7 @@ mod tests {
     fn race_try_map() {
         let from = Race::from(RACE_2023_4.clone(), true);
 
-        let into = from.clone().try_map::<_, _, Void>(|_| Ok(String::from("true")));
+        let into = from.clone().try_map::<_, _, Infallible>(|_| Ok(String::from("true")));
         assert!(eq_race_info(&into.as_ref().unwrap(), &from));
         assert_eq!(into.unwrap().payload, String::from("true"));
 
@@ -994,7 +993,7 @@ mod tests {
 
         impl std::error::Error for DummyError {}
 
-        let into = from.clone().try_map::<Void, _, _>(|_| Err(DummyError));
+        let into = from.clone().try_map::<Infallible, _, _>(|_| Err(DummyError));
         assert!(into.is_err());
     }
 
