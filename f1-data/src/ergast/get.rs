@@ -141,9 +141,7 @@ pub fn get_seasons(filters: Filters) -> Result<Vec<Season>> {
 /// assert!(matches!(get_season(1940), Err(Error::NotFound)));
 /// ```
 pub fn get_season(season: SeasonID) -> Result<Season> {
-    get_seasons(Filters::new().season(season))
-        .map(into_iter)
-        .and_then(verify_has_one_element_and_extract)
+    get_seasons(Filters::new().season(season)).and_then(verify_has_one_element_and_extract)
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::DriverInfo`], with the argument
@@ -187,9 +185,7 @@ pub fn get_drivers(filters: Filters) -> Result<Vec<Driver>> {
 /// assert!(matches!(get_driver(DriverID::from("unknown")), Err(Error::NotFound)));
 /// ```
 pub fn get_driver(driver_id: DriverID) -> Result<Driver> {
-    get_drivers(Filters::new().driver_id(driver_id))
-        .map(into_iter)
-        .and_then(verify_has_one_element_and_extract)
+    get_drivers(Filters::new().driver_id(driver_id)).and_then(verify_has_one_element_and_extract)
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::ConstructorInfo`], with the argument
@@ -235,9 +231,7 @@ pub fn get_constructors(filters: Filters) -> Result<Vec<Constructor>> {
 /// assert!(matches!(get_constructor(ConstructorID::from("unknown")), Err(Error::NotFound)));
 /// ```
 pub fn get_constructor(constructor_id: ConstructorID) -> Result<Constructor> {
-    get_constructors(Filters::new().constructor_id(constructor_id))
-        .map(into_iter)
-        .and_then(verify_has_one_element_and_extract)
+    get_constructors(Filters::new().constructor_id(constructor_id)).and_then(verify_has_one_element_and_extract)
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::CircuitInfo`], with the argument
@@ -284,9 +278,7 @@ pub fn get_circuits(filters: Filters) -> Result<Vec<Circuit>> {
 /// assert!(matches!(get_circuit(CircuitID::from("unknown")), Err(Error::NotFound)));
 /// ```
 pub fn get_circuit(circuit_id: CircuitID) -> Result<Circuit> {
-    get_circuits(Filters::new().circuit_id(circuit_id))
-        .map(into_iter)
-        .and_then(verify_has_one_element_and_extract)
+    get_circuits(Filters::new().circuit_id(circuit_id)).and_then(verify_has_one_element_and_extract)
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::FinishingStatus`], with the argument
@@ -365,7 +357,7 @@ impl DriverLap {
     /// [`Timing`] and that its `driver_id` field matches the passed [`DriverID`]. It returns
     /// [`Error::UnexpectedData`] if the data's `driver_id` does not match the argument's.
     pub fn try_from(lap: Lap, driver_id: &DriverID) -> Result<Self> {
-        let timing = verify_has_one_element_and_extract(lap.timings.into_iter())?;
+        let timing = verify_has_one_element_and_extract(lap.timings)?;
 
         if timing.driver_id != *driver_id {
             return Err(Error::UnexpectedData(format!(
@@ -443,7 +435,6 @@ pub fn get_lap_timings(race_id: RaceID, lap: u32) -> Result<Vec<Timing>> {
     .payload
     .into_laps()
     .map_err(into)
-    .map(into_iter)
     .and_then(verify_has_one_element_and_extract)
     .map(|lap| lap.timings)
 }
@@ -458,20 +449,14 @@ fn verify_is_single_page(response: Response) -> Result<Response> {
     }
 }
 
-/// Extract single element from [`Iterator`] into [`Result<T::Item>`], enforcing that there is only
-/// one element in the [`Iterator`], returning [`Error::NotFound`] if the iterator contained no
-/// elements, or [`Error::TooMany`] if it contained more than one.
-fn verify_has_one_element_and_extract<T: Iterator>(mut sequence: T) -> Result<T::Item> {
-    // Using .map_or_else is less readable than this
-    #![allow(clippy::option_if_let_else)]
-    if let Some(val) = sequence.next() {
-        if sequence.next().is_none() {
-            Ok(val)
-        } else {
-            Err(Error::TooMany)
-        }
-    } else {
-        Err(Error::NotFound)
+/// Extract a single element `T` from [`Vec<T>`] into [`Result<T>`], enforcing that there is only
+/// one element in the vector, returning [`Error::NotFound`] if it contained no elements, or
+/// [`Error::TooMany`] if it contained more than one.
+fn verify_has_one_element_and_extract<T>(mut sequence: Vec<T>) -> Result<T> {
+    match sequence.len() {
+        0 => Err(Error::NotFound),
+        1 => Ok(sequence.remove(0)),
+        _ => Err(Error::TooMany),
     }
 }
 
@@ -484,7 +469,6 @@ fn verify_has_one_race_and_extract(response: Response) -> Result<Race> {
         .table
         .into_races()
         .map_err(into)
-        .map(into_iter)
         .and_then(verify_has_one_element_and_extract)
 }
 
