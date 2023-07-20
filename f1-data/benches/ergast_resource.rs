@@ -16,6 +16,7 @@ static FILTERS_MANY: Lazy<Filters> = Lazy::new(|| Filters {
     circuit_id: Some("baku".into()),
     qualifying_pos: Some(6),
     grid_pos: Some(6),
+    sprint_pos: Some(1),
     finish_pos: Some(4),
     fastest_lap_rank: Some(3),
     finishing_status: Some(1),

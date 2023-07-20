@@ -76,7 +76,9 @@ pub enum Resource {
     /// Directly maps to <http://ergast.com/mrd/methods/qualifying/>
     QualifyingResults(Filters),
 
-    /// Get a list of sprint event results.
+    /// Get a list of sprint event results. Various of the returned value can be used to filter
+    /// requests for other resources, via fields of [`Filters`]. The finishing position, returned in
+    /// [`SprintResult::position`], can be used in [`Filters::sprint_pos`].
     ///
     /// **Note:** Sprint results are only available for races where there is a `Sprint` element in
     /// the schedule.
@@ -88,6 +90,10 @@ pub enum Resource {
     ///
     /// **Note:** A grid position of `0`, or [`Filters::GRID_PIT_LANE`], indicates that a driver
     /// started from the pit lane.
+    ///
+    /// **Note:** The [`Filters::sprint_pos`] field, which can be set to filter results based on
+    /// [`SprintResult::position`], is only valid for results where the driver finished the sprint,
+    /// i.e. where [`SprintResult::position_text`] is a numeric value.
     ///
     /// Directly maps to <https://ergast.com/mrd/methods/sprint/>
     SprintResults(Filters),
@@ -113,6 +119,10 @@ pub enum Resource {
     /// implemented in the 2014 season onwards, and in cases where the reigning champion chose to
     /// use `1` rather than their permanent driver number. Drivers' permanent numbers, if they
     /// exist, are returned in [`Driver::permanent_number`].
+    ///
+    /// **Note:** The [`Filters::finish_pos`] field, which can be set to filter results based on
+    /// [`RaceResult::position`], is only valid for results where the driver finished the race,
+    /// i.e. where [`RaceResult::position_text`] is a numeric value.
     ///
     /// Directly maps to <http://ergast.com/mrd/methods/results/>
     RaceResults(Filters),
@@ -266,6 +276,7 @@ trait FiltersFormatter {
 ///     circuit_id: Some(CircuitID::from("baku")),
 ///     qualifying_pos: Some(6),
 ///     grid_pos: Some(6),
+///     sprint_pos: None,
 ///     finish_pos: Some(4),
 ///     fastest_lap_rank: Some(3),
 ///     finishing_status: Some(StatusID::from(1u32)),
@@ -338,6 +349,11 @@ pub struct Filters {
     /// from the pit lane. See [`Resource::RaceResults`] for more information.
     pub grid_pos: Option<u32>,
 
+    /// Restrict responses to those in which a sprint result with a specific finishing position
+    /// features, e.g. drivers that have won a sprint, etc. This is a numeric value, even if a
+    /// driver did not finish a sprint. See [`Resource::SprintResults`] for more information.
+    pub sprint_pos: Option<u32>,
+
     /// Restrict responses to those in which a race result with a specific finishing position
     /// features, e.g. drivers or constructors that have won a race, etc. This is a numeric value,
     /// even if a driver did not finish a race. See [`Resource::RaceResults`] for more information.
@@ -377,6 +393,7 @@ impl Filters {
             circuit_id: None,
             qualifying_pos: None,
             grid_pos: None,
+            sprint_pos: None,
             finish_pos: None,
             fastest_lap_rank: None,
             finishing_status: None,
@@ -435,6 +452,14 @@ impl Filters {
     pub fn grid_pos(self, grid_pos: u32) -> Self {
         Self {
             grid_pos: Some(grid_pos),
+            ..self
+        }
+    }
+
+    /// Field-update method for the `sprint_pos` field.
+    pub fn sprint_pos(self, sprint_pos: u32) -> Self {
+        Self {
+            sprint_pos: Some(sprint_pos),
             ..self
         }
     }
@@ -673,6 +698,7 @@ impl FiltersFormatter for Filters {
             ("/circuits", fmt_from_opt(&self.circuit_id)),
             ("/qualifying", fmt_from_opt(&self.qualifying_pos)),
             ("/grid", fmt_from_opt(&self.grid_pos)),
+            ("/sprint", fmt_from_opt(&self.sprint_pos)),
             ("/results", fmt_from_opt(&self.finish_pos)),
             ("/fastest", fmt_from_opt(&self.fastest_lap_rank)),
             ("/status", fmt_from_opt(&self.finishing_status)),
@@ -806,6 +832,15 @@ mod tests {
             })
             .to_url(),
             url("/qualifying/1.json")
+        );
+
+        assert_eq!(
+            Resource::SprintResults(Filters {
+                sprint_pos: Some(1),
+                ..Filters::none()
+            })
+            .to_url(),
+            url("/sprint/1.json")
         );
 
         assert_eq!(
@@ -969,6 +1004,7 @@ mod tests {
                 && filters.circuit_id.is_none()
                 && filters.qualifying_pos.is_none()
                 && filters.grid_pos.is_none()
+                && filters.sprint_pos.is_none()
                 && filters.finish_pos.is_none()
                 && filters.fastest_lap_rank.is_none()
                 && filters.finishing_status.is_none()
@@ -988,6 +1024,7 @@ mod tests {
                 && filters.constructor_id.is_none()
                 && filters.qualifying_pos.is_none()
                 && filters.grid_pos.is_none()
+                && filters.sprint_pos.is_none()
                 && filters.finish_pos.is_none()
                 && filters.fastest_lap_rank.is_none()
                 && filters.finishing_status.is_none()
@@ -1003,6 +1040,7 @@ mod tests {
                 && filters.constructor_id.is_none()
                 && filters.qualifying_pos.is_none()
                 && filters.grid_pos.is_none()
+                && filters.sprint_pos.is_none()
                 && filters.finish_pos.is_none()
                 && filters.fastest_lap_rank.is_none()
                 && filters.finishing_status.is_none()
@@ -1017,6 +1055,7 @@ mod tests {
                 circuit_id: Some("baku".into()),
                 qualifying_pos: Some(6),
                 grid_pos: Some(6),
+                sprint_pos: Some(1),
                 finish_pos: Some(4),
                 fastest_lap_rank: Some(3),
                 finishing_status: Some(1),
@@ -1029,6 +1068,7 @@ mod tests {
                 .circuit_id("baku".into())
                 .qualifying_pos(6)
                 .grid_pos(6)
+                .sprint_pos(1)
                 .finish_pos(4)
                 .fastest_lap_rank(3)
                 .finishing_status(1)
