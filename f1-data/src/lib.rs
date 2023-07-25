@@ -83,9 +83,14 @@
     clippy::doc_markdown
 )]
 
-// Silence unused-extern-crates lint for criterion; lint doesn't seem to see the use in /benches
+// Silence unused_crate_dependencies lint for [dev-dependencies] used in /benches and /examples.
+// While clippy detects uses in unit tests, it doesn't seem to capture these particular uses.
 #[cfg(test)]
-use criterion as _;
+mod _lint {
+    use criterion as _;
+    use env_logger as _;
+    use log as _;
+}
 
 pub mod ergast;
 pub mod fantasy;
