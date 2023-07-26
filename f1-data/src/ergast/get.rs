@@ -808,6 +808,30 @@ mod tests {
 
     #[test]
     #[ignore]
+    fn get_race_results_2021_12() {
+        let resp = get_response(&Resource::RaceResults(Filters {
+            season: Some(2021),
+            round: Some(12),
+            ..Filters::none()
+        }))
+        .unwrap();
+
+        let actual = verify_has_one_race_and_extract(resp).unwrap();
+        let expected = &RACE_2021_12_RACE_RESULTS;
+
+        assert!(eq_race_info(&actual, expected));
+
+        let actual_results = actual.payload.as_race_results().unwrap();
+        let expected_results = expected.payload.as_race_results().unwrap();
+
+        assert_eq!(actual_results.len(), 20);
+
+        assert_eq!(actual_results[0..3], expected_results[0..3]);
+        assert_eq!(actual_results[9], expected_results[3]);
+    }
+
+    #[test]
+    #[ignore]
     fn get_race_results_2023_4() {
         let resp = get_response(&Resource::RaceResults(Filters {
             season: Some(2023),

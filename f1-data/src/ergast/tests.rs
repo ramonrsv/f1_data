@@ -150,6 +150,17 @@ pub const DRIVER_ALONSO_STR: &str = r#"{
     "nationality": "Spanish"
   }"#;
 
+pub const DRIVER_HAMILTON_STR: &str = r#"{
+    "driverId": "hamilton",
+    "permanentNumber": "44",
+    "code": "HAM",
+    "url": "http://en.wikipedia.org/wiki/Lewis_Hamilton",
+    "givenName": "Lewis",
+    "familyName": "Hamilton",
+    "dateOfBirth": "1985-01-07",
+    "nationality": "British"
+  }"#;
+
 pub const DRIVER_PEREZ_STR: &str = r#"{
     "driverId": "perez",
     "permanentNumber": "11",
@@ -159,6 +170,17 @@ pub const DRIVER_PEREZ_STR: &str = r#"{
     "familyName": "Pérez",
     "dateOfBirth": "1990-01-26",
     "nationality": "Mexican"
+  }"#;
+
+pub const DRIVER_SAINZ_STR: &str = r#"{
+    "driverId": "sainz",
+    "permanentNumber": "55",
+    "code": "SAI",
+    "url": "http://en.wikipedia.org/wiki/Carlos_Sainz_Jr.",
+    "givenName": "Carlos",
+    "familyName": "Sainz",
+    "dateOfBirth": "1994-09-01",
+    "nationality": "Spanish"
   }"#;
 
 pub const DRIVER_DE_VRIES_STR: &str = r#"{
@@ -192,6 +214,17 @@ pub const DRIVER_LECLERC_STR: &str = r#"{
     "familyName": "Leclerc",
     "dateOfBirth": "1997-10-16",
     "nationality": "Monegasque"
+  }"#;
+
+pub const DRIVER_RUSSELL_STR: &str = r#"{
+    "driverId": "russell",
+    "permanentNumber": "63",
+    "code": "RUS",
+    "url": "http://en.wikipedia.org/wiki/George_Russell_(racing_driver)",
+    "givenName": "George",
+    "familyName": "Russell",
+    "dateOfBirth": "1998-02-15",
+    "nationality": "British"
   }"#;
 
 pub static DRIVER_ABATE: Lazy<Driver> = Lazy::new(|| Driver {
@@ -271,6 +304,17 @@ pub static DRIVER_ALONSO: Lazy<Driver> = Lazy::new(|| Driver {
     nationality: "Spanish".to_string(),
 });
 
+pub static DRIVER_HAMILTON: Lazy<Driver> = Lazy::new(|| Driver {
+    driver_id: "hamilton".into(),
+    permanent_number: Some(44),
+    code: Some("HAM".to_string()),
+    url: Url::parse("http://en.wikipedia.org/wiki/Lewis_Hamilton").unwrap(),
+    given_name: "Lewis".to_string(),
+    family_name: "Hamilton".to_string(),
+    date_of_birth: date!(1985 - 01 - 07),
+    nationality: "British".to_string(),
+});
+
 pub static DRIVER_PEREZ: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "perez".into(),
     permanent_number: Some(11),
@@ -280,6 +324,17 @@ pub static DRIVER_PEREZ: Lazy<Driver> = Lazy::new(|| Driver {
     family_name: "Pérez".to_string(),
     date_of_birth: date!(1990 - 01 - 26),
     nationality: "Mexican".to_string(),
+});
+
+pub static DRIVER_SAINZ: Lazy<Driver> = Lazy::new(|| Driver {
+    driver_id: "sainz".into(),
+    permanent_number: Some(55),
+    code: Some("SAI".to_string()),
+    url: Url::parse("http://en.wikipedia.org/wiki/Carlos_Sainz_Jr.").unwrap(),
+    given_name: "Carlos".to_string(),
+    family_name: "Sainz".to_string(),
+    date_of_birth: date!(1994 - 09 - 01),
+    nationality: "Spanish".to_string(),
 });
 
 pub static DRIVER_DE_VRIES: Lazy<Driver> = Lazy::new(|| Driver {
@@ -315,6 +370,17 @@ pub static DRIVER_LECLERC: Lazy<Driver> = Lazy::new(|| Driver {
     nationality: "Monegasque".to_string(),
 });
 
+pub static DRIVER_RUSSELL: Lazy<Driver> = Lazy::new(|| Driver {
+    driver_id: "russell".into(),
+    permanent_number: Some(63),
+    code: Some("RUS".to_string()),
+    url: Url::parse("http://en.wikipedia.org/wiki/George_Russell_(racing_driver)").unwrap(),
+    given_name: "George".to_string(),
+    family_name: "Russell".to_string(),
+    date_of_birth: date!(1998 - 02 - 15),
+    nationality: "British".to_string(),
+});
+
 pub const DRIVER_TABLE_STR: &str = formatcp!(
     r#"{{
     "DriverTable": {{
@@ -326,10 +392,13 @@ pub const DRIVER_TABLE_STR: &str = formatcp!(
             {DRIVER_WILSON_STR},
             {DRIVER_KIMI_STR},
             {DRIVER_ALONSO_STR},
+            {DRIVER_HAMILTON_STR},
             {DRIVER_PEREZ_STR},
+            {DRIVER_SAINZ_STR},
             {DRIVER_DE_VRIES_STR},
             {DRIVER_MAX_STR},
-            {DRIVER_LECLERC_STR}
+            {DRIVER_LECLERC_STR},
+            {DRIVER_RUSSELL_STR}
         ]
     }}}}"#
 );
@@ -343,10 +412,13 @@ pub static DRIVER_TABLE: Lazy<Table> = Lazy::new(|| Table::Drivers {
         DRIVER_WILSON.clone(),
         DRIVER_KIMI.clone(),
         DRIVER_ALONSO.clone(),
+        DRIVER_HAMILTON.clone(),
         DRIVER_PEREZ.clone(),
+        DRIVER_SAINZ.clone(),
         DRIVER_DE_VRIES.clone(),
         DRIVER_MAX.clone(),
         DRIVER_LECLERC.clone(),
+        DRIVER_RUSSELL.clone(),
     ],
 });
 
@@ -395,6 +467,13 @@ pub const CONSTRUCTOR_RED_BULL_STR: &str = r#"{
     "nationality": "Austrian"
   }"#;
 
+pub const CONSTRUCTOR_MERCEDES_STR: &str = r#"{
+    "constructorId": "mercedes",
+    "url": "http://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One",
+    "name": "Mercedes",
+    "nationality": "German"
+  }"#;
+
 pub static CONSTRUCTOR_MCLAREN: Lazy<Constructor> = Lazy::new(|| Constructor {
     constructor_id: "mclaren".into(),
     url: Url::parse("http://en.wikipedia.org/wiki/McLaren").unwrap(),
@@ -437,6 +516,13 @@ pub static CONSTRUCTOR_RED_BULL: Lazy<Constructor> = Lazy::new(|| Constructor {
     nationality: "Austrian".to_string(),
 });
 
+pub static CONSTRUCTOR_MERCEDES: Lazy<Constructor> = Lazy::new(|| Constructor {
+    constructor_id: "mercedes".into(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One").unwrap(),
+    name: "Mercedes".to_string(),
+    nationality: "German".to_string(),
+});
+
 pub const CONSTRUCTOR_TABLE_STR: &str = formatcp!(
     r#"{{
     "ConstructorTable": {{
@@ -446,7 +532,8 @@ pub const CONSTRUCTOR_TABLE_STR: &str = formatcp!(
             {CONSTRUCTOR_WILLIAMS_STR},
             {CONSTRUCTOR_MINARDI_STR},
             {CONSTRUCTOR_ALPHA_TAURI_STR},
-            {CONSTRUCTOR_RED_BULL_STR}
+            {CONSTRUCTOR_RED_BULL_STR},
+            {CONSTRUCTOR_MERCEDES_STR}
         ]
     }}}}"#
 );
@@ -459,6 +546,7 @@ pub static CONSTRUCTOR_TABLE: Lazy<Table> = Lazy::new(|| Table::Constructors {
         CONSTRUCTOR_MINARDI.clone(),
         CONSTRUCTOR_ALPHA_TAURI.clone(),
         CONSTRUCTOR_RED_BULL.clone(),
+        CONSTRUCTOR_MERCEDES.clone(),
     ],
 });
 
@@ -1136,6 +1224,26 @@ pub const RACE_TIME_2003_4_P3_STR: &str = r#"{
     "time": "+2.291"
   }"#;
 
+pub const RACE_TIME_2021_12_P1_STR: &str = r#"{
+    "millis": "207071",
+    "time": "3:27.071"
+  }"#;
+
+pub const RACE_TIME_2021_12_P2_STR: &str = r#"{
+    "millis": "209066",
+    "time": "+1.995"
+  }"#;
+
+pub const RACE_TIME_2021_12_P3_STR: &str = r#"{
+    "millis": "209672",
+    "time": "+2.601"
+  }"#;
+
+pub const RACE_TIME_2021_12_P10_STR: &str = r#"{
+    "millis": "223237",
+    "time": "+16.166"
+  }"#;
+
 pub const RACE_TIME_2023_4_P1_STR: &str = r#"{
     "millis": "5562436",
     "time": "1:32:42.436"
@@ -1164,6 +1272,17 @@ pub const RACE_TIME_2003_4_P2: Lazy<RaceTime> =
 pub const RACE_TIME_2003_4_P3: Lazy<RaceTime> =
     Lazy::new(|| RaceTime::with_delta(Duration::milliseconds(5294349), Duration::from_m_s_ms(0, 2, 291)));
 
+pub const RACE_TIME_2021_12_P1: Lazy<RaceTime> = Lazy::new(|| RaceTime::lead(Duration::milliseconds(207071)));
+
+pub const RACE_TIME_2021_12_P2: Lazy<RaceTime> =
+    Lazy::new(|| RaceTime::with_delta(Duration::milliseconds(209066), Duration::from_m_s_ms(0, 1, 995)));
+
+pub const RACE_TIME_2021_12_P3: Lazy<RaceTime> =
+    Lazy::new(|| RaceTime::with_delta(Duration::milliseconds(209672), Duration::from_m_s_ms(0, 2, 601)));
+
+pub const RACE_TIME_2021_12_P10: Lazy<RaceTime> =
+    Lazy::new(|| RaceTime::with_delta(Duration::milliseconds(223237), Duration::from_m_s_ms(0, 16, 166)));
+
 pub const RACE_TIME_2023_4_P1: Lazy<RaceTime> = Lazy::new(|| RaceTime::lead(Duration::milliseconds(5562436)));
 
 pub const RACE_TIME_2023_4_P2: Lazy<RaceTime> =
@@ -1175,9 +1294,6 @@ pub const RACE_TIME_2023_4_P3: Lazy<RaceTime> =
 pub static RACE_TIMES_1950_4_STR: Lazy<Vec<&str>> =
     Lazy::new(|| vec![RACE_TIME_1950_4_P1_STR, RACE_TIME_1950_4_P2_STR]);
 
-pub static RACE_TIMES_1950_4: Lazy<Vec<RaceTime>> =
-    Lazy::new(|| vec![RACE_TIME_1950_4_P1.clone(), RACE_TIME_1950_4_P2.clone()]);
-
 pub static RACE_TIMES_2003_4_STR: Lazy<Vec<&str>> = Lazy::new(|| {
     vec![
         RACE_TIME_2003_4_P1_STR,
@@ -1185,6 +1301,26 @@ pub static RACE_TIMES_2003_4_STR: Lazy<Vec<&str>> = Lazy::new(|| {
         RACE_TIME_2003_4_P3_STR,
     ]
 });
+
+pub static RACE_TIMES_2021_12_STR: Lazy<Vec<&str>> = Lazy::new(|| {
+    vec![
+        RACE_TIME_2021_12_P1_STR,
+        RACE_TIME_2021_12_P2_STR,
+        RACE_TIME_2021_12_P3_STR,
+        RACE_TIME_2021_12_P10_STR,
+    ]
+});
+
+pub static RACE_TIMES_2023_4_STR: Lazy<Vec<&str>> = Lazy::new(|| {
+    vec![
+        RACE_TIME_2023_4_P1_STR,
+        RACE_TIME_2023_4_P2_STR,
+        RACE_TIME_2023_4_P3_STR,
+    ]
+});
+
+pub static RACE_TIMES_1950_4: Lazy<Vec<RaceTime>> =
+    Lazy::new(|| vec![RACE_TIME_1950_4_P1.clone(), RACE_TIME_1950_4_P2.clone()]);
 
 pub static RACE_TIMES_2003_4: Lazy<Vec<RaceTime>> = Lazy::new(|| {
     vec![
@@ -1194,11 +1330,12 @@ pub static RACE_TIMES_2003_4: Lazy<Vec<RaceTime>> = Lazy::new(|| {
     ]
 });
 
-pub static RACE_TIMES_2023_4_STR: Lazy<Vec<&str>> = Lazy::new(|| {
+pub static RACE_TIMES_2021_12: Lazy<Vec<RaceTime>> = Lazy::new(|| {
     vec![
-        RACE_TIME_2023_4_P1_STR,
-        RACE_TIME_2023_4_P2_STR,
-        RACE_TIME_2023_4_P3_STR,
+        RACE_TIME_2021_12_P1.clone(),
+        RACE_TIME_2021_12_P2.clone(),
+        RACE_TIME_2021_12_P3.clone(),
+        RACE_TIME_2021_12_P10.clone(),
     ]
 });
 
@@ -1241,7 +1378,7 @@ pub const SPRINT_RESULT_2023_4_P1: Lazy<SprintResult> = Lazy::new(|| SprintResul
     number: 11,
     position: 1,
     position_text: Position::Finished(1),
-    points: 8,
+    points: 8.0,
     driver: DRIVER_PEREZ.clone(),
     constructor: CONSTRUCTOR_RED_BULL.clone(),
     grid: 2,
@@ -1314,6 +1451,69 @@ pub const RACE_RESULT_2003_4_P19_STR: &str = formatcp!(
     "grid": "18",
     "laps": "23",
     "status": "Fuel rig"
+  }}"#
+);
+
+// Fractional points
+pub const RACE_RESULT_2021_12_P1_STR: &str = formatcp!(
+    r#"{{
+    "number": "33",
+    "position": "1",
+    "positionText": "1",
+    "points": "12.5",
+    "Driver": {DRIVER_MAX_STR},
+    "Constructor": {CONSTRUCTOR_RED_BULL_STR},
+    "grid": "1",
+    "laps": "1",
+    "status": "Finished",
+    "Time": {RACE_TIME_2021_12_P1_STR},
+  }}"#
+);
+
+pub const RACE_RESULT_2021_12_P2_STR: &str = formatcp!(
+    r#"{{
+    "number": "63",
+    "position": "2",
+    "positionText": "2",
+    "points": "9",
+    "Driver": {DRIVER_RUSSELL_STR},
+    "Constructor": {CONSTRUCTOR_WILLIAMS_STR},
+    "grid": "2",
+    "laps": "1",
+    "status": "Finished",
+    "Time": {RACE_TIME_2021_12_P2_STR},
+  }}"#
+);
+
+// Fractional points
+pub const RACE_RESULT_2021_12_P3_STR: &str = formatcp!(
+    r#"{{
+    "number": "44",
+    "position": "3",
+    "positionText": "3",
+    "points": "7.5",
+    "Driver": {DRIVER_HAMILTON_STR},
+    "Constructor": {CONSTRUCTOR_MERCEDES_STR},
+    "grid": "3",
+    "laps": "1",
+    "status": "Finished",
+    "Time": {RACE_TIME_2021_12_P3_STR},
+  }}"#
+);
+
+// Fractional points
+pub const RACE_RESULT_2021_12_P10_STR: &str = formatcp!(
+    r#"{{
+    "number": "55",
+    "position": "10",
+    "positionText": "10",
+    "points": "0.5",
+    "Driver": {DRIVER_SAINZ_STR},
+    "Constructor": {CONSTRUCTOR_FERRARI_STR},
+    "grid": "11",
+    "laps": "1",
+    "status": "Finished",
+    "Time": {RACE_TIME_2021_12_P10_STR},
   }}"#
 );
 
@@ -1398,7 +1598,7 @@ pub const RACE_RESULT_2003_4_P1: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     number: 1,
     position: 1,
     position_text: Position::Finished(1),
-    points: 10,
+    points: 10.0,
     driver: DRIVER_MICHAEL.clone(),
     constructor: CONSTRUCTOR_FERRARI.clone(),
     grid: 1,
@@ -1412,7 +1612,7 @@ pub const RACE_RESULT_2003_4_P2: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     number: 6,
     position: 2,
     position_text: Position::Finished(2),
-    points: 8,
+    points: 8.0,
     driver: DRIVER_KIMI.clone(),
     constructor: CONSTRUCTOR_MCLAREN.clone(),
     grid: 6,
@@ -1426,7 +1626,7 @@ pub const RACE_RESULT_2003_4_P19: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     number: 18,
     position: 19,
     position_text: Position::R,
-    points: 0,
+    points: 0.0,
     driver: DRIVER_WILSON.clone(),
     constructor: CONSTRUCTOR_MINARDI.clone(),
     grid: 18,
@@ -1436,11 +1636,67 @@ pub const RACE_RESULT_2003_4_P19: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     fastest_lap: None,
 });
 
+pub const RACE_RESULT_2021_12_P1: Lazy<RaceResult> = Lazy::new(|| RaceResult {
+    number: 33,
+    position: 1,
+    position_text: Position::Finished(1),
+    points: 12.5,
+    driver: DRIVER_MAX.clone(),
+    constructor: CONSTRUCTOR_RED_BULL.clone(),
+    grid: 1,
+    laps: 1,
+    status: "Finished".to_string(),
+    time: Some(RACE_TIME_2021_12_P1.clone()),
+    fastest_lap: None,
+});
+
+pub const RACE_RESULT_2021_12_P2: Lazy<RaceResult> = Lazy::new(|| RaceResult {
+    number: 63,
+    position: 2,
+    position_text: Position::Finished(2),
+    points: 9.0,
+    driver: DRIVER_RUSSELL.clone(),
+    constructor: CONSTRUCTOR_WILLIAMS.clone(),
+    grid: 2,
+    laps: 1,
+    status: "Finished".to_string(),
+    time: Some(RACE_TIME_2021_12_P2.clone()),
+    fastest_lap: None,
+});
+
+pub const RACE_RESULT_2021_12_P3: Lazy<RaceResult> = Lazy::new(|| RaceResult {
+    number: 44,
+    position: 3,
+    position_text: Position::Finished(3),
+    points: 7.5,
+    driver: DRIVER_HAMILTON.clone(),
+    constructor: CONSTRUCTOR_MERCEDES.clone(),
+    grid: 3,
+    laps: 1,
+    status: "Finished".to_string(),
+    time: Some(RACE_TIME_2021_12_P3.clone()),
+    fastest_lap: None,
+});
+
+pub const RACE_RESULT_2021_12_P10: Lazy<RaceResult> = Lazy::new(|| RaceResult {
+    number: 55,
+    position: 10,
+    position_text: Position::Finished(10),
+    points: 0.5,
+    driver: DRIVER_SAINZ.clone(),
+    constructor: CONSTRUCTOR_FERRARI.clone(),
+    grid: 11,
+    laps: 1,
+    status: "Finished".to_string(),
+    time: Some(RACE_TIME_2021_12_P10.clone()),
+    fastest_lap: None,
+});
+
 pub const RACE_RESULT_2023_4_P1: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     number: 11,
     position: 1,
     position_text: Position::Finished(1),
-    points: 25,
+    points: 25.0,
     driver: DRIVER_PEREZ.clone(),
     constructor: CONSTRUCTOR_RED_BULL.clone(),
     grid: 3,
@@ -1462,7 +1718,7 @@ pub const RACE_RESULT_2023_4_P2: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     number: 1,
     position: 2,
     position_text: Position::Finished(2),
-    points: 18,
+    points: 18.0,
     driver: DRIVER_MAX.clone(),
     constructor: CONSTRUCTOR_RED_BULL.clone(),
     grid: 2,
@@ -1484,7 +1740,7 @@ pub const RACE_RESULT_2023_4_P20: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     number: 21,
     position: 20,
     position_text: Position::R,
-    points: 0,
+    points: 0.0,
     driver: DRIVER_DE_VRIES.clone(),
     constructor: CONSTRUCTOR_ALPHA_TAURI.clone(),
     grid: 18,
@@ -1520,6 +1776,28 @@ pub static RACE_2003_4_RACE_RESULTS: Lazy<Race> = Lazy::new(|| Race {
         RACE_RESULT_2003_4_P19.clone(),
     ]),
     ..RACE_2003_4.clone()
+});
+
+pub const RACE_2021_12_RACE_RESULTS_STR: &str = formatcp!(
+    r#"{{
+    {RACE_2021_12_STR},
+    "Results": [
+        {RACE_RESULT_2021_12_P1_STR},
+        {RACE_RESULT_2021_12_P2_STR},
+        {RACE_RESULT_2021_12_P3_STR},
+        {RACE_RESULT_2021_12_P10_STR}
+    ]
+  }}"#
+);
+
+pub static RACE_2021_12_RACE_RESULTS: Lazy<Race> = Lazy::new(|| Race {
+    payload: Payload::RaceResults(vec![
+        RACE_RESULT_2021_12_P1.clone(),
+        RACE_RESULT_2021_12_P2.clone(),
+        RACE_RESULT_2021_12_P3.clone(),
+        RACE_RESULT_2021_12_P10.clone(),
+    ]),
+    ..RACE_2021_12.clone()
 });
 
 pub const RACE_2023_4_RACE_RESULTS_STR: &str = formatcp!(

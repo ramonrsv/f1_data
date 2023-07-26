@@ -356,6 +356,11 @@ pub struct QualifyingResult {
     pub q3: Option<QualifyingTime>,
 }
 
+/// Type that represents points awarded, e.g. for a sprint/race finish, fastest lap, etc. These are
+/// represented as floating point numbers because some events may award fractional points, e.g. the
+/// 2021 Belgian Grand Prix only awarded half points, meaning P1, P3, and P10 received `x.5` points.
+type Points = f32;
+
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -366,7 +371,7 @@ pub struct SprintResult {
     pub position: u32,
     pub position_text: Position,
     #[serde_as(as = "DisplayFromStr")]
-    pub points: u32,
+    pub points: Points,
     #[serde(rename = "Driver")]
     pub driver: Driver,
     #[serde(rename = "Constructor")]
@@ -392,7 +397,7 @@ pub struct RaceResult {
     pub position: u32,
     pub position_text: Position,
     #[serde_as(as = "DisplayFromStr")]
-    pub points: u32,
+    pub points: Points,
     #[serde(rename = "Driver")]
     pub driver: Driver,
     #[serde(rename = "Constructor")]
@@ -1194,6 +1199,7 @@ mod tests {
 
         deserialize_and_assert_eq(&RACE_TIMES_1950_4_STR[..], &RACE_TIMES_1950_4[..]);
         deserialize_and_assert_eq(&RACE_TIMES_2003_4_STR[..], &RACE_TIMES_2003_4[..]);
+        deserialize_and_assert_eq(&RACE_TIMES_2021_12_STR[..], &RACE_TIMES_2021_12[..]);
         deserialize_and_assert_eq(&RACE_TIMES_2023_4_STR[..], &RACE_TIMES_2023_4[..]);
     }
 
@@ -1218,6 +1224,7 @@ mod tests {
 
         validate_race_times(&RACE_TIMES_1950_4[..]);
         validate_race_times(&RACE_TIMES_2003_4[..]);
+        validate_race_times(&RACE_TIMES_2021_12[..]);
         validate_race_times(&RACE_TIMES_2023_4[..]);
     }
 }
