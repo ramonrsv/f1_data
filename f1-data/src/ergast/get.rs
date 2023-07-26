@@ -4,7 +4,10 @@ use crate::{
     ergast::{
         error::{Error, Result},
         resource::{Filters, LapTimeFilters, Page, PitStopFilters, Resource},
-        response::{Circuit, Constructor, Driver, Lap, LapTime, PitStop, Race, Response, Season, Status, Timing},
+        response::{
+            Circuit, Constructor, Driver, Lap, LapTime, Payload, PitStop, QualifyingResult, Race, RaceResult, Response,
+            Season, SprintResult, Status, Timing,
+        },
     },
     id::{CircuitID, ConstructorID, DriverID, RaceID, SeasonID},
 };
@@ -281,6 +284,292 @@ pub fn get_circuit(circuit_id: CircuitID) -> Result<Circuit> {
     get_circuits(Filters::new().circuit_id(circuit_id)).and_then(verify_has_one_element_and_extract)
 }
 
+/// Inner type of a [`Payload`] variant for a [`SessionResult`] type, e.g. the inner type of the
+/// [`Payload::RaceResults`] variant is [`Vec<RaceResult>`].
+type Inner<T> = Vec<T>;
+
+/// The [`SessionResult`] trait allows the generic handling of all session result types, resource
+/// requests, and extraction of the corresponding variant from [`Payload`].
+///
+/// For example, [`RaceResult`]s are requested via [`Resource::RaceResults`], and the response can
+/// be extracted from the [`Payload::RaceResults`] variant.
+///
+/// The trait is implemented for [`QualifyingResult`], [`SprintResult`], and [`RaceResult`].
+pub trait SessionResult
+where
+    Self: Sized,
+{
+    /// Wrap a [`Filters`] with the corresponding [`Resource`] variant for this [`SessionResult`].
+    fn to_resource(filters: Filters) -> Resource;
+
+    /// Extract the value from the corresponding [`Payload`] variant for this [`SessionResult`].
+    fn try_inner_from(payload: Payload) -> Result<Inner<Self>>;
+}
+
+impl SessionResult for QualifyingResult {
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::QualifyingResults(filters)
+    }
+
+    fn try_inner_from(payload: Payload) -> Result<Inner<Self>> {
+        payload.into_qualifying_results().map_err(into)
+    }
+}
+
+impl SessionResult for SprintResult {
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::SprintResults(filters)
+    }
+
+    fn try_inner_from(payload: Payload) -> Result<Inner<Self>> {
+        payload.into_sprint_results().map_err(into)
+    }
+}
+
+impl SessionResult for RaceResult {
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::RaceResults(filters)
+    }
+
+    fn try_inner_from(payload: Payload) -> Result<Inner<Self>> {
+        payload.into_race_results().map_err(into)
+    }
+}
+
+/// Performs a GET request to the Ergast API for the [`Resource`] corresponding to the requested
+/// [`SessionResult`], with the argument [`Filters`], and returns a sequence of [`Race`]s, each with
+/// a sequence of [`SessionResult`]s, processed from the inner [`Race`]s from [`Table`]. An
+/// [`Error::MultiPage`] is returned if the results would not fit in a [`Page::with_max_limit`].
+///
+/// For example, [`get_session_results::<RaceResult>`] will perform a GET request to the Ergast API
+/// for [`Resource::RaceResults`], and return a sequence of [`Race<Vec<RaceResult>>`], where the
+/// [`Payload`] variant [`Payload::RaceResults`] has already been extracted and processed into
+/// [`Race<Vec<RaceResult>>`], obviating the need to perform error checking and extraction of the
+/// expected variants.
+///
+/// This function returns a sequence of [`SessionResult`]s for each of a sequence of [`Race`]s,
+/// i.e. it returns [`Vec<Race<Vec<T>>>`]. If a single [`Race`] is expected in the response, or a
+/// single [`SessionResult`] per [`Race`], or other, consider using one of the other methods with
+/// the desired processing: [`get_session_results_for_event`], [`get_session_result_for_events`], or
+/// [`get_session_result`].
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::id::ConstructorID;
+/// use f1_data::ergast::{
+///     get::get_session_results,
+///     resource::Filters,
+///     response::{Points, RaceResult, SprintResult},
+/// };
+///
+/// let race_points = get_session_results::<RaceResult>(
+///     Filters::new()
+///         .season(2021)
+///         .constructor_id(ConstructorID::from("red_bull")),
+/// )
+/// .unwrap()
+/// .iter()
+/// .map(|r| r.race_results().iter().map(|r| r.points).sum::<Points>())
+/// .sum::<Points>();
+///
+/// let sprint_points = get_session_results::<SprintResult>(
+///     Filters::new()
+///         .season(2021)
+///         .constructor_id(ConstructorID::from("red_bull")),
+/// )
+/// .unwrap()
+/// .iter()
+/// .map(|s| s.sprint_results().iter().map(|r| r.points).sum::<Points>())
+/// .sum::<Points>();
+///
+/// assert_eq!(race_points + sprint_points, 585.5);
+/// ```
+pub fn get_session_results<T: SessionResult>(filters: Filters) -> Result<Vec<Race<Vec<T>>>> {
+    get_response_max_limit(&T::to_resource(filters))?
+        .mr_data
+        .table
+        .into_races()?
+        .into_iter()
+        .map(|race| race.try_map(|payload| T::try_inner_from(payload)))
+        .collect()
+}
+
+/// Performs a GET request to the Ergast API for the [`Resource`] corresponding to the requested
+/// [`SessionResult`], with the argument [`Filters`], and returns a sequence of [`SessionResult`]s
+/// for a single [`Race`], processed from the inner [`Race`]s from [`Table`]. An
+/// [`Error::MultiPage`] is returned if the results would not fit in a [`Page::with_max_limit`].
+/// An [`Error::NotFound`] or [`Error::TooMany`] is returned if the expected number of [`Race`]s and
+/// [`SessionResult`]s per [`Race`] are not found in the response.
+///
+/// For example, [`get_session_results_for_event::<RaceResult>`] will perform a GET request to the
+/// Ergast API for [`Resource::RaceResults`], and return a single [`Race<Vec<RaceResult>>`], where
+/// the [`Payload`] variant [`Payload::RaceResults`] has already been extracted and processed into
+/// [`Race<Vec<RaceResult>>`], obviating the need to perform error checking and extraction of the
+/// expected variants.
+///
+/// This function returns a singe [`Race`] containing a sequence of [`SessionResult`]s, i.e. it
+/// returns a [`Race<Vec<T>>`]. If multiple [`Race`]s are expected in the response, or a single
+/// [`SessionResult`] per [`Race`], or other, consider using one of the other methods with the
+/// desired processing: [`get_session_results`], [`get_session_result_for_events`], or
+/// [`get_session_result`].
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::ergast::{get::get_session_results_for_event, resource::Filters, response::RaceResult};
+///
+/// let race = get_session_results_for_event::<RaceResult>(Filters::new().season(2021).round(22)).unwrap();
+///
+/// assert_eq!(race.race_name, "Abu Dhabi Grand Prix");
+/// assert_eq!(race.race_results()[0].driver.family_name, "Verstappen");
+/// assert_eq!(race.race_results()[0].position, 1);
+/// assert_eq!(race.race_results()[1].driver.family_name, "Hamilton");
+/// assert_eq!(race.race_results()[1].position, 2);
+/// ```
+pub fn get_session_results_for_event<T: SessionResult>(filters: Filters) -> Result<Race<Vec<T>>> {
+    get_session_results(filters).and_then(verify_has_one_element_and_extract)
+}
+
+/// Performs a GET request to the Ergast API for the [`Resource`] corresponding to the requested
+/// [`SessionResult`], with the argument [`Filters`], and returns a sequence of [`Race`]s with a
+/// single [`SessionResult`] each, processed from the inner [`Race`]s from [`Table`]. An
+/// [`Error::MultiPage`] is returned if the results would not fit in a [`Page::with_max_limit`].
+/// An [`Error::NotFound`] or [`Error::TooMany`] is returned if the expected number of [`Race`]s and
+/// [`SessionResult`]s per [`Race`] are not found in the response.
+///
+/// For example, [`get_session_result_for_events::<RaceResult>`] will perform a GET request to the
+/// Ergast API for [`Resource::RaceResults`], and return a sequence of [`Race<RaceResult>`], where
+/// the [`Payload`] variant [`Payload::RaceResults`] has already been extracted and processed into
+/// [`Race<RaceResult>`], ensuring that each [`Race`] holds one and only one [`SessionResult`],
+/// obviating the need to perform error checking and extraction of the expected variants.
+///
+/// This function returns a sequence of [`Race`]s containing a single [`SessionResult`] each, i.e.
+/// it returns [`Vec<Race<T>>`]. If a single [`Race`] is expected in the response, or a single
+/// [`SessionResult`] per [`Race`], or other, consider using one of the other methods with the
+/// desired processing: [`get_session_results`], [`get_session_results_for_event`], or
+/// [`get_session_result`].
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::id::DriverID;
+/// use f1_data::ergast::{
+///     get::get_session_result_for_events,
+///     resource::Filters,
+///     response::QualifyingResult
+/// };
+///
+/// let seb_poles: u32 = get_session_result_for_events::<QualifyingResult>(
+///     Filters::new().driver_id(DriverID::from("vettel")).qualifying_pos(1),
+/// )
+/// .unwrap()
+/// .iter()
+/// .map(|race| if race.qualifying_result().position == 1 { 1 } else { 0 })
+/// .sum();
+///
+/// assert_eq!(seb_poles, 57);
+/// ```
+pub fn get_session_result_for_events<T: SessionResult>(filters: Filters) -> Result<Vec<Race<T>>> {
+    get_session_results(filters)?
+        .into_iter()
+        .map(|race| race.try_map(verify_has_one_element_and_extract))
+        .collect()
+}
+
+/// Performs a GET request to the Ergast API for the [`Resource`] corresponding to the requested
+/// [`SessionResult`], with the argument [`Filters`], and returns a single [`Race`] with a single
+/// [`SessionResult`], processed from the inner [`Race`]s from [`Table`]. An [`Error::MultiPage`] is
+/// returned if the results would not fit in a [`Page::with_max_limit`]. An [`Error::NotFound`] or
+/// [`Error::TooMany`] is returned if the expected number of [`Race`]s and [`SessionResult`]s per
+/// [`Race`] are not found in the response.
+///
+/// For example, [`get_session_result::<RaceResult>`] will perform a GET request to the Ergast API
+/// for [`Resource::RaceResults`], and return a single [`Race<RaceResult>`], where the [`Payload`]
+/// variant [`Payload::RaceResults`] has already been extracted and processed into
+/// [`Race<RaceResult>`], ensuring that one and only one [`Race`] is found, holding one and only
+/// one [`SessionResult`], obviating the need to perform error checking and extraction of the
+/// expected variants.
+///
+/// This function returns a single [`Race`]s containing a single [`SessionResult`], i.e. it returns
+/// [`Race<T>`]. If multiple [`Race`]s or [`SessionResult`]s are expected in the response, consider
+/// using one of the other methods with the desired processing: [`get_session_results`],
+/// [`get_session_results_for_event`], or [`get_session_result_for_events`].
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::ergast::{get::get_session_result, resource::Filters, response::SprintResult};
+///
+/// let race = get_session_result::<SprintResult>(
+///     Filters::new().season(2021).round(10).sprint_pos(1)).unwrap();
+///
+/// assert_eq!(race.sprint_result().position, 1);
+/// assert_eq!(race.sprint_result().driver.family_name, "Verstappen");
+/// ```
+pub fn get_session_result<T: SessionResult>(filters: Filters) -> Result<Race<T>> {
+    get_session_result_for_events(filters).and_then(verify_has_one_element_and_extract)
+}
+
+/// Convenience alias for [`get_session_results::<QualifyingResult>`].
+pub fn get_qualifying_results(filters: Filters) -> Result<Vec<Race<Vec<QualifyingResult>>>> {
+    get_session_results::<QualifyingResult>(filters)
+}
+
+/// Convenience alias for [`get_session_results_for_event::<QualifyingResult>`].
+pub fn get_qualifying_results_for_event(filters: Filters) -> Result<Race<Vec<QualifyingResult>>> {
+    get_session_results_for_event::<QualifyingResult>(filters)
+}
+
+/// Convenience alias for [`get_session_result_for_events::<QualifyingResult>`].
+pub fn get_qualifying_result_for_events(filters: Filters) -> Result<Vec<Race<QualifyingResult>>> {
+    get_session_result_for_events::<QualifyingResult>(filters)
+}
+
+/// Convenience alias for [`get_session_result::<QualifyingResult>`].
+pub fn get_qualifying_result(filters: Filters) -> Result<Race<QualifyingResult>> {
+    get_session_result::<QualifyingResult>(filters)
+}
+
+/// Convenience alias for [`get_session_results::<SprintResult>`].
+pub fn get_sprint_results(filters: Filters) -> Result<Vec<Race<Vec<SprintResult>>>> {
+    get_session_results::<SprintResult>(filters)
+}
+
+/// Convenience alias for [`get_session_results_for_event::<SprintResult>`].
+pub fn get_sprint_results_for_event(filters: Filters) -> Result<Race<Vec<SprintResult>>> {
+    get_session_results_for_event::<SprintResult>(filters)
+}
+
+/// Convenience alias for [`get_session_result_for_events::<SprintResult>`].
+pub fn get_sprint_result_for_events(filters: Filters) -> Result<Vec<Race<SprintResult>>> {
+    get_session_result_for_events::<SprintResult>(filters)
+}
+
+/// Convenience alias for [`get_session_result::<SprintResult>`].
+pub fn get_sprint_result(filters: Filters) -> Result<Race<SprintResult>> {
+    get_session_result::<SprintResult>(filters)
+}
+/// Convenience alias for [`get_session_results::<RaceResult>`].
+pub fn get_race_results(filters: Filters) -> Result<Vec<Race<Vec<RaceResult>>>> {
+    get_session_results::<RaceResult>(filters)
+}
+
+/// Convenience alias for [`get_session_results_for_event::<RaceResult>`].
+pub fn get_race_results_for_event(filters: Filters) -> Result<Race<Vec<RaceResult>>> {
+    get_session_results_for_event::<RaceResult>(filters)
+}
+
+/// Convenience alias for [`get_session_result_for_events::<RaceResult>`].
+pub fn get_race_result_for_events(filters: Filters) -> Result<Vec<Race<RaceResult>>> {
+    get_session_result_for_events::<RaceResult>(filters)
+}
+
+/// Convenience alias for [`get_session_result::<RaceResult>`].
+pub fn get_race_result(filters: Filters) -> Result<Race<RaceResult>> {
+    get_session_result::<RaceResult>(filters)
+}
+
 /// Performs a GET request to the Ergast API for [`Resource::FinishingStatus`], with the argument
 /// [`Filters`], and return the resulting inner [`Status`]s from [`Table`] in `resp.mr_data.table`.
 /// An [`Error::MultiPage`] is returned if `status` would not fit in a [`Page::with_max_limit`].
@@ -495,11 +784,14 @@ mod tests {
     use super::*;
     use crate::ergast::tests::*;
 
+    /// Represents a constraint on the length of a list, e.g. a minimum or exact length.
     enum LenConstraint {
         Exactly(usize),
         Minimum(usize),
     }
 
+    /// Assert that the actual list contains every expected element - it may be a superset of the
+    /// expected list, and that it meets the length constraint, e.g. a minimum or exact length.
     fn assert_each_expected_in_actual<T: PartialEq + core::fmt::Debug>(
         actual_list: &[T],
         expected_list: &[T],
@@ -517,6 +809,7 @@ mod tests {
         }
     }
 
+    /// Call a `get` function for each expected element, asserting that it equals the actual result.
     fn assert_each_get_eq_expected<G, T>(get: G, expected_list: &[T])
     where
         G: Fn(&T) -> Result<T>,
@@ -529,6 +822,51 @@ mod tests {
         }
     }
 
+    /// Construct a [`Filters`] object with a given season and round.
+    fn race_filters(season: SeasonID, round: RoundID) -> Filters {
+        Filters::new().season(season).round(round)
+    }
+
+    /// Construct a [`Filters`] object with a given season and round, extracted from a [`Race`].
+    fn race_filters_from<T>(race: &Race<T>) -> Filters {
+        race_filters(race.season, race.round)
+    }
+
+    /// Assert that the list of session results in an actual [`Race<Vec<T>>`] contains every session
+    /// result from an expected [`Race<Payload>`], and that it meets a length constraint, e.g. a
+    /// minimum or exact length. The actual list may be a superset of the expected list.
+    fn assert_each_expected_session_result_in_actual_event<T>(
+        actual: &Race<Vec<T>>,
+        expected: &Race<Payload>,
+        actual_payload_len_constraint: LenConstraint,
+    ) where
+        T: SessionResult + PartialEq + core::fmt::Debug,
+    {
+        assert!(eq_race_info(actual, expected));
+
+        assert_each_expected_in_actual(
+            &actual.payload,
+            &expected.clone().map(|p| T::try_inner_from(p).unwrap()).payload,
+            actual_payload_len_constraint,
+        );
+    }
+
+    /// Call a `get` function for each session result from an expected [`Race<Payload>`], asserting
+    /// that it equals the actual result. `add_result_filter` is called to modify the [`Filters`]
+    /// for each expected result, in addition to the season/round from the expected [`Race`].
+    fn assert_each_get_eq_expected_session_result<G, F, T>(get: G, add_result_filter: F, race: &Race<Payload>)
+    where
+        G: Fn(Filters) -> Result<Race<T>>,
+        F: Fn(&T, Filters) -> Filters,
+        T: SessionResult + Clone + PartialEq + core::fmt::Debug,
+    {
+        assert_each_get_eq_expected(
+            |result| get(add_result_filter(result, race_filters_from(race))).map(|race| race.payload),
+            &race.clone().map(|p| T::try_inner_from(p).unwrap()).payload,
+        );
+    }
+
+    /// Assert that a given [`Result`] is [`Err(Error::NotFound)`].
     fn assert_not_found<T>(result: Result<T>) {
         assert!(matches!(result, Err(Error::NotFound)));
     }
@@ -696,48 +1034,60 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_qualifying_results_2003_4() {
-        let resp = get_response(&Resource::QualifyingResults(Filters {
-            season: Some(2003),
-            round: Some(4),
-            ..Filters::none()
-        }))
-        .unwrap();
-
-        let actual = verify_has_one_race_and_extract(resp).unwrap();
-        let expected = &RACE_2003_4_QUALIFYING_RESULTS;
-
-        assert!(eq_race_info(&actual, expected));
-
-        let actual_results = actual.payload.as_qualifying_results().unwrap();
-        let expected_results = expected.payload.as_qualifying_results().unwrap();
-
-        assert_eq!(actual_results.len(), 20);
-
-        assert_eq!(actual_results[..2], expected_results[..2]);
-        assert_eq!(actual_results[19], expected_results[2]);
+    fn get_qualifying_results() {
+        assert_each_expected_in_actual(
+            &super::get_qualifying_results(Filters::new().constructor_id("red_bull".into())).unwrap(),
+            &RACES_QUALIFYING_RESULTS_RED_BULL,
+            LenConstraint::Minimum(357),
+        );
     }
 
     #[test]
     #[ignore]
-    fn get_qualifying_results_2023_4() {
-        let resp = get_response(&Resource::QualifyingResults(Filters {
-            season: Some(2023),
-            round: Some(4),
-            ..Filters::none()
-        }))
-        .unwrap();
+    fn get_qualifying_results_for_event() {
+        assert_each_expected_session_result_in_actual_event(
+            &super::get_qualifying_results_for_event(race_filters(2003, 4)).unwrap(),
+            &RACE_2003_4_QUALIFYING_RESULTS,
+            LenConstraint::Exactly(20),
+        );
 
-        let actual = verify_has_one_race_and_extract(resp).unwrap();
-        let expected = &RACE_2023_4_QUALIFYING_RESULTS;
+        assert_each_expected_session_result_in_actual_event(
+            &super::get_qualifying_results_for_event(race_filters(2023, 4)).unwrap(),
+            &RACE_2023_4_QUALIFYING_RESULTS,
+            LenConstraint::Exactly(20),
+        );
+    }
 
-        assert!(eq_race_info(&actual, expected));
+    #[test]
+    #[ignore]
+    fn get_qualifying_result_for_events() {
+        assert_each_expected_in_actual(
+            &super::get_qualifying_result_for_events(Filters::new().qualifying_pos(1)).unwrap(),
+            &RACES_QUALIFYING_RESULT_P1,
+            LenConstraint::Minimum(459),
+        );
 
-        let actual_results = actual.payload.as_qualifying_results().unwrap();
-        let expected_results = expected.payload.as_qualifying_results().unwrap();
+        assert_each_expected_in_actual(
+            &super::get_qualifying_result_for_events(Filters::new().qualifying_pos(2)).unwrap(),
+            &RACES_QUALIFYING_RESULT_P2,
+            LenConstraint::Minimum(459),
+        );
+    }
 
-        assert_eq!(actual_results.len(), 20);
-        assert_eq!(actual_results[..3], expected_results[..3]);
+    #[test]
+    #[ignore]
+    fn get_qualifying_result() {
+        assert_each_get_eq_expected_session_result(
+            super::get_qualifying_result,
+            |result, filters| filters.qualifying_pos(result.position),
+            &RACE_2003_4_QUALIFYING_RESULTS,
+        );
+
+        assert_each_get_eq_expected_session_result(
+            super::get_qualifying_result,
+            |result, filters| filters.qualifying_pos(result.position),
+            &RACE_2023_4_QUALIFYING_RESULTS,
+        );
     }
 
     // Resource::SprintResults
@@ -745,38 +1095,48 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_sprint_results_2023_4() {
-        let resp = get_response(&Resource::SprintResults(Filters {
-            season: Some(2023),
-            round: Some(4),
-            ..Filters::none()
-        }))
-        .unwrap();
-
-        let actual = verify_has_one_race_and_extract(resp).unwrap();
-        let expected = &RACE_2023_4_SPRINT_RESULTS;
-
-        assert!(eq_race_info(&actual, expected));
-
-        let actual_results = actual.payload.as_sprint_results().unwrap();
-        let expected_results = expected.payload.as_sprint_results().unwrap();
-
-        assert_eq!(actual_results.len(), 20);
-        assert_eq!(actual_results[0], expected_results[0]);
+    fn get_sprint_results() {
+        assert_each_expected_in_actual(
+            &super::get_sprint_results(Filters::new().constructor_id("red_bull".into())).unwrap(),
+            &RACES_SPRINT_RESULTS_RED_BULL,
+            LenConstraint::Minimum(8),
+        );
     }
 
     #[test]
     #[ignore]
-    fn get_sprint_results_no_sprint() {
-        let resp = get_response(&Resource::SprintResults(Filters {
-            season: Some(2023),
-            round: Some(1),
-            ..Filters::none()
-        }))
-        .unwrap();
+    fn get_sprint_results_for_event() {
+        assert_each_expected_session_result_in_actual_event(
+            &super::get_sprint_results_for_event(race_filters(2023, 4)).unwrap(),
+            &RACE_2023_4_SPRINT_RESULTS,
+            LenConstraint::Exactly(20),
+        );
+    }
 
-        let races = resp.mr_data.table.as_races().unwrap();
-        assert!(races.is_empty());
+    #[test]
+    #[ignore]
+    fn get_sprint_result_for_events() {
+        assert_each_expected_in_actual(
+            &super::get_sprint_result_for_events(Filters::new().sprint_pos(1)).unwrap(),
+            &RACES_SPRINT_RESULT_P1,
+            LenConstraint::Minimum(8),
+        );
+    }
+
+    #[test]
+    #[ignore]
+    fn get_sprint_result() {
+        assert_each_get_eq_expected_session_result(
+            super::get_sprint_result,
+            |result, filters| filters.sprint_pos(result.position),
+            &RACE_2023_4_SPRINT_RESULTS,
+        );
+    }
+
+    #[test]
+    #[ignore]
+    fn get_sprint_results_for_event_error_not_found() {
+        assert_not_found(super::get_sprint_results_for_event(race_filters(2023, 1)));
     }
 
     // Resource::RaceResults
@@ -784,74 +1144,85 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_race_results_2003_4() {
-        let resp = get_response(&Resource::RaceResults(Filters {
-            season: Some(2003),
-            round: Some(4),
-            ..Filters::none()
-        }))
-        .unwrap();
+    fn get_race_results() {
+        // @todo Ergast data seems to have an issue for the 2011-14-P1 race result which breaks the
+        // parsing (Time.time is inconsistent with Time.millis), so the full "red_bull" query fails.
+        // Use the commented out query below once this errors has been fixed in the Ergast API.
 
-        let actual = verify_has_one_race_and_extract(resp).unwrap();
-        let expected = &RACE_2003_4_RACE_RESULTS;
+        // assert_each_expected_in_actual(
+        //     &super::get_race_results(Filters::new().constructor_id("red_bull".into())).unwrap(),
+        //     &RACES_RACE_RESULTS_RED_BULL,
+        //     LenConstraint::Minimum(718),
+        // );
 
-        assert!(eq_race_info(&actual, expected));
-
-        let actual_results = actual.payload.as_race_results().unwrap();
-        let expected_results = expected.payload.as_race_results().unwrap();
-
-        assert_eq!(actual_results.len(), 20);
-
-        assert_eq!(actual_results[..2], expected_results[..2]);
-        assert_eq!(actual_results[18], expected_results[2]);
+        // @todo Remove once the query above can be used.
+        assert_each_expected_in_actual(
+            &super::get_race_results(Filters::new().constructor_id("red_bull".into()).season(2023)).unwrap(),
+            &RACES_RACE_RESULTS_RED_BULL,
+            LenConstraint::Minimum(11),
+        );
     }
 
     #[test]
     #[ignore]
-    fn get_race_results_2021_12() {
-        let resp = get_response(&Resource::RaceResults(Filters {
-            season: Some(2021),
-            round: Some(12),
-            ..Filters::none()
-        }))
-        .unwrap();
+    fn get_race_results_for_event() {
+        assert_each_expected_session_result_in_actual_event(
+            &super::get_race_results_for_event(race_filters(2003, 4)).unwrap(),
+            &RACE_2003_4_RACE_RESULTS,
+            LenConstraint::Exactly(20),
+        );
 
-        let actual = verify_has_one_race_and_extract(resp).unwrap();
-        let expected = &RACE_2021_12_RACE_RESULTS;
+        assert_each_expected_session_result_in_actual_event(
+            &super::get_race_results_for_event(race_filters(2021, 12)).unwrap(),
+            &RACE_2021_12_RACE_RESULTS,
+            LenConstraint::Exactly(20),
+        );
 
-        assert!(eq_race_info(&actual, expected));
-
-        let actual_results = actual.payload.as_race_results().unwrap();
-        let expected_results = expected.payload.as_race_results().unwrap();
-
-        assert_eq!(actual_results.len(), 20);
-
-        assert_eq!(actual_results[..3], expected_results[..3]);
-        assert_eq!(actual_results[9], expected_results[3]);
+        assert_each_expected_session_result_in_actual_event(
+            &super::get_race_results_for_event(race_filters(2023, 4)).unwrap(),
+            &RACE_2023_4_RACE_RESULTS,
+            LenConstraint::Exactly(20),
+        );
     }
 
     #[test]
     #[ignore]
-    fn get_race_results_2023_4() {
-        let resp = get_response(&Resource::RaceResults(Filters {
-            season: Some(2023),
-            round: Some(4),
-            ..Filters::none()
-        }))
-        .unwrap();
+    fn get_race_result_for_events() {
+        assert_each_expected_in_actual(
+            &super::get_race_result_for_events(Filters::new().driver_id("michael_schumacher".into())).unwrap(),
+            &RACES_RACE_RESULT_MICHAEL,
+            LenConstraint::Exactly(308),
+        );
 
-        let actual = verify_has_one_race_and_extract(resp).unwrap();
-        let expected = &RACE_2023_4_RACE_RESULTS;
+        assert_each_expected_in_actual(
+            &super::get_race_result_for_events(Filters::new().driver_id("max_verstappen".into())).unwrap(),
+            &RACES_RACE_RESULT_MAX,
+            LenConstraint::Minimum(174),
+        );
+    }
 
-        assert!(eq_race_info(&actual, expected));
+    #[test]
+    #[ignore]
+    fn get_race_result() {
+        assert_each_get_eq_expected_session_result(
+            super::get_race_result,
+            |result, filters| filters.finish_pos(result.position),
+            &RACE_2021_12_RACE_RESULTS,
+        );
 
-        let actual_results = actual.payload.as_race_results().unwrap();
-        let expected_results = expected.payload.as_race_results().unwrap();
+        // @todo Cannot use all available race results because, counterintuitively, non-finishing
+        // race results cannot be filtered by .finish_pos, even though .position would be set.
+        // See [`Resource::RaceResults`], and try reaching out to Ergast maintainers about it.
 
-        assert_eq!(actual_results.len(), 20);
+        assert_each_get_eq_expected(
+            |result| super::get_race_result(race_filters(2003, 4).finish_pos(result.position)).map(|race| race.payload),
+            &RACE_2003_4_RACE_RESULTS.payload.as_race_results().unwrap()[0..2],
+        );
 
-        assert_eq!(actual_results[..2], expected_results[..2]);
-        assert_eq!(actual_results[19], expected_results[2]);
+        assert_each_get_eq_expected(
+            |result| super::get_race_result(race_filters(2023, 4).finish_pos(result.position)).map(|race| race.payload),
+            &RACE_2023_4_RACE_RESULTS.payload.as_race_results().unwrap()[0..2],
+        );
     }
 
     // Resource::FinishingStatus

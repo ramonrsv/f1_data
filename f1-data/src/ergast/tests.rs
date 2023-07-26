@@ -1374,6 +1374,30 @@ pub const SPRINT_RESULT_2023_4_P1_STR: &str = formatcp!(
   }}"#
 );
 
+pub const SPRINT_RESULT_2023_4_P3_STR: &str = formatcp!(
+    r#"{{
+    "number": "1",
+    "position": "3",
+    "positionText": "3",
+    "points": "6",
+    "Driver": {DRIVER_MAX_STR},
+    "Constructor": {CONSTRUCTOR_RED_BULL_STR},
+    "grid": "3",
+    "laps": "17",
+    "status": "Finished",
+    "Time": {{
+        "millis": "2002732",
+        "time": "+5.065"
+    }},
+    "FastestLap": {{
+        "lap": "10",
+        "Time": {{
+            "time": "1:43.723"
+        }}
+    }}
+  }}"#
+);
+
 pub const SPRINT_RESULT_2023_4_P1: Lazy<SprintResult> = Lazy::new(|| SprintResult {
     number: 11,
     position: 1,
@@ -1393,17 +1417,37 @@ pub const SPRINT_RESULT_2023_4_P1: Lazy<SprintResult> = Lazy::new(|| SprintResul
     }),
 });
 
+pub const SPRINT_RESULT_2023_4_P3: Lazy<SprintResult> = Lazy::new(|| SprintResult {
+    number: 1,
+    position: 3,
+    position_text: Position::Finished(3),
+    points: 6.0,
+    driver: DRIVER_MAX.clone(),
+    constructor: CONSTRUCTOR_RED_BULL.clone(),
+    grid: 3,
+    laps: 17,
+    status: "Finished".to_string(),
+    time: Some(RaceTime::with_delta(Duration::milliseconds(2002732), Duration::from_m_s_ms(0, 5, 65))),
+    fastest_lap: Some(FastestLap {
+        rank: None,
+        lap: 10,
+        time: LapTime::from_m_s_ms(1, 43, 723),
+        average_speed: None,
+    }),
+});
+
 pub const RACE_2023_4_SPRINT_RESULTS_STR: &str = formatcp!(
     r#"{{
     {RACE_2023_4_STR},
     "SprintResults": [
-        {SPRINT_RESULT_2023_4_P1_STR}
+        {SPRINT_RESULT_2023_4_P1_STR},
+        {SPRINT_RESULT_2023_4_P3_STR}
     ]
   }}"#
 );
 
 pub static RACE_2023_4_SPRINT_RESULTS: Lazy<Race> = Lazy::new(|| Race {
-    payload: Payload::SprintResults(vec![SPRINT_RESULT_2023_4_P1.clone()]),
+    payload: Payload::SprintResults(vec![SPRINT_RESULT_2023_4_P1.clone(), SPRINT_RESULT_2023_4_P3.clone()]),
     ..RACE_2023_4.clone()
 });
 
@@ -2055,3 +2099,54 @@ pub static RACE_2023_4_PIT_STOPS: Lazy<Race> = Lazy::new(|| Race {
     payload: Payload::PitStops(vec![PIT_STOP_2023_4_L10_MAX.clone(), PIT_STOP_2023_4_L11_LECLERC.clone()]),
     ..RACE_2023_4.clone()
 });
+
+// [`Race<SessionResult>`]s, grouped by helpful filters
+// -----------------------------------------------------------------
+
+fn clone_and_merge<T: Clone>(race: &Race, payload: &T) -> Race<T> {
+    race.clone().map(|_| payload.clone())
+}
+
+pub static RACES_QUALIFYING_RESULTS_RED_BULL: Lazy<Vec<Race<Vec<QualifyingResult>>>> = Lazy::new(|| {
+    vec![clone_and_merge(
+        &RACE_2023_4,
+        &vec![QUALIFYING_RESULT_2023_4_P2.clone(), QUALIFYING_RESULT_2023_4_P3.clone()],
+    )]
+});
+
+pub static RACES_QUALIFYING_RESULT_P1: Lazy<Vec<Race<QualifyingResult>>> = Lazy::new(|| {
+    vec![
+        clone_and_merge(&RACE_2003_4, &QUALIFYING_RESULT_2003_4_P1),
+        clone_and_merge(&RACE_2023_4, &QUALIFYING_RESULT_2023_4_P1),
+    ]
+});
+
+pub static RACES_QUALIFYING_RESULT_P2: Lazy<Vec<Race<QualifyingResult>>> = Lazy::new(|| {
+    vec![
+        clone_and_merge(&RACE_2003_4, &QUALIFYING_RESULT_2003_4_P2),
+        clone_and_merge(&RACE_2023_4, &QUALIFYING_RESULT_2023_4_P2),
+    ]
+});
+
+pub static RACES_SPRINT_RESULTS_RED_BULL: Lazy<Vec<Race<Vec<SprintResult>>>> = Lazy::new(|| {
+    vec![clone_and_merge(
+        &RACE_2023_4,
+        &vec![SPRINT_RESULT_2023_4_P1.clone(), SPRINT_RESULT_2023_4_P3.clone()],
+    )]
+});
+
+pub static RACES_SPRINT_RESULT_P1: Lazy<Vec<Race<SprintResult>>> =
+    Lazy::new(|| vec![clone_and_merge(&RACE_2023_4, &SPRINT_RESULT_2023_4_P1)]);
+
+pub static RACES_RACE_RESULTS_RED_BULL: Lazy<Vec<Race<Vec<RaceResult>>>> = Lazy::new(|| {
+    vec![clone_and_merge(
+        &RACE_2023_4,
+        &vec![RACE_RESULT_2023_4_P1.clone(), RACE_RESULT_2023_4_P2.clone()],
+    )]
+});
+
+pub static RACES_RACE_RESULT_MICHAEL: Lazy<Vec<Race<RaceResult>>> =
+    Lazy::new(|| vec![clone_and_merge(&RACE_2003_4, &RACE_RESULT_2003_4_P1)]);
+
+pub static RACES_RACE_RESULT_MAX: Lazy<Vec<Race<RaceResult>>> =
+    Lazy::new(|| vec![clone_and_merge(&RACE_2023_4, &RACE_RESULT_2023_4_P2)]);

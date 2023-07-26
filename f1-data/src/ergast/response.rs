@@ -356,10 +356,34 @@ pub struct QualifyingResult {
     pub q3: Option<QualifyingTime>,
 }
 
+impl Race<Vec<QualifyingResult>> {
+    /// Returns a reference to the field [`Race::payload`], a list of [`QualifyingResult`]s.
+    pub fn qualifying_results(&self) -> &[QualifyingResult] {
+        &self.payload
+    }
+
+    /// Extracts and returns the field [`Race::payload`], a list of [`QualifyingResult`]s.
+    pub fn into_qualifying_results(self) -> Vec<QualifyingResult> {
+        self.payload
+    }
+}
+
+impl Race<QualifyingResult> {
+    /// Returns a reference to the field [`Race::payload`], a single [`QualifyingResult`].
+    pub fn qualifying_result(&self) -> &QualifyingResult {
+        &self.payload
+    }
+
+    /// Extracts and returns the field [`Race::payload`], a single[`QualifyingResult`].
+    pub fn into_qualifying_result(self) -> QualifyingResult {
+        self.payload
+    }
+}
+
 /// Type that represents points awarded, e.g. for a sprint/race finish, fastest lap, etc. These are
 /// represented as floating point numbers because some events may award fractional points, e.g. the
 /// 2021 Belgian Grand Prix only awarded half points, meaning P1, P3, and P10 received `x.5` points.
-type Points = f32;
+pub type Points = f32;
 
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
@@ -387,6 +411,30 @@ pub struct SprintResult {
     pub fastest_lap: Option<FastestLap>,
 }
 
+impl Race<Vec<SprintResult>> {
+    /// Returns a reference to the field [`Race::payload`], a list of [`SprintResult`]s.
+    pub fn sprint_results(&self) -> &[SprintResult] {
+        &self.payload
+    }
+
+    /// Extracts and returns the field [`Race::payload`], a list of [`SprintResult`]s.
+    pub fn into_sprint_results(self) -> Vec<SprintResult> {
+        self.payload
+    }
+}
+
+impl Race<SprintResult> {
+    /// Returns a reference to the field [`Race::payload`], a single [`SprintResult`].
+    pub fn sprint_result(&self) -> &SprintResult {
+        &self.payload
+    }
+
+    /// Extracts and returns the field [`Race::payload`], a single[`SprintResult`].
+    pub fn into_sprint_result(self) -> SprintResult {
+        self.payload
+    }
+}
+
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -411,6 +459,30 @@ pub struct RaceResult {
     pub time: Option<RaceTime>,
     #[serde(rename = "FastestLap")]
     pub fastest_lap: Option<FastestLap>,
+}
+
+impl Race<Vec<RaceResult>> {
+    /// Returns a reference to the field [`Race::payload`], a list of [`RaceResult`]s.
+    pub fn race_results(&self) -> &[RaceResult] {
+        &self.payload
+    }
+
+    /// Extracts and returns the field [`Race::payload`], a list of [`RaceResult`]s.
+    pub fn into_race_results(self) -> Vec<RaceResult> {
+        self.payload
+    }
+}
+
+impl Race<RaceResult> {
+    /// Returns a reference to the field [`Race::payload`], a single [`RaceResult`].
+    pub fn race_result(&self) -> &RaceResult {
+        &self.payload
+    }
+
+    /// Extracts and returns the field [`Race::payload`], a single[`RaceResult`].
+    pub fn into_race_result(self) -> RaceResult {
+        self.payload
+    }
 }
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
@@ -680,7 +752,10 @@ impl<'de> Deserialize<'de> for RaceTime {
 
 #[cfg(test)]
 mod tests {
-    use crate::ergast::time::macros::{date, time};
+    use crate::ergast::{
+        get::SessionResult,
+        time::macros::{date, time},
+    };
 
     use super::*;
     use crate::ergast::tests::*;
@@ -1018,6 +1093,56 @@ mod tests {
         let into = Race::from(from.clone(), String::from("some"));
         assert!(eq_race_info(&into, &from));
         assert_eq!(into.payload, String::from("some"));
+    }
+
+    fn map_race_multi_results<T: SessionResult>(race: Race<Payload>) -> Race<Vec<T>> {
+        race.map(|payload| T::try_inner_from(payload).unwrap())
+    }
+
+    fn map_race_single_result<T: SessionResult>(race: Race<Payload>) -> Race<T> {
+        map_race_multi_results(race).map(|payload| payload.into_iter().next().unwrap())
+    }
+
+    #[test]
+    fn race_qualifying_result_accessors() {
+        let reference = RACE_2023_4_QUALIFYING_RESULTS.clone();
+        let expected = reference.clone().payload.into_qualifying_results().unwrap();
+
+        let actual = map_race_multi_results(reference.clone());
+        assert_eq!(actual.qualifying_results(), &expected);
+        assert_eq!(actual.into_qualifying_results(), expected);
+
+        let actual = map_race_single_result(reference.clone());
+        assert_eq!(actual.qualifying_result(), &expected[0]);
+        assert_eq!(actual.into_qualifying_result(), expected[0]);
+    }
+
+    #[test]
+    fn race_sprint_result_accessors() {
+        let reference = RACE_2023_4_SPRINT_RESULTS.clone();
+        let expected = reference.clone().payload.into_sprint_results().unwrap();
+
+        let actual = map_race_multi_results(reference.clone());
+        assert_eq!(actual.sprint_results(), &expected);
+        assert_eq!(actual.into_sprint_results(), expected);
+
+        let actual = map_race_single_result(reference.clone());
+        assert_eq!(actual.sprint_result(), &expected[0]);
+        assert_eq!(actual.into_sprint_result(), expected[0]);
+    }
+
+    #[test]
+    fn race_race_result_accessors() {
+        let reference = RACE_2023_4_RACE_RESULTS.clone();
+        let expected = reference.clone().payload.into_race_results().unwrap();
+
+        let actual = map_race_multi_results(reference.clone());
+        assert_eq!(actual.race_results(), &expected);
+        assert_eq!(actual.into_race_results(), expected);
+
+        let actual = map_race_single_result(reference.clone());
+        assert_eq!(actual.race_result(), &expected[0]);
+        assert_eq!(actual.into_race_result(), expected[0]);
     }
 
     #[test]
