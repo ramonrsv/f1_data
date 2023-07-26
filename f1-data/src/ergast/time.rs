@@ -60,7 +60,7 @@ impl Duration {
     }
 
     pub fn parse(d_str: &str) -> Result<Self, ParseError> {
-        const FORMAT_REGEX_STR: &str = r"^((?:\d:)?(?:[0-5]?\d:)?)(?:([0-5]?\d)\.)(\d{1,3})$";
+        const FORMAT_REGEX_STR: &str = r"^((?:\d:)?(?:[0-5]?\d:)?)(?:(\d?\d)\.)(\d{1,3})$";
 
         static RE: Lazy<Regex> = Lazy::new(|| Regex::new(FORMAT_REGEX_STR).unwrap());
 
@@ -219,6 +219,11 @@ mod tests {
             ("1.882", m_s_ms(0, 1, 882)),
             ("1:08.436", m_s_ms(1, 8, 436)),
             ("40.111", m_s_ms(0, 40, 111)),
+            ("90.203", m_s_ms(0, 90, 203)),
+            ("1:61.100", m_s_ms(1, 61, 100)),
+            ("67.769", m_s_ms(0, 67, 769)), // 2012, 15, P11
+            ("79.692", m_s_ms(0, 79, 692)), // 2012, 16, P10
+            ("89.241", m_s_ms(0, 89, 241)), // 2012, 16, P13
         ]);
 
         for (dur_str, dur) in pairs.iter() {
@@ -228,16 +233,7 @@ mod tests {
 
     #[test]
     fn duration_parse_err() {
-        let bad_dur_strings = Vec::from([
-            "90.203",
-            "40.1111",
-            "",
-            ":",
-            ":2.100",
-            "1::2.100",
-            "1:61.100",
-            "1:60:30.100",
-        ]);
+        let bad_dur_strings = Vec::from(["40.1111", "", ":", ":2.100", "1::2.100", "1:60:30.100"]);
 
         for bad_dur_str in bad_dur_strings {
             assert!(matches!(Duration::parse(bad_dur_str).unwrap_err(), ParseError::InvalidDuration(_)));
