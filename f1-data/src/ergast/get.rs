@@ -714,7 +714,7 @@ mod tests {
 
         assert_eq!(actual_results.len(), 20);
 
-        assert_eq!(actual_results[0..1], expected_results[0..1]);
+        assert_eq!(actual_results[..2], expected_results[..2]);
         assert_eq!(actual_results[19], expected_results[2]);
     }
 
@@ -737,7 +737,7 @@ mod tests {
         let expected_results = expected.payload.as_qualifying_results().unwrap();
 
         assert_eq!(actual_results.len(), 20);
-        assert_eq!(actual_results[0..2], expected_results[0..2]);
+        assert_eq!(actual_results[..3], expected_results[..3]);
     }
 
     // Resource::SprintResults
@@ -802,7 +802,7 @@ mod tests {
 
         assert_eq!(actual_results.len(), 20);
 
-        assert_eq!(actual_results[0..1], expected_results[0..1]);
+        assert_eq!(actual_results[..2], expected_results[..2]);
         assert_eq!(actual_results[18], expected_results[2]);
     }
 
@@ -826,7 +826,7 @@ mod tests {
 
         assert_eq!(actual_results.len(), 20);
 
-        assert_eq!(actual_results[0..3], expected_results[0..3]);
+        assert_eq!(actual_results[..3], expected_results[..3]);
         assert_eq!(actual_results[9], expected_results[3]);
     }
 
@@ -850,7 +850,7 @@ mod tests {
 
         assert_eq!(actual_results.len(), 20);
 
-        assert_eq!(actual_results[0..1], expected_results[0..1]);
+        assert_eq!(actual_results[..2], expected_results[..2]);
         assert_eq!(actual_results[19], expected_results[2]);
     }
 
