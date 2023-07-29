@@ -903,7 +903,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_seasons_empty() {
-        assert!(super::get_seasons(Filters::new().season(1949)).unwrap().is_empty());
+        assert_is_empty(super::get_seasons(Filters::new().season(1949)));
     }
 
     #[test]
@@ -937,7 +937,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_drivers_empty() {
-        assert!(super::get_drivers(Filters::new().season(1949)).unwrap().is_empty());
+        assert_is_empty(super::get_drivers(Filters::new().season(1949)));
     }
 
     #[test]
@@ -971,7 +971,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_constructors_empty() {
-        assert!(super::get_constructors(Filters::new().season(1949)).unwrap().is_empty());
+        assert_is_empty(super::get_constructors(Filters::new().season(1949)));
     }
 
     #[test]
@@ -1005,7 +1005,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_circuits_empty() {
-        assert!(super::get_circuits(Filters::new().season(1949)).unwrap().is_empty());
+        assert_is_empty(super::get_circuits(Filters::new().season(1949)));
     }
 
     #[test]
@@ -1383,7 +1383,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_statuses_empty() {
-        assert!(super::get_statuses(Filters::new().season(1949)).unwrap().is_empty());
+        assert_is_empty(super::get_statuses(Filters::new().season(1949)));
     }
 
     // Resource::LapTimes
