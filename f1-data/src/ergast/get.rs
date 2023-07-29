@@ -598,37 +598,6 @@ pub fn get_statuses(filters: Filters) -> Result<Vec<Status>> {
         .map_err(into)
 }
 
-/// Performs a GET request to the Ergast API for [`Resource::PitStops`], with the passed argument
-/// [`PitStopFilters`], and return the resulting inner [`PitStop`]s from `race.payload` in the
-/// expected single [`Race`] element from [`Table`] in `resp.mr_data.table`. An [`Error::MultiPage`]
-/// is returned if `payload` would not fit in a [`Page::with_max_limit`].
-///
-/// # Examples
-///
-/// ```no_run
-/// use f1_data::id::DriverID;
-/// use f1_data::ergast::{get::get_pit_stops, resource::PitStopFilters, time::Duration, response::PitStop};
-///
-/// let pit_stops = get_pit_stops(PitStopFilters::new(2023, 4)).unwrap();
-/// assert_eq!(pit_stops.len(), 23);
-/// assert_eq!(
-///     pit_stops[0],
-///     PitStop {
-///         driver_id: DriverID::from("gasly"),
-///         lap: 5,
-///         stop: 1,
-///         duration: Duration::from_m_s_ms(0, 20, 235)
-///     }
-/// );
-/// ```
-pub fn get_pit_stops(filters: PitStopFilters) -> Result<Vec<PitStop>> {
-    get_response_max_limit(&Resource::PitStops(filters))
-        .and_then(verify_has_one_race_and_extract)?
-        .payload
-        .into_pit_stops()
-        .map_err(into)
-}
-
 /// Represents a flattened combination of a [`Lap`] and [`Timing`] for a single driver, indented to
 /// make use more ergonomic, without nesting, when accessing a single driver's lap and timing data.
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
@@ -726,6 +695,37 @@ pub fn get_lap_timings(race_id: RaceID, lap: u32) -> Result<Vec<Timing>> {
     .map_err(into)
     .and_then(verify_has_one_element_and_extract)
     .map(|lap| lap.timings)
+}
+
+/// Performs a GET request to the Ergast API for [`Resource::PitStops`], with the passed argument
+/// [`PitStopFilters`], and return the resulting inner [`PitStop`]s from `race.payload` in the
+/// expected single [`Race`] element from [`Table`] in `resp.mr_data.table`. An [`Error::MultiPage`]
+/// is returned if `payload` would not fit in a [`Page::with_max_limit`].
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::id::DriverID;
+/// use f1_data::ergast::{get::get_pit_stops, resource::PitStopFilters, time::Duration, response::PitStop};
+///
+/// let pit_stops = get_pit_stops(PitStopFilters::new(2023, 4)).unwrap();
+/// assert_eq!(pit_stops.len(), 23);
+/// assert_eq!(
+///     pit_stops[0],
+///     PitStop {
+///         driver_id: DriverID::from("gasly"),
+///         lap: 5,
+///         stop: 1,
+///         duration: Duration::from_m_s_ms(0, 20, 235)
+///     }
+/// );
+/// ```
+pub fn get_pit_stops(filters: PitStopFilters) -> Result<Vec<PitStop>> {
+    get_response_max_limit(&Resource::PitStops(filters))
+        .and_then(verify_has_one_race_and_extract)?
+        .payload
+        .into_pit_stops()
+        .map_err(into)
 }
 
 /// Convert a [`Response`] to [`Result<Response>`], enforcing that [`Response`] is single-page, via
