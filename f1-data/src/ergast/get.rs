@@ -866,9 +866,19 @@ mod tests {
         );
     }
 
+    /// Assert that a given [`Result<Vec<T>>`] is [`Ok`] and the sequence is empty;
+    fn assert_is_empty<T>(result: Result<Vec<T>>) {
+        assert!(result.unwrap().is_empty());
+    }
+
     /// Assert that a given [`Result`] is [`Err(Error::NotFound)`].
     fn assert_not_found<T>(result: Result<T>) {
         assert!(matches!(result, Err(Error::NotFound)));
+    }
+
+    /// Assert that a given [`Result`] is [`Err(Error::TooMany)`].
+    fn assert_too_many<T>(result: Result<T>) {
+        assert!(matches!(result, Err(Error::TooMany)));
     }
 
     // Resource::SeasonList
@@ -1090,6 +1100,52 @@ mod tests {
         );
     }
 
+    #[test]
+    #[ignore]
+    fn get_qualifying_results_empty() {
+        assert_is_empty(super::get_qualifying_results(Filters::new().season(1949)));
+        assert_is_empty(super::get_qualifying_results(Filters::new().season(2021).qualifying_pos(100)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_qualifying_results_for_event_error_not_found() {
+        assert_not_found(super::get_qualifying_results_for_event(Filters::new().season(1949).round(1)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_qualifying_results_for_event_error_too_many() {
+        assert_too_many(super::get_qualifying_results_for_event(Filters::new().season(2021)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_qualifying_result_for_events_empty() {
+        assert_is_empty(super::get_qualifying_result_for_events(Filters::new().season(1949).qualifying_pos(1)));
+        assert_is_empty(super::get_qualifying_result_for_events(Filters::new().season(2021).qualifying_pos(100)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_qualifying_result_for_events_error_too_many() {
+        assert_too_many(super::get_qualifying_result_for_events(Filters::new().season(2021)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_qualifying_result_error_not_found() {
+        assert_not_found(super::get_qualifying_result(Filters::new().season(1949).round(1).qualifying_pos(1)));
+        assert_not_found(super::get_qualifying_result(Filters::new().season(2021).round(10).qualifying_pos(100)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_qualifying_result_error_too_many() {
+        assert_too_many(super::get_qualifying_result(Filters::new().season(2021).qualifying_pos(1)));
+        assert_too_many(super::get_qualifying_result(Filters::new().season(2021).round(10)));
+    }
+
     // Resource::SprintResults
     // -----------------------
 
@@ -1135,8 +1191,48 @@ mod tests {
 
     #[test]
     #[ignore]
+    fn get_sprint_results_empty() {
+        assert_is_empty(super::get_sprint_results(Filters::new().season(1949)));
+        assert_is_empty(super::get_sprint_results(Filters::new().season(2021).sprint_pos(100)));
+    }
+
+    #[test]
+    #[ignore]
     fn get_sprint_results_for_event_error_not_found() {
-        assert_not_found(super::get_sprint_results_for_event(race_filters(2023, 1)));
+        assert_not_found(super::get_sprint_results_for_event(Filters::new().season(1949).round(1)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_sprint_results_for_event_error_too_many() {
+        assert_too_many(super::get_sprint_results_for_event(Filters::new().season(2021)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_sprint_result_for_events_empty() {
+        assert_is_empty(super::get_sprint_result_for_events(Filters::new().season(1949).sprint_pos(1)));
+        assert_is_empty(super::get_sprint_result_for_events(Filters::new().season(2021).sprint_pos(100)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_sprint_result_for_events_error_too_many() {
+        assert_too_many(super::get_sprint_result_for_events(Filters::new().season(2021)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_sprint_result_error_not_found() {
+        assert_not_found(super::get_sprint_result(Filters::new().season(1949).round(1).sprint_pos(1)));
+        assert_not_found(super::get_sprint_result(Filters::new().season(2021).round(10).sprint_pos(100)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_sprint_result_error_too_many() {
+        assert_too_many(super::get_sprint_result(Filters::new().season(2021).sprint_pos(1)));
+        assert_too_many(super::get_sprint_result(Filters::new().season(2021).round(10)));
     }
 
     // Resource::RaceResults
@@ -1223,6 +1319,52 @@ mod tests {
             |result| super::get_race_result(race_filters(2023, 4).finish_pos(result.position)).map(|race| race.payload),
             &RACE_2023_4_RACE_RESULTS.payload.as_race_results().unwrap()[0..2],
         );
+    }
+
+    #[test]
+    #[ignore]
+    fn get_race_results_empty() {
+        assert_is_empty(super::get_race_results(Filters::new().season(1949)));
+        assert_is_empty(super::get_race_results(Filters::new().season(2021).finish_pos(100)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_race_results_for_event_error_not_found() {
+        assert_not_found(super::get_race_results_for_event(Filters::new().season(1949).round(1)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_race_results_for_event_error_too_many() {
+        assert_too_many(super::get_race_results_for_event(Filters::new().season(2021)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_race_result_for_events_empty() {
+        assert_is_empty(super::get_race_result_for_events(Filters::new().season(1949).finish_pos(1)));
+        assert_is_empty(super::get_race_result_for_events(Filters::new().season(2021).finish_pos(100)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_race_result_for_events_error_too_many() {
+        assert_too_many(super::get_race_result_for_events(Filters::new().season(2021)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_race_result_error_not_found() {
+        assert_not_found(super::get_race_result(Filters::new().season(1949).round(1).finish_pos(1)));
+        assert_not_found(super::get_race_result(Filters::new().season(2021).round(10).finish_pos(100)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_race_result_error_too_many() {
+        assert_too_many(super::get_race_result(Filters::new().season(2021).finish_pos(1)));
+        assert_too_many(super::get_race_result(Filters::new().season(2021).round(10)));
     }
 
     // Resource::FinishingStatus
