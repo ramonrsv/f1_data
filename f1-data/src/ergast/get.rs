@@ -6,7 +6,7 @@ use crate::{
         resource::{Filters, LapTimeFilters, Page, PitStopFilters, Resource},
         response::{
             Circuit, Constructor, Driver, Lap, LapTime, Payload, PitStop, QualifyingResult, Race, RaceResult, Response,
-            Season, SprintResult, Status, Timing,
+            Schedule, Season, SprintResult, Status, Timing,
         },
     },
     id::{CircuitID, ConstructorID, DriverID, RaceID, SeasonID},
@@ -282,6 +282,77 @@ pub fn get_circuits(filters: Filters) -> Result<Vec<Circuit>> {
 /// ```
 pub fn get_circuit(circuit_id: CircuitID) -> Result<Circuit> {
     get_circuits(Filters::new().circuit_id(circuit_id)).and_then(verify_has_one_element_and_extract)
+}
+
+/// Performs a GET request to the Ergast API for [`Resource::RaceSchedule`], with the argument
+/// [`Filters`], and returns a sequence of [`Race<Schedule>`]s processed from the inner [`Race`]s
+/// from [`Table`]. An [`Error::MultiPage`] is returned if the results would not fit in a
+/// [`Page::with_max_limit`].
+///
+/// **Note:** The returned [`Race<Schedule>`]s contain all the common fields in a [`Race`], e.g.
+/// [`Race::season`], [`Race::round`], [`Race::race_name`], etc., so this function can be used to
+/// obtain general information about race weekend events, e.g. a list of rounds for a season.
+///
+/// **Note:** Since more than [`Page::MAX_LIMIT`] races have taken place in the history of F1,
+/// calling this function without any filters will return [`Error::MultiPage`]. As such, it is
+/// necessary to pass some filters, e.g. [`Filters::season`], [`Filters::constructor_id`], etc.
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::ergast::{get::get_race_schedules, resource::Filters, time::macros::{date, time}};
+///
+/// let races = get_race_schedules(Filters::new().season(2022)).unwrap();
+/// assert_eq!(races.len(), 22);
+///
+/// let sprint_count = races.iter().filter(|race| race.schedule().sprint.is_some()).count();
+/// assert_eq!(sprint_count, 3);
+///
+/// assert_eq!(races[0].race_name, "Bahrain Grand Prix");
+/// assert_eq!(races[0].date, date!(2022 - 03 - 20));
+/// assert_eq!(races[0].time.unwrap(), time!(15:00:00));
+/// ```
+pub fn get_race_schedules(filters: Filters) -> Result<Vec<Race<Schedule>>> {
+    get_response_max_limit(&Resource::RaceSchedule(filters))?
+        .mr_data
+        .table
+        .into_races()?
+        .into_iter()
+        .map(|race| race.try_map(|payload| payload.into_schedule().map_err(into)))
+        .collect()
+}
+
+/// Performs a GET request to the Ergast API for a single [`Race<Schedule>`] from
+/// [`Resource::RaceSchedule`], identified by a [`RaceID`], a combination of a [`Race::season`] and
+/// [`Race::round`]. An [`Error::NotFound`] is returned if the race is not found.
+///
+/// **Note:** The returned [`Race<Schedule>`] contains all the common fields in a [`Race`], e.g.
+/// [`Race::race_name`], [`Race::circuit`], etc., so this function can be used to obtain general
+/// information about a race weekend event.
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::id::RaceID;
+/// use f1_data::ergast::{get::get_race_schedule, resource::Filters, time::macros::{date, time}};
+///
+/// let race = get_race_schedule(RaceID::from(2022, 1)).unwrap();
+///
+/// assert_eq!(race.race_name, "Bahrain Grand Prix");
+/// assert_eq!(race.date, date!(2022 - 03 - 20));
+/// assert_eq!(race.time.unwrap(), time!(15:00:00));
+///
+/// let schedule = race.schedule();
+/// assert!(
+///     schedule.first_practice.is_some()
+///         && schedule.second_practice.is_some()
+///         && schedule.third_practice.is_some()
+///         && schedule.qualifying.is_some()
+/// );
+/// ```
+pub fn get_race_schedule(race_id: RaceID) -> Result<Race<Schedule>> {
+    get_race_schedules(Filters::new().season(race_id.season).round(race_id.round))
+        .and_then(verify_has_one_element_and_extract)
 }
 
 /// Inner type of a [`Payload`] variant for a [`SessionResult`] type, e.g. the inner type of the
@@ -773,6 +844,10 @@ fn into_iter<T: IntoIterator>(t: T) -> T::IntoIter {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
+    use once_cell::sync::Lazy;
+
     use crate::{
         ergast::{
             resource::{Filters, LapTimeFilters, PitStopFilters, Resource},
@@ -1017,26 +1092,62 @@ mod tests {
     // Resource::RaceSchedule
     // ----------------------
 
-    fn verify_single_race_schedule(season: SeasonID, round: RoundID, race_schedule: &Race) {
-        let resp = get_response(&Resource::RaceSchedule(Filters {
-            season: Some(season),
-            round: Some(round),
-            ..Filters::none()
-        }))
-        .unwrap();
+    fn map_schedules(races: Vec<Race>) -> Vec<Race<Schedule>> {
+        races
+            .into_iter()
+            .map(|race| race.map(|payload| payload.into_schedule().unwrap()))
+            .collect()
+    }
 
-        assert_eq!(&verify_has_one_race_and_extract(resp).unwrap(), race_schedule);
+    #[test]
+    #[ignore]
+    fn get_race_schedules() {
+        // Calling [`get_race_schedules`] with no filters returns [`Error::MultiPage`], since there
+        // have been more than 1000 races. As such, we are testing calls with by-season filters to
+        // restrict the responses to a smaller, but still plural, element count, usually ~20.
+
+        static RACE_SCHEDULES_COUNTS_BY_SEASON: Lazy<HashMap<u32, usize>> = Lazy::new(|| {
+            HashMap::from([
+                (1950, 7),
+                (2003, 16),
+                (2015, 19),
+                (2020, 17),
+                (2021, 22),
+                (2022, 22),
+                (2023, 22),
+            ])
+        });
+
+        assert!(!RACE_SCHEDULES_BY_SEASON.is_empty());
+
+        for (season, expected_list) in &*RACE_SCHEDULES_BY_SEASON {
+            assert_each_expected_in_actual(
+                &super::get_race_schedules(Filters::new().season(*season)).unwrap(),
+                &map_schedules(expected_list.clone()),
+                LenConstraint::Exactly(*RACE_SCHEDULES_COUNTS_BY_SEASON.get(season).unwrap()),
+            );
+        }
     }
 
     #[test]
     #[ignore]
     fn get_race_schedule() {
-        verify_single_race_schedule(1950, 1, &RACE_1950_1_SCHEDULE);
-        verify_single_race_schedule(2003, 4, &RACE_2003_4_SCHEDULE);
-        verify_single_race_schedule(2015, 11, &RACE_2015_11_SCHEDULE);
-        verify_single_race_schedule(2021, 12, &RACE_2021_12_SCHEDULE);
-        verify_single_race_schedule(2022, 4, &RACE_2022_4_SCHEDULE);
-        verify_single_race_schedule(2023, 4, &RACE_2023_4_SCHEDULE);
+        assert_each_get_eq_expected(
+            |race| super::get_race_schedule(RaceID::from(race.season, race.round)),
+            &map_schedules(RACE_TABLE_SCHEDULE.clone().into_races().unwrap()),
+        );
+    }
+
+    #[test]
+    #[ignore]
+    fn get_race_schedules_empty() {
+        assert_is_empty(super::get_race_schedules(Filters::new().season(1949)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_race_schedule_error_not_found() {
+        assert_not_found(super::get_race_schedule(RaceID::from(1949, 1)));
     }
 
     // Resource::QualifyingResults

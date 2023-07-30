@@ -276,6 +276,18 @@ pub struct Schedule {
     pub sprint: Option<DateTime>,
 }
 
+impl Race<Schedule> {
+    /// Returns a reference to the field [`Race::payload`], a [`Schedule`].
+    pub fn schedule(&self) -> &Schedule {
+        &self.payload
+    }
+
+    /// Extracts and returns the field [`Race::payload`], a [`Schedule`].
+    pub fn into_schedule(self) -> Schedule {
+        self.payload
+    }
+}
+
 /// [`Payload`] represents all the possible different data elements that be me returned as part of
 /// a [`Race`] in a [`Response`] from the Eergast API, e.g. [`Payload::SprintResults`] corresponds
 /// to the `"SprintResults"` property key in the JSON response, which is a list of [`SprintResult`].
@@ -374,7 +386,7 @@ impl Race<QualifyingResult> {
         &self.payload
     }
 
-    /// Extracts and returns the field [`Race::payload`], a single[`QualifyingResult`].
+    /// Extracts and returns the field [`Race::payload`], a single [`QualifyingResult`].
     pub fn into_qualifying_result(self) -> QualifyingResult {
         self.payload
     }
@@ -429,7 +441,7 @@ impl Race<SprintResult> {
         &self.payload
     }
 
-    /// Extracts and returns the field [`Race::payload`], a single[`SprintResult`].
+    /// Extracts and returns the field [`Race::payload`], a single [`SprintResult`].
     pub fn into_sprint_result(self) -> SprintResult {
         self.payload
     }
@@ -479,7 +491,7 @@ impl Race<RaceResult> {
         &self.payload
     }
 
-    /// Extracts and returns the field [`Race::payload`], a single[`RaceResult`].
+    /// Extracts and returns the field [`Race::payload`], a single [`RaceResult`].
     pub fn into_race_result(self) -> RaceResult {
         self.payload
     }
@@ -1093,6 +1105,20 @@ mod tests {
         let into = Race::from(from.clone(), String::from("some"));
         assert!(eq_race_info(&into, &from));
         assert_eq!(into.payload, String::from("some"));
+    }
+
+    fn map_race_schedule(race: Race<Payload>) -> Race<Schedule> {
+        race.map(|payload| payload.into_schedule().unwrap())
+    }
+
+    #[test]
+    fn race_schedule_accessors() {
+        let reference = RACE_2023_4_SCHEDULE.clone();
+        let expected = reference.clone().payload.into_schedule().unwrap();
+
+        let actual = map_race_schedule(reference.clone());
+        assert_eq!(actual.schedule(), &expected);
+        assert_eq!(actual.into_schedule(), expected);
     }
 
     fn map_race_multi_results<T: SessionResult>(race: Race<Payload>) -> Race<Vec<T>> {

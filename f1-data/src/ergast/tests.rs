@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use const_format::formatcp;
 use once_cell::sync::Lazy;
 use url::Url;
@@ -707,6 +709,18 @@ pub const RACE_2015_11_STR: &str = formatcp!(
   "#
 );
 
+pub const RACE_2020_4_STR: &str = formatcp!(
+    r#"
+    "season": "2020",
+    "round": "4",
+    "url": "http://en.wikipedia.org/wiki/2020_British_Grand_Prix",
+    "raceName": "British Grand Prix",
+    "Circuit": {CIRCUIT_SILVERSTONE_STR},
+    "date": "2020-08-02",
+    "time": "13:10:00Z"
+  "#
+);
+
 pub const RACE_2021_12_STR: &str = formatcp!(
     r#"
     "season": "2021",
@@ -805,6 +819,17 @@ pub const RACE_2015_11: Lazy<Race> = Lazy::new(|| Race {
     ..RACE_NONE.clone()
 });
 
+pub const RACE_2020_4: Lazy<Race> = Lazy::new(|| Race {
+    season: 2020,
+    round: 4,
+    url: Url::parse("http://en.wikipedia.org/wiki/2020_British_Grand_Prix").unwrap(),
+    race_name: "British Grand Prix".to_string(),
+    circuit: CIRCUIT_SILVERSTONE.clone(),
+    date: date!(2020 - 08 - 02),
+    time: Some(time!(13:10:00)),
+    ..RACE_NONE.clone()
+});
+
 pub const RACE_2021_12: Lazy<Race> = Lazy::new(|| Race {
     season: 2021,
     round: 12,
@@ -859,6 +884,13 @@ pub const RACE_2003_4_SCHEDULE_STR: &str = formatcp!(
 pub const RACE_2015_11_SCHEDULE_STR: &str = formatcp!(
     r#"{{
     {RACE_2015_11_STR}
+  }}"#
+);
+
+// Has "date" and "time" 10min after the hour
+pub const RACE_2020_4_SCHEDULE_STR: &str = formatcp!(
+    r#"{{
+    {RACE_2020_4_STR}
   }}"#
 );
 
@@ -932,6 +964,7 @@ pub const RACE_2023_4_SCHEDULE_STR: &str = formatcp!(
 pub const RACE_1950_1_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_1950_1.clone() });
 pub const RACE_2003_4_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_2003_4.clone() });
 pub const RACE_2015_11_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_2015_11.clone() });
+pub const RACE_2020_4_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_2020_4.clone() });
 
 pub const RACE_2021_12_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
     payload: Payload::Schedule(Schedule {
@@ -1009,6 +1042,7 @@ pub const RACE_TABLE_SCHEDULE_STR: &str = formatcp!(
             {RACE_1950_1_SCHEDULE_STR},
             {RACE_2003_4_SCHEDULE_STR},
             {RACE_2015_11_SCHEDULE_STR},
+            {RACE_2020_4_SCHEDULE_STR},
             {RACE_2021_12_SCHEDULE_STR},
             {RACE_2022_4_SCHEDULE_STR},
             {RACE_2023_4_SCHEDULE_STR}
@@ -1021,6 +1055,7 @@ pub static RACE_TABLE_SCHEDULE: Lazy<Table> = Lazy::new(|| Table::Races {
         RACE_1950_1_SCHEDULE.clone(),
         RACE_2003_4_SCHEDULE.clone(),
         RACE_2015_11_SCHEDULE.clone(),
+        RACE_2020_4_SCHEDULE.clone(),
         RACE_2021_12_SCHEDULE.clone(),
         RACE_2022_4_SCHEDULE.clone(),
         RACE_2023_4_SCHEDULE.clone(),
@@ -2100,8 +2135,25 @@ pub static RACE_2023_4_PIT_STOPS: Lazy<Race> = Lazy::new(|| Race {
     ..RACE_2023_4.clone()
 });
 
+// [`Race<Schedule>`]s by season, helpful for testing
+// --------------------------------------------------
+
+pub static RACE_SCHEDULES_BY_SEASON: Lazy<HashMap<u32, Vec<Race>>> = Lazy::new(|| {
+    let mut map: HashMap<u32, Vec<Race>> = HashMap::new();
+
+    for race in RACE_TABLE_SCHEDULE.as_races().unwrap() {
+        if map.contains_key(&race.season) {
+            map.get_mut(&race.season).unwrap().push(race.clone())
+        } else {
+            let _unused = map.insert(race.season, vec![race.clone()]);
+        }
+    }
+
+    map
+});
+
 // [`Race<SessionResult>`]s, grouped by helpful filters
-// -----------------------------------------------------------------
+// ----------------------------------------------------
 
 fn clone_and_merge<T: Clone>(race: &Race, payload: &T) -> Race<T> {
     race.clone().map(|_| payload.clone())
