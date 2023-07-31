@@ -295,7 +295,7 @@ pub fn get_circuit(circuit_id: CircuitID) -> Result<Circuit> {
 ///
 /// **Note:** Since more than [`Page::MAX_LIMIT`] races have taken place in the history of F1,
 /// calling this function without any filters will return [`Error::MultiPage`]. As such, it is
-/// necessary to pass some filters, e.g. [`Filters::season`], [`Filters::constructor_id`], etc.
+/// necessary to pass some filters, e.g. [`Filters::season`], [`Filters::driver_id`], etc.
 ///
 /// # Examples
 ///

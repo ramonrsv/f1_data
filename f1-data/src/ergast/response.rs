@@ -289,7 +289,7 @@ impl Race<Schedule> {
 }
 
 /// [`Payload`] represents all the possible different data elements that be me returned as part of
-/// a [`Race`] in a [`Response`] from the Eergast API, e.g. [`Payload::SprintResults`] corresponds
+/// a [`Race`] in a [`Response`] from the Ergast API, e.g. [`Payload::SprintResults`] corresponds
 /// to the `"SprintResults"` property key in the JSON response, which is a list of [`SprintResult`].
 /// One and only one of these payloads may be returned in a given response, depending on the
 /// requested [`Resource`], which is represented by the different variants of this enum.
