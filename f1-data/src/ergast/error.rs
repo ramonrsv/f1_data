@@ -1,3 +1,4 @@
+use serde_json;
 use ureq;
 
 use crate::ergast::response::{Payload, Table};
@@ -18,6 +19,10 @@ pub enum Error {
     /// Error parsing the JSON response into a serializable type from [`response`], passing through
     /// the [`std::io::Error`] from [`ureq::Response::into_json`], presumably using `serde_json`.
     Parse(std::io::Error),
+
+    /// Error parsing the JSON response into a serializable type from [`response`], passing through
+    /// the [`serde_json::Error`] from [`serde_json::from_str`], or similar [`serde_json`] methods.
+    ParseSerde(serde_json::Error),
 
     /// A request by a method supporting only single-page responses resulted in a multi-page one.
     MultiPage,
