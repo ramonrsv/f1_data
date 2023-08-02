@@ -4,7 +4,9 @@ use criterion::{BatchSize, Criterion};
 use std::fs;
 use std::path::PathBuf;
 
+use once_cell::sync::Lazy;
 use serde_json;
+use url::Url;
 
 use f1_data::ergast::{
     error::{Error, Result},
@@ -13,72 +15,75 @@ use f1_data::ergast::{
     response::{Race, RaceResult, Response},
 };
 
-fn full_impl(c: &mut Criterion) {
-    c.bench_function("get_race_results", |b| b.iter(|| get_race_results(Filters::new().season(2022)).unwrap()));
+static FILTERS: Lazy<Filters> = Lazy::new(|| Filters::new().season(2022));
+static RESOURCE: Lazy<Resource> = Lazy::new(|| Resource::RaceResults(FILTERS.clone()));
+static URL: Lazy<Url> = Lazy::new(|| RESOURCE.to_url_with(Page::with_max_limit()));
+
+static FILENAME: &str = "benches/data/response_2022_race_results.json";
+
+/// Benchmark a full call to [`get_race_results`], including network overhead, post-processing, etc.
+fn bench_get_race_results(c: &mut Criterion) {
+    c.bench_function("get_race_results", |b| b.iter(|| get_race_results(FILTERS.clone()).unwrap()));
 }
 
-fn stepwise_from_ureq(c: &mut Criterion) {
-    let resource = Resource::RaceResults(Filters::new().season(2022));
-    let url = resource.to_url_with(Page::with_max_limit());
+/// Benchmark different ways to process a [`ureq::Response`] into an [`ergast::Response`].
+/// Note that the different functions include the network overhead, since a [`ureq::Response`]
+/// keeps the socket open and the body isn't read until one of [`ureq::Response::into_json()`],
+/// [`ureq::Response::into_string()`], or [`ureq::Response::into_reader()`] is called.
+fn bench_process_ureq_response(c: &mut Criterion) {
+    let mut group = c.benchmark_group("process_ureq_response");
 
-    let content = ureq::request_url("GET", &url).call().unwrap().into_string().unwrap();
-    let response = deserialize(&content);
-    let results = process_response(Ok(response.as_ref().unwrap().clone()));
+    let url = URL.clone();
 
-    assert!(results.is_ok());
-
-    c.bench_function("resource_to_url", |b| {
-        b.iter(|| Resource::RaceResults(Filters::new().season(2022)).to_url_with(Page::with_max_limit()))
+    group.bench_function("via_into_json", |b| {
+        b.iter_batched(
+            || ureq::request_url("GET", &url).call().unwrap(),
+            |ureq_resp| ureq_resp.into_json::<Response>().unwrap(),
+            BatchSize::SmallInput,
+        )
     });
 
-    c.bench_function("ureq_into_string", |b| {
+    group.bench_function("via_into_string", |b| {
+        b.iter_batched(
+            || ureq::request_url("GET", &url).call().unwrap(),
+            |ureq_resp| serde_json::from_str::<Response>(&ureq_resp.into_string().unwrap()).unwrap(),
+            BatchSize::SmallInput,
+        )
+    });
+
+    group.bench_function("via_into_reader", |b| {
+        b.iter_batched(
+            || ureq::request_url("GET", &url).call().unwrap(),
+            |ureq_resp| serde_json::from_reader::<_, Response>(ureq_resp.into_reader()).unwrap(),
+            BatchSize::SmallInput,
+        )
+    });
+}
+
+/// Get the path to [`FILENAME`], relative to the current working directory.
+fn get_file_path() -> PathBuf {
+    std::env::current_dir().unwrap().join(FILENAME)
+}
+
+/// Benchmark the difference between reading a JSON response from file or getting it from HTTP req.
+fn bench_read_json_from_file_vs_http(c: &mut Criterion) {
+    let mut group = c.benchmark_group("read_json");
+
+    let file_path = get_file_path();
+    let url = URL.clone();
+
+    group.bench_function("from_file", |b| b.iter(|| fs::read_to_string(&file_path).unwrap()));
+
+    group.bench_function("from_http", |b| {
         b.iter(|| ureq::request_url("GET", &url).call().unwrap().into_string().unwrap())
     });
-
-    c.bench_function("deserialize_from_ureq", |b| b.iter(|| deserialize(&content)));
-
-    c.bench_function("process_response_from_ureq", |b| {
-        b.iter_batched(
-            || Ok(response.as_ref().unwrap().clone()),
-            |response| process_response(response).unwrap(),
-            BatchSize::SmallInput,
-        )
-    });
 }
 
-fn stepwise_from_file(c: &mut Criterion) {
-    let filename = get_filename();
-    let content = read_from_file(&filename);
-    let response = deserialize(&content);
-    let results = process_response(Ok(response.as_ref().unwrap().clone()));
+/// Benchmark deserializing a JSON response, in string form, into an [`ergast::Response`].
+fn bench_deserialize_response(c: &mut Criterion) {
+    let content = fs::read_to_string(get_file_path()).unwrap();
 
-    assert!(results.is_ok());
-
-    c.bench_function("read_from_file", |b| b.iter(|| read_from_file(&filename)));
-
-    c.bench_function("deserialize_from_file", |b| b.iter(|| deserialize(&content).unwrap()));
-
-    c.bench_function("process_response_from_file", |b| {
-        b.iter_batched(
-            || Ok(response.as_ref().unwrap().clone()),
-            |response| process_response(response).unwrap(),
-            BatchSize::SmallInput,
-        )
-    });
-}
-
-fn get_filename() -> PathBuf {
-    std::env::current_dir()
-        .unwrap()
-        .join("benches/data/response_2022_race_results.json")
-}
-
-fn read_from_file(filename: &PathBuf) -> String {
-    fs::read_to_string(filename).unwrap()
-}
-
-fn deserialize(content: &str) -> Result<Response> {
-    serde_json::from_str(content).map_err(|e| Error::ParseSerde(e))
+    c.bench_function("deserialize_response", |b| b.iter(|| serde_json::from_str::<Response>(&content).unwrap()));
 }
 
 fn process_response(response: Result<Response>) -> Result<Vec<Race<Vec<RaceResult>>>> {
@@ -100,5 +105,23 @@ fn verify_is_single_page(response: Response) -> Result<Response> {
     }
 }
 
-criterion_group!(benches, full_impl, stepwise_from_ureq, stepwise_from_file);
+/// Benchmark processing an [`ergast::Response`]...
+fn bench_process_response(c: &mut Criterion) {
+    let content = fs::read_to_string(get_file_path()).unwrap();
+    let response = serde_json::from_str::<Response>(&content).unwrap();
+
+    c.bench_function("process_response", |b| {
+        b.iter_batched(|| Ok(response.clone()), |response| process_response(response).unwrap(), BatchSize::SmallInput)
+    });
+}
+
+criterion_group!(
+    benches,
+    bench_get_race_results,
+    bench_process_ureq_response,
+    bench_read_json_from_file_vs_http,
+    bench_deserialize_response,
+    bench_process_response
+);
+
 criterion_main!(benches);

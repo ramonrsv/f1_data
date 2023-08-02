@@ -16,13 +16,13 @@ pub enum Error {
     /// Underlying HTTP error, passing through the [`ureq::Error`] from [`ureq::Request::call`].
     Http(Box<ureq::Error>),
 
-    /// Error parsing the JSON response into a serializable type from [`response`], passing through
-    /// the [`std::io::Error`] from [`ureq::Response::into_json`], presumably using `serde_json`.
-    Parse(std::io::Error),
+    /// Forwarded [`std::io::Error`] that may be returned by various underlying functions, e.g.
+    /// parsing from [`ureq::Response::into_json`], or IO from [`ureq::Response::into_string`].
+    Io(std::io::Error),
 
     /// Error parsing the JSON response into a serializable type from [`response`], passing through
     /// the [`serde_json::Error`] from [`serde_json::from_str`], or similar [`serde_json`] methods.
-    ParseSerde(serde_json::Error),
+    Parse(serde_json::Error),
 
     /// A request by a method supporting only single-page responses resulted in a multi-page one.
     MultiPage,
@@ -54,6 +54,12 @@ impl From<ureq::Error> for Error {
 
 impl From<std::io::Error> for Error {
     fn from(error: std::io::Error) -> Self {
+        Self::Io(error)
+    }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(error: serde_json::Error) -> Self {
         Self::Parse(error)
     }
 }
