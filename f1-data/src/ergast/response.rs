@@ -1,7 +1,7 @@
 use std::{convert::Infallible, str::FromStr};
 
 use enum_as_inner::EnumAsInner;
-use serde::{Deserialize, Deserializer};
+use serde::{de::DeserializeOwned, Deserialize, Deserializer};
 use serde_with::{serde_as, DisplayFromStr};
 use url::Url;
 
@@ -11,7 +11,7 @@ use crate::{
 };
 
 #[cfg(doc)]
-use crate::ergast::resource::Resource;
+use crate::ergast::{error::Error, resource::Resource};
 
 pub const GRID_PIT_LANE: u32 = 0;
 
@@ -310,7 +310,7 @@ impl Race<Schedule> {
 ///
 /// assert!(payload.as_laps().unwrap().is_empty());
 /// ```
-#[derive(Deserialize, EnumAsInner, PartialEq, Clone, Debug)]
+#[derive(EnumAsInner, PartialEq, Clone, Debug)]
 pub enum Payload {
     /// Contains a list of [`QualifyingResult`]s, and corresponds to the `"QualifyingResults"`
     /// property key in the JSON response from the Ergast API.
@@ -322,7 +322,6 @@ pub enum Payload {
 
     /// Contains a list of [`RaceResult`]s, and corresponds to the `"Results"` property key in the
     /// JSON response from the Ergast API.
-    #[serde(rename = "Results")]
     RaceResults(Vec<RaceResult>),
 
     /// Contains a list of [`Lap`]s, and corresponds to the `"Laps"` property key in the JSON
@@ -342,8 +341,48 @@ pub enum Payload {
     /// This is also a valid response from the Ergast API, e.g. for races prior to 2022, where
     /// scheduling information was limited to the date/time of the Grand Prix (race), which is
     /// already included in the [`Race`] object, as it does not depend on the `Resource` request.
-    #[serde(untagged)]
     Schedule(Schedule),
+}
+
+impl<'de> Deserialize<'de> for Payload {
+    /// Custom deserializer for [`Payload`]. It is functionally not very different from the one
+    /// provided by the [`Deserialize`] derive macro, except that, if there are any problems when
+    /// parsing one of the tagged variants - i.e. not [`Payload::Schedule`] - it will produce an
+    /// [`Err`] with a helpful message indicating what went wrong during parsing. The default
+    /// implementation would just result in [`Payload::Schedule`] with all fields set to [`None`],
+    /// which usually later manifests as a cryptic and unhelpful [`Error::BadPayloadVariant`].
+    // @todo See if this could be implemented without a custom deserializer, or if it's something
+    // that could and should be improved in serde: https://github.com/serde-rs/serde/pull/2403
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        fn from_value<'de, T, D>(value: serde_json::Value) -> Result<T, D::Error>
+        where
+            T: DeserializeOwned,
+            D: Deserializer<'de>,
+        {
+            serde_json::from_value(value).map_err(serde::de::Error::custom)
+        }
+
+        #[derive(Deserialize)]
+        enum Proxy {
+            QualifyingResults(serde_json::Value),
+            SprintResults(serde_json::Value),
+            #[serde(rename = "Results")]
+            RaceResults(serde_json::Value),
+            Laps(serde_json::Value),
+            PitStops(serde_json::Value),
+            #[serde(untagged)]
+            Schedule(Schedule),
+        }
+
+        match Proxy::deserialize(deserializer)? {
+            Proxy::QualifyingResults(value) => from_value::<_, D>(value).map(Self::QualifyingResults),
+            Proxy::SprintResults(value) => from_value::<_, D>(value).map(Self::SprintResults),
+            Proxy::RaceResults(value) => from_value::<_, D>(value).map(Self::RaceResults),
+            Proxy::Laps(value) => from_value::<_, D>(value).map(Self::Laps),
+            Proxy::PitStops(value) => from_value::<_, D>(value).map(Self::PitStops),
+            Proxy::Schedule(schedule) => Ok(Self::Schedule(schedule)),
+        }
+    }
 }
 
 #[serde_as]
@@ -732,11 +771,17 @@ impl RaceTime {
         let delta = Duration::parse(&proxy.time[usize::from(has_delta)..])?;
 
         if !has_delta && (total != delta) {
-            return Err(ParseError::InvalidRaceTime(format!("Non-delta 'time' must match 'millis': {proxy:?}")));
+            return Err(ParseError::InvalidRaceTime(format!(
+                "Non-delta 'time: {}' must match 'millis: {}'",
+                proxy.time, proxy.millis
+            )));
         }
 
         if delta > total {
-            return Err(ParseError::InvalidRaceTime(format!("Delta 'time' must be less than 'millis': {proxy:?}")));
+            return Err(ParseError::InvalidRaceTime(format!(
+                "Delta 'time: {}' must be less than 'millis: {}'",
+                proxy.time, proxy.millis
+            )));
         }
 
         if has_delta {
@@ -764,6 +809,8 @@ impl<'de> Deserialize<'de> for RaceTime {
 
 #[cfg(test)]
 mod tests {
+    use const_format::formatcp;
+
     use crate::ergast::{
         get::SessionResult,
         time::macros::{date, time},
@@ -1109,6 +1156,18 @@ mod tests {
 
     fn map_race_schedule(race: Race<Payload>) -> Race<Schedule> {
         race.map(|payload| payload.into_schedule().unwrap())
+    }
+
+    #[test]
+    fn payload_deserialize_helpful_errors() {
+        static GOOD_STR: &str = formatcp!(r#"{{"QualifyingResults": [{QUALIFYING_RESULT_2023_4_P1_STR}]}}"#);
+        static BAD_STR: &str = formatcp!(r#"{{"QualifyingResults": [{{"key": "data"}}]}}"#);
+
+        let p = serde_json::from_str::<Payload>(GOOD_STR);
+        assert_eq!(p.unwrap().as_qualifying_results().unwrap()[0], *QUALIFYING_RESULT_2023_4_P1);
+
+        let p = serde_json::from_str::<Payload>(BAD_STR);
+        assert!(p.unwrap_err().to_string().contains("missing field `number`"));
     }
 
     #[test]
