@@ -1,3 +1,4 @@
+use serde_json;
 use ureq;
 
 use crate::{
@@ -52,9 +53,10 @@ use crate::ergast::response::{Pagination, Table};
 /// ```
 pub fn get_response_page(resource: &Resource, page: Page) -> Result<Response> {
     ureq::request_url("GET", &resource.to_url_with(page))
-        .call()?
-        .into_json::<Response>()
+        .call()
         .map_err(into)
+        .map(ureq::Response::into_reader)
+        .and_then(|reader| serde_json::from_reader(reader).map_err(into))
 }
 
 /// Performs a GET request to the Ergast API for the argument specified [`Resource`] and returns a
