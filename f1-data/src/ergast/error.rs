@@ -17,7 +17,7 @@ pub enum Error {
     Http(Box<ureq::Error>),
 
     /// Forwarded [`std::io::Error`] that may be returned by various underlying functions, e.g.
-    /// parsing from [`ureq::Response::into_json`], or IO from [`ureq::Response::into_string`].
+    /// parsing from `ureq::Response::into_json`, or IO from [`ureq::Response::into_string`].
     Io(std::io::Error),
 
     /// Error parsing the JSON response into a serializable type from [`response`], passing through
