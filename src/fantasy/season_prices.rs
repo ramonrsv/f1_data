@@ -23,7 +23,7 @@ impl SeasonPrices {
     ///
     /// ```
     /// # use std::collections::HashMap;
-    /// use f1_data::{id::DriverID, fantasy::prices::SeasonPrices};
+    /// use f1_data::{id::DriverID, fantasy::season_prices::SeasonPrices};
     ///
     /// let season_prices = SeasonPrices::from_str_price_map(
     ///     &HashMap::from([("max_verstappen", vec![1.0])]),
@@ -45,7 +45,7 @@ impl SeasonPrices {
     ///
     /// ```
     /// # use std::collections::HashMap;
-    /// use f1_data::{id::ConstructorID, fantasy::prices::SeasonPrices};
+    /// use f1_data::{id::ConstructorID, fantasy::season_prices::SeasonPrices};
     ///
     /// let season_prices = SeasonPrices::from_str_price_map(
     ///     &HashMap::new(),

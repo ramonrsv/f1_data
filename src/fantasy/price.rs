@@ -1,0 +1,175 @@
+use serde::{Deserialize, Serialize};
+
+use crate::id::{ConstructorID, DriverID, RoundID};
+
+pub type Price = f32;
+
+#[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
+pub struct Season {
+    pub rounds: Vec<Round>,
+}
+
+#[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
+pub struct Round {
+    pub round: RoundID,
+    pub drivers: Vec<Driver>,
+    pub constructors: Vec<Constructor>,
+}
+
+#[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
+pub struct Driver {
+    pub driver_id: DriverID,
+    pub price: Price,
+}
+
+#[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
+pub struct Constructor {
+    pub constructor_id: ConstructorID,
+    pub price: Price,
+}
+
+#[cfg(test)]
+mod tests {
+    use const_format::formatcp;
+    use once_cell::sync::Lazy;
+
+    use super::*;
+
+    impl Driver {
+        fn new(driver_id: &str, price: Price) -> Self {
+            Self {
+                driver_id: driver_id.into(),
+                price,
+            }
+        }
+    }
+
+    impl Constructor {
+        fn new(constructor_id: &str, price: Price) -> Self {
+            Self {
+                constructor_id: constructor_id.into(),
+                price,
+            }
+        }
+    }
+
+    const DRIVER_MAX_R1_STR: &str = r#"{ driver_id: "max_verstappen", price: 26.9 }"#;
+    const DRIVER_MAX_R2_STR: &str = r#"{ driver_id: "max_verstappen", price: 27.0 }"#;
+    const DRIVER_HAM_R1_STR: &str = r#"{ driver_id: "hamilton", price: 23.7 }"#;
+    const DRIVER_HAM_R2_STR: &str = r#"{ driver_id: "hamilton", price: 23.7 }"#;
+
+    static DRIVER_MAX_R1: Lazy<Driver> = Lazy::new(|| Driver::new("max_verstappen", 26.9));
+    static DRIVER_MAX_R2: Lazy<Driver> = Lazy::new(|| Driver::new("max_verstappen", 27.0));
+    static DRIVER_HAM_R1: Lazy<Driver> = Lazy::new(|| Driver::new("hamilton", 23.7));
+    static DRIVER_HAM_R2: Lazy<Driver> = Lazy::new(|| Driver::new("hamilton", 23.7));
+
+    const CONSTRUCTOR_RED_BULL_R1_STR: &str = r#"{ constructor_id: "red_bull", price: 27.2 }"#;
+    const CONSTRUCTOR_RED_BULL_R2_STR: &str = r#"{ constructor_id: "red_bull", price: 27.3 }"#;
+    const CONSTRUCTOR_MERCEDES_R1_STR: &str = r#"{ constructor_id: "mercedes", price: 25.1 }"#;
+    const CONSTRUCTOR_MERCEDES_R2_STR: &str = r#"{ constructor_id: "mercedes", price: 25.1 }"#;
+
+    static CONSTRUCTOR_RED_BULL_R1: Lazy<Constructor> = Lazy::new(|| Constructor::new("red_bull", 27.2));
+    static CONSTRUCTOR_RED_BULL_R2: Lazy<Constructor> = Lazy::new(|| Constructor::new("red_bull", 27.3));
+    static CONSTRUCTOR_MERCEDES_R1: Lazy<Constructor> = Lazy::new(|| Constructor::new("mercedes", 25.1));
+    static CONSTRUCTOR_MERCEDES_R2: Lazy<Constructor> = Lazy::new(|| Constructor::new("mercedes", 25.1));
+
+    const ROUND_R1_STR: &str = formatcp!(
+        r#"{{
+        round: 1,
+        drivers:
+          [
+            {DRIVER_MAX_R1_STR},
+            {DRIVER_HAM_R1_STR},
+          ],
+        constructors:
+          [
+            {CONSTRUCTOR_RED_BULL_R1_STR},
+            {CONSTRUCTOR_MERCEDES_R1_STR},
+          ],
+      }}"#
+    );
+
+    const ROUND_R2_STR: &str = formatcp!(
+        r#"{{
+        round: 2,
+        drivers:
+          [
+            {DRIVER_MAX_R2_STR},
+            {DRIVER_HAM_R2_STR},
+          ],
+        constructors:
+          [
+            {CONSTRUCTOR_RED_BULL_R2_STR},
+            {CONSTRUCTOR_MERCEDES_R2_STR},
+          ],
+      }}"#
+    );
+
+    static ROUND_R1: Lazy<Round> = Lazy::new(|| Round {
+        round: 1,
+        drivers: vec![DRIVER_MAX_R1.clone(), DRIVER_HAM_R1.clone()],
+        constructors: vec![CONSTRUCTOR_RED_BULL_R1.clone(), CONSTRUCTOR_MERCEDES_R1.clone()],
+    });
+
+    static ROUND_R2: Lazy<Round> = Lazy::new(|| Round {
+        round: 2,
+        drivers: vec![DRIVER_MAX_R2.clone(), DRIVER_HAM_R2.clone()],
+        constructors: vec![CONSTRUCTOR_RED_BULL_R2.clone(), CONSTRUCTOR_MERCEDES_R2.clone()],
+    });
+
+    const SEASON_STR: &str = formatcp!(
+        r#"rounds: [
+        {ROUND_R1_STR},
+        {ROUND_R2_STR},
+      ]
+    "#
+    );
+
+    static SEASON: Lazy<Season> = Lazy::new(|| Season {
+        rounds: vec![ROUND_R1.clone(), ROUND_R2.clone()],
+    });
+
+    #[test]
+    fn season() {
+        assert_eq!(serde_yaml::from_str::<Season>(SEASON_STR).unwrap(), *SEASON);
+    }
+
+    #[test]
+    fn round() {
+        for (round_str, round) in [(ROUND_R1_STR, &ROUND_R1), (ROUND_R2_STR, &ROUND_R2)] {
+            assert_eq!(serde_yaml::from_str::<Round>(round_str).unwrap(), **round);
+        }
+    }
+
+    #[test]
+    fn driver() {
+        for (driver_str, driver) in [
+            (DRIVER_MAX_R1_STR, &DRIVER_MAX_R1),
+            (DRIVER_MAX_R2_STR, &DRIVER_MAX_R2),
+            (DRIVER_HAM_R1_STR, &DRIVER_HAM_R1),
+            (DRIVER_HAM_R2_STR, &DRIVER_HAM_R2),
+        ] {
+            assert_eq!(serde_yaml::from_str::<Driver>(driver_str).unwrap(), **driver);
+        }
+    }
+
+    #[test]
+    fn constructor() {
+        for (constructor_str, constructor) in [
+            (CONSTRUCTOR_RED_BULL_R1_STR, &CONSTRUCTOR_RED_BULL_R1),
+            (CONSTRUCTOR_RED_BULL_R2_STR, &CONSTRUCTOR_RED_BULL_R2),
+            (CONSTRUCTOR_MERCEDES_R1_STR, &CONSTRUCTOR_MERCEDES_R1),
+            (CONSTRUCTOR_MERCEDES_R2_STR, &CONSTRUCTOR_MERCEDES_R2),
+        ] {
+            assert_eq!(serde_yaml::from_str::<Constructor>(constructor_str).unwrap(), **constructor);
+        }
+    }
+
+    #[test]
+    fn serialize_deserialize() {
+        let season_str = serde_yaml::to_string(&*SEASON).unwrap();
+        let season: Season = serde_yaml::from_str(&season_str).unwrap();
+
+        assert_eq!(season, *SEASON);
+    }
+}
