@@ -76,11 +76,11 @@
 #![allow(
     missing_docs,
     rustdoc::missing_crate_level_docs,
-    clippy::cargo,
     clippy::module_name_repetitions,
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
-    clippy::doc_markdown
+    clippy::doc_markdown,
+    clippy::multiple_crate_versions
 )]
 
 // Silence unused_crate_dependencies lint for [dev-dependencies] used in /benches and /examples.
