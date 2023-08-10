@@ -31,10 +31,22 @@ fn count(name: &str, count: usize) {
     debug!("{name} count: {count}");
 }
 
+/// Call the provided function, retrying on HTTP errors, and forwarding anything else.
+fn retry_http<T>(f: impl Fn() -> Result<T>) -> Result<T> {
+    for retry_idx in 1..5 {
+        match f() {
+            Ok(value) => return Ok(value),
+            Err(Error::Http(_)) => debug!("HTTP error, retrying {retry_idx}"),
+            other => return other,
+        }
+    }
+    panic!("Retried 4 times on HTTP errors, giving up");
+}
+
 fn validate_seasons() {
     section_header("seasons");
 
-    let seasons = get_seasons(Filters::none()).unwrap();
+    let seasons = retry_http(|| get_seasons(Filters::none())).unwrap();
     count("season", seasons.len());
 
     table_header("|     | year |     url");
@@ -46,7 +58,7 @@ fn validate_seasons() {
 fn validate_drivers() {
     section_header("drivers");
 
-    let drivers = get_drivers(Filters::none()).unwrap();
+    let drivers = retry_http(|| get_drivers(Filters::none())).unwrap();
     count("driver", drivers.len());
 
     table_header("|     |     driver_id      |     given_name family_name");
@@ -58,7 +70,7 @@ fn validate_drivers() {
 fn validate_constructors() {
     section_header("constructors");
 
-    let constructors = get_constructors(Filters::none()).unwrap();
+    let constructors = retry_http(|| get_constructors(Filters::none())).unwrap();
     count("constructor", constructors.len());
 
     table_header("|     |   constructor_id   |     name");
@@ -70,7 +82,7 @@ fn validate_constructors() {
 fn validate_circuits() {
     section_header("circuits");
 
-    let circuits = get_circuits(Filters::none()).unwrap();
+    let circuits = retry_http(|| get_circuits(Filters::none())).unwrap();
     count("circuit", circuits.len());
 
     table_header("|     |     circuit_id     |     name");
@@ -82,7 +94,7 @@ fn validate_circuits() {
 fn validate_statuses() {
     section_header("statuses");
 
-    let statuses = get_statuses(Filters::none()).unwrap();
+    let statuses = retry_http(|| get_statuses(Filters::none())).unwrap();
     count("status", statuses.len());
 
     table_header("|     |  id  | count |     status");
@@ -94,12 +106,12 @@ fn validate_statuses() {
 fn validate_race_schedules() {
     section_header("race schedules");
 
-    let seasons = get_seasons(Filters::none()).unwrap();
+    let seasons = retry_http(|| get_seasons(Filters::none())).unwrap();
 
     for season in seasons {
         section_sub_header(&format!("season: {}", season.season));
 
-        let races = get_race_schedules(Filters::new().season(season.season)).unwrap();
+        let races = retry_http(|| get_race_schedules(Filters::new().season(season.season))).unwrap();
         count("race", races.len());
 
         table_header("|    | round |    date    |     name");
@@ -187,13 +199,15 @@ where
 {
     section_sub_header(&format!("granular - {} - R{}", season, round));
 
-    let pos_count = get_drivers(Filters::new().season(season).round(round))
+    let round_filters = Filters::new().season(season).round(round);
+
+    let pos_count = retry_http(|| get_drivers(round_filters.clone()))
         .unwrap()
         .iter()
         .count();
 
     for pos in 1..(pos_count as u32 + 1) {
-        let race = get_session_result::<T>(T::add_pos_filter(Filters::new().season(season).round(round), pos));
+        let race = retry_http(|| get_session_result::<T>(T::add_pos_filter(round_filters.clone(), pos)));
 
         if let Ok(race) = race {
             trace!("P{pos}: {}", race.payload.driver_id());
@@ -213,12 +227,14 @@ where
 {
     section_sub_header(&format!("granular - {}", season));
 
-    let races = get_race_schedules(Filters::new().season(season)).unwrap();
+    let races = retry_http(|| get_race_schedules(Filters::new().season(season))).unwrap();
 
     for race in races {
         section_sub_header(&format!("round: {}", race.round));
 
-        let race_res = get_session_results_for_event::<T>(Filters::new().season(race.season).round(race.round));
+        let round_filters = Filters::new().season(race.season).round(race.round);
+
+        let race_res = retry_http(|| get_session_results_for_event::<T>(round_filters.clone()));
 
         if let Ok(race_res) = race_res {
             count("result", race_res.payload.len());
@@ -237,12 +253,12 @@ where
 {
     section_header(T::name());
 
-    let seasons = get_seasons(Filters::none()).unwrap();
+    let seasons = retry_http(|| get_seasons(Filters::none())).unwrap();
 
     for season in seasons {
         section_sub_header(&format!("season: {}", season.season));
 
-        let races = get_session_results::<T>(Filters::new().season(season.season));
+        let races = retry_http(|| get_session_results::<T>(Filters::new().season(season.season)));
 
         if let Ok(races) = races {
             count("race", races.len());
