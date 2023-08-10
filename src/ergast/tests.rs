@@ -7,8 +7,9 @@ use url::Url;
 use super::response::*;
 
 use super::time::{
+    duration_m_s_ms, duration_millis, duration_s_ms,
     macros::{date, time},
-    Date, Duration,
+    Date, DateTime, QualifyingTime, RaceTime,
 };
 
 // http://ergast.com/mrd/methods/seasons/
@@ -1136,7 +1137,7 @@ pub const QUALIFYING_RESULT_2003_4_P1: Lazy<QualifyingResult> = Lazy::new(|| Qua
     position: 1,
     driver: DRIVER_MICHAEL.clone(),
     constructor: CONSTRUCTOR_FERRARI.clone(),
-    q1: Some(QualifyingTime::from_m_s_ms(1, 22, 327)),
+    q1: Some(QualifyingTime::Time(duration_m_s_ms(1, 22, 327))),
     q2: None,
     q3: None,
 });
@@ -1146,7 +1147,7 @@ pub const QUALIFYING_RESULT_2003_4_P2: Lazy<QualifyingResult> = Lazy::new(|| Qua
     position: 2,
     driver: DRIVER_RALF.clone(),
     constructor: CONSTRUCTOR_WILLIAMS.clone(),
-    q1: Some(QualifyingTime::from_m_s_ms(1, 22, 341)),
+    q1: Some(QualifyingTime::Time(duration_m_s_ms(1, 22, 341))),
     q2: None,
     q3: None,
 });
@@ -1166,9 +1167,9 @@ pub const QUALIFYING_RESULT_2023_4_P1: Lazy<QualifyingResult> = Lazy::new(|| Qua
     position: 1,
     driver: DRIVER_LECLERC.clone(),
     constructor: CONSTRUCTOR_FERRARI.clone(),
-    q1: Some(QualifyingTime::from_m_s_ms(1, 41, 269)),
-    q2: Some(QualifyingTime::from_m_s_ms(1, 41, 037)),
-    q3: Some(QualifyingTime::from_m_s_ms(1, 40, 203)),
+    q1: Some(QualifyingTime::Time(duration_m_s_ms(1, 41, 269))),
+    q2: Some(QualifyingTime::Time(duration_m_s_ms(1, 41, 037))),
+    q3: Some(QualifyingTime::Time(duration_m_s_ms(1, 40, 203))),
 });
 
 pub const QUALIFYING_RESULT_2023_4_P2: Lazy<QualifyingResult> = Lazy::new(|| QualifyingResult {
@@ -1176,9 +1177,9 @@ pub const QUALIFYING_RESULT_2023_4_P2: Lazy<QualifyingResult> = Lazy::new(|| Qua
     position: 2,
     driver: DRIVER_MAX.clone(),
     constructor: CONSTRUCTOR_RED_BULL.clone(),
-    q1: Some(QualifyingTime::from_m_s_ms(1, 41, 398)),
-    q2: Some(QualifyingTime::from_m_s_ms(1, 40, 822)),
-    q3: Some(QualifyingTime::from_m_s_ms(1, 40, 391)),
+    q1: Some(QualifyingTime::Time(duration_m_s_ms(1, 41, 398))),
+    q2: Some(QualifyingTime::Time(duration_m_s_ms(1, 40, 822))),
+    q3: Some(QualifyingTime::Time(duration_m_s_ms(1, 40, 391))),
 });
 
 pub const QUALIFYING_RESULT_2023_4_P3: Lazy<QualifyingResult> = Lazy::new(|| QualifyingResult {
@@ -1186,9 +1187,9 @@ pub const QUALIFYING_RESULT_2023_4_P3: Lazy<QualifyingResult> = Lazy::new(|| Qua
     position: 3,
     driver: DRIVER_PEREZ.clone(),
     constructor: CONSTRUCTOR_RED_BULL.clone(),
-    q1: Some(QualifyingTime::from_m_s_ms(1, 41, 756)),
-    q2: Some(QualifyingTime::from_m_s_ms(1, 41, 131)),
-    q3: Some(QualifyingTime::from_m_s_ms(1, 40, 495)),
+    q1: Some(QualifyingTime::Time(duration_m_s_ms(1, 41, 756))),
+    q2: Some(QualifyingTime::Time(duration_m_s_ms(1, 41, 131))),
+    q3: Some(QualifyingTime::Time(duration_m_s_ms(1, 40, 495))),
 });
 
 pub const RACE_2003_4_QUALIFYING_RESULTS_STR: &str = formatcp!(
@@ -1294,37 +1295,37 @@ pub const RACE_TIME_2023_4_P3_STR: &str = r#"{
     "time": "+21.217"
   }"#;
 
-pub const RACE_TIME_1950_4_P1: Lazy<RaceTime> = Lazy::new(|| RaceTime::lead(Duration::milliseconds(7373700)));
+pub const RACE_TIME_1950_4_P1: Lazy<RaceTime> = Lazy::new(|| RaceTime::lead(duration_millis(7373700)));
 
 pub const RACE_TIME_1950_4_P2: Lazy<RaceTime> =
-    Lazy::new(|| RaceTime::with_delta(Duration::milliseconds(7374100), Duration::milliseconds(400)));
+    Lazy::new(|| RaceTime::with_delta(duration_millis(7374100), duration_millis(400)));
 
-pub const RACE_TIME_2003_4_P1: Lazy<RaceTime> = Lazy::new(|| RaceTime::lead(Duration::milliseconds(5292058)));
+pub const RACE_TIME_2003_4_P1: Lazy<RaceTime> = Lazy::new(|| RaceTime::lead(duration_millis(5292058)));
 
 pub const RACE_TIME_2003_4_P2: Lazy<RaceTime> =
-    Lazy::new(|| RaceTime::with_delta(Duration::milliseconds(5293940), Duration::from_m_s_ms(0, 1, 882)));
+    Lazy::new(|| RaceTime::with_delta(duration_millis(5293940), duration_s_ms(1, 882)));
 
 pub const RACE_TIME_2003_4_P3: Lazy<RaceTime> =
-    Lazy::new(|| RaceTime::with_delta(Duration::milliseconds(5294349), Duration::from_m_s_ms(0, 2, 291)));
+    Lazy::new(|| RaceTime::with_delta(duration_millis(5294349), duration_s_ms(2, 291)));
 
-pub const RACE_TIME_2021_12_P1: Lazy<RaceTime> = Lazy::new(|| RaceTime::lead(Duration::milliseconds(207071)));
+pub const RACE_TIME_2021_12_P1: Lazy<RaceTime> = Lazy::new(|| RaceTime::lead(duration_millis(207071)));
 
 pub const RACE_TIME_2021_12_P2: Lazy<RaceTime> =
-    Lazy::new(|| RaceTime::with_delta(Duration::milliseconds(209066), Duration::from_m_s_ms(0, 1, 995)));
+    Lazy::new(|| RaceTime::with_delta(duration_millis(209066), duration_s_ms(1, 995)));
 
 pub const RACE_TIME_2021_12_P3: Lazy<RaceTime> =
-    Lazy::new(|| RaceTime::with_delta(Duration::milliseconds(209672), Duration::from_m_s_ms(0, 2, 601)));
+    Lazy::new(|| RaceTime::with_delta(duration_millis(209672), duration_s_ms(2, 601)));
 
 pub const RACE_TIME_2021_12_P10: Lazy<RaceTime> =
-    Lazy::new(|| RaceTime::with_delta(Duration::milliseconds(223237), Duration::from_m_s_ms(0, 16, 166)));
+    Lazy::new(|| RaceTime::with_delta(duration_millis(223237), duration_s_ms(16, 166)));
 
-pub const RACE_TIME_2023_4_P1: Lazy<RaceTime> = Lazy::new(|| RaceTime::lead(Duration::milliseconds(5562436)));
+pub const RACE_TIME_2023_4_P1: Lazy<RaceTime> = Lazy::new(|| RaceTime::lead(duration_millis(5562436)));
 
 pub const RACE_TIME_2023_4_P2: Lazy<RaceTime> =
-    Lazy::new(|| RaceTime::with_delta(Duration::milliseconds(5564573), Duration::from_m_s_ms(0, 2, 137)));
+    Lazy::new(|| RaceTime::with_delta(duration_millis(5564573), duration_s_ms(2, 137)));
 
 pub const RACE_TIME_2023_4_P3: Lazy<RaceTime> =
-    Lazy::new(|| RaceTime::with_delta(Duration::milliseconds(5583653), Duration::from_m_s_ms(0, 21, 217)));
+    Lazy::new(|| RaceTime::with_delta(duration_millis(5583653), duration_s_ms(21, 217)));
 
 pub static RACE_TIMES_1950_4_STR: Lazy<Vec<&str>> =
     Lazy::new(|| vec![RACE_TIME_1950_4_P1_STR, RACE_TIME_1950_4_P2_STR]);
@@ -1443,11 +1444,11 @@ pub const SPRINT_RESULT_2023_4_P1: Lazy<SprintResult> = Lazy::new(|| SprintResul
     grid: 2,
     laps: 17,
     status: "Finished".to_string(),
-    time: Some(RaceTime::lead(Duration::milliseconds(1997667))),
+    time: Some(RaceTime::lead(duration_millis(1997667))),
     fastest_lap: Some(FastestLap {
         rank: None,
         lap: 11,
-        time: LapTime::from_m_s_ms(1, 43, 616),
+        time: duration_m_s_ms(1, 43, 616),
         average_speed: None,
     }),
 });
@@ -1462,11 +1463,11 @@ pub const SPRINT_RESULT_2023_4_P3: Lazy<SprintResult> = Lazy::new(|| SprintResul
     grid: 3,
     laps: 17,
     status: "Finished".to_string(),
-    time: Some(RaceTime::with_delta(Duration::milliseconds(2002732), Duration::from_m_s_ms(0, 5, 65))),
+    time: Some(RaceTime::with_delta(duration_millis(2002732), duration_m_s_ms(0, 5, 65))),
     fastest_lap: Some(FastestLap {
         rank: None,
         lap: 10,
-        time: LapTime::from_m_s_ms(1, 43, 723),
+        time: duration_m_s_ms(1, 43, 723),
         average_speed: None,
     }),
 });
@@ -1785,7 +1786,7 @@ pub const RACE_RESULT_2023_4_P1: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     fastest_lap: Some(FastestLap {
         rank: Some(5),
         lap: 50,
-        time: LapTime::from_m_s_ms(1, 44, 589),
+        time: duration_m_s_ms(1, 44, 589),
         average_speed: Some(AverageSpeed {
             units: SpeedUnits::Kph,
             speed: 206.625,
@@ -1807,7 +1808,7 @@ pub const RACE_RESULT_2023_4_P2: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     fastest_lap: Some(FastestLap {
         rank: Some(2),
         lap: 51,
-        time: LapTime::from_m_s_ms(1, 44, 232),
+        time: duration_m_s_ms(1, 44, 232),
         average_speed: Some(AverageSpeed {
             units: SpeedUnits::Kph,
             speed: 207.333,
@@ -1829,7 +1830,7 @@ pub const RACE_RESULT_2023_4_P20: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     fastest_lap: Some(FastestLap {
         rank: Some(20),
         lap: 4,
-        time: LapTime::from_m_s_ms(1, 48, 781),
+        time: duration_m_s_ms(1, 48, 781),
         average_speed: Some(AverageSpeed {
             units: SpeedUnits::Kph,
             speed: 198.663,
@@ -2017,25 +2018,25 @@ pub const TIMING_2023_4_L2_P2_STR: &str = formatcp!(
 pub const TIMING_2023_4_L1_P1: Lazy<Timing> = Lazy::new(|| Timing {
     driver_id: "leclerc".into(),
     position: 1,
-    time: Duration::from_m_s_ms(1, 50, 109),
+    time: duration_m_s_ms(1, 50, 109),
 });
 
 pub const TIMING_2023_4_L1_P2: Lazy<Timing> = Lazy::new(|| Timing {
     driver_id: "max_verstappen".into(),
     position: 2,
-    time: Duration::from_m_s_ms(1, 50, 456),
+    time: duration_m_s_ms(1, 50, 456),
 });
 
 pub const TIMING_2023_4_L2_P1: Lazy<Timing> = Lazy::new(|| Timing {
     driver_id: "leclerc".into(),
     position: 1,
-    time: Duration::from_m_s_ms(1, 47, 656),
+    time: duration_m_s_ms(1, 47, 656),
 });
 
 pub const TIMING_2023_4_L2_P2: Lazy<Timing> = Lazy::new(|| Timing {
     driver_id: "max_verstappen".into(),
     position: 2,
-    time: Duration::from_m_s_ms(1, 47, 707),
+    time: duration_m_s_ms(1, 47, 707),
 });
 
 pub const LAP_2023_4_L1_STR: &str = formatcp!(
@@ -2110,14 +2111,14 @@ pub const PIT_STOP_2023_4_L10_MAX: Lazy<PitStop> = Lazy::new(|| PitStop {
     driver_id: "max_verstappen".into(),
     lap: 10,
     stop: 1,
-    duration: Duration::from_m_s_ms(0, 20, 707),
+    duration: duration_m_s_ms(0, 20, 707),
 });
 
 pub const PIT_STOP_2023_4_L11_LECLERC: Lazy<PitStop> = Lazy::new(|| PitStop {
     driver_id: "leclerc".into(),
     lap: 11,
     stop: 1,
-    duration: Duration::from_m_s_ms(0, 21, 126),
+    duration: duration_m_s_ms(0, 21, 126),
 });
 
 pub const RACE_2023_4_PIT_STOPS_STR: &str = formatcp!(

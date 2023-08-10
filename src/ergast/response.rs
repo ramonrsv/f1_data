@@ -1,4 +1,4 @@
-use std::{convert::Infallible, str::FromStr};
+use std::convert::Infallible;
 
 use enum_as_inner::EnumAsInner;
 use serde::{de::DeserializeOwned, Deserialize, Deserializer};
@@ -6,7 +6,9 @@ use serde_with::{serde_as, DisplayFromStr};
 use url::Url;
 
 use crate::{
-    ergast::time::{Date, Duration, ParseError, Time},
+    ergast::time::{
+        deserialize_duration, deserialize_optional_time, Date, DateTime, Duration, QualifyingTime, RaceTime, Time,
+    },
     id::{CircuitID, ConstructorID, DriverID, RoundID, SeasonID, StatusID},
 };
 
@@ -206,6 +208,7 @@ pub struct Race<T = Payload> {
     #[serde(rename = "Circuit")]
     pub circuit: Circuit,
     pub date: Date,
+    #[serde(default, deserialize_with = "deserialize_optional_time")]
     pub time: Option<Time>,
     #[serde(flatten)]
     pub payload: T,
@@ -397,13 +400,10 @@ pub struct QualifyingResult {
     #[serde(rename = "Constructor")]
     pub constructor: Constructor,
     #[serde(rename = "Q1")]
-    #[serde_as(as = "Option<DisplayFromStr>")]
     pub q1: Option<QualifyingTime>,
     #[serde(rename = "Q2")]
-    #[serde_as(as = "Option<DisplayFromStr>")]
     pub q2: Option<QualifyingTime>,
     #[serde(rename = "Q3")]
-    #[serde_as(as = "Option<DisplayFromStr>")]
     pub q3: Option<QualifyingTime>,
 }
 
@@ -589,7 +589,8 @@ pub struct Timing {
     pub driver_id: DriverID,
     #[serde_as(as = "DisplayFromStr")]
     pub position: u32,
-    pub time: LapTime,
+    #[serde(deserialize_with = "deserialize_duration")]
+    pub time: Duration,
 }
 
 #[serde_as]
@@ -603,6 +604,7 @@ pub struct PitStop {
     pub stop: u32,
     // @todo I don't quite understand what this field is supposed to be
     //pub time, "time"
+    #[serde(deserialize_with = "deserialize_duration")]
     pub duration: Duration,
 }
 
@@ -628,12 +630,6 @@ pub struct Location {
     pub country: String,
 }
 
-#[derive(Deserialize, PartialEq, Eq, Clone, Copy, Debug)]
-pub struct DateTime {
-    pub date: Date,
-    pub time: Option<Time>,
-}
-
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Copy, Debug)]
 pub struct FastestLap {
@@ -641,16 +637,17 @@ pub struct FastestLap {
     pub rank: Option<u32>,
     #[serde_as(as = "DisplayFromStr")]
     pub lap: u32,
-    #[serde(rename = "Time", deserialize_with = "extract_nested_lap_time")]
-    pub time: LapTime,
+    #[serde(rename = "Time", deserialize_with = "extract_nested_time")]
+    pub time: Duration,
     #[serde(rename = "AverageSpeed")]
     pub average_speed: Option<AverageSpeed>,
 }
 
-fn extract_nested_lap_time<'de, D: Deserializer<'de>>(deserializer: D) -> Result<LapTime, D::Error> {
+fn extract_nested_time<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Duration, D::Error> {
     #[derive(Deserialize)]
     struct Time {
-        time: LapTime,
+        #[serde(deserialize_with = "deserialize_duration")]
+        time: Duration,
     }
     Ok(Time::deserialize(deserializer)?.time)
 }
@@ -669,152 +666,11 @@ pub enum SpeedUnits {
     Kph,
 }
 
-pub type LapTime = Duration;
-
-#[derive(PartialEq, Eq, Clone, Copy, Debug)]
-pub enum QualifyingTime {
-    Time(LapTime),
-    NoTimeSet,
-}
-
-impl QualifyingTime {
-    pub fn from_m_s_ms(minutes: i64, seconds: i64, milliseconds: i64) -> Self {
-        Self::Time(LapTime::from_m_s_ms(minutes, seconds, milliseconds))
-    }
-
-    pub fn parse(t_str: &str) -> Result<Self, ParseError> {
-        if t_str.is_empty() {
-            Ok(Self::NoTimeSet)
-        } else {
-            LapTime::parse(t_str).map(QualifyingTime::Time)
-        }
-    }
-
-    pub fn has_time(&self) -> bool {
-        matches!(self, Self::Time(_))
-    }
-
-    pub fn no_time_set(&self) -> bool {
-        matches!(self, Self::NoTimeSet)
-    }
-
-    pub fn time(&self) -> &LapTime {
-        match &self {
-            Self::Time(time) => time,
-            Self::NoTimeSet => panic!("Cannot get time of NoTimeSet"),
-        }
-    }
-}
-
-impl From<LapTime> for QualifyingTime {
-    fn from(lap_time: LapTime) -> Self {
-        Self::Time(lap_time)
-    }
-}
-
-impl FromStr for QualifyingTime {
-    type Err = ParseError;
-
-    fn from_str(t_str: &str) -> Result<Self, Self::Err> {
-        Self::parse(t_str)
-    }
-}
-
-#[serde_as]
-#[derive(Deserialize, Debug)]
-struct RaceTimeProxy {
-    #[serde_as(as = "DisplayFromStr")]
-    millis: u32,
-    time: String,
-}
-
-#[derive(PartialEq, Eq, Clone, Copy, Debug)]
-pub struct RaceTime {
-    total: Duration,
-    delta: Duration,
-}
-
-impl RaceTime {
-    pub fn lead(total: Duration) -> Self {
-        Self {
-            total,
-            delta: Duration::ZERO,
-        }
-    }
-
-    pub fn with_delta(total: Duration, delta: Duration) -> Self {
-        assert!(delta < total);
-
-        Self { total, delta }
-    }
-
-    pub fn is_lead(&self) -> bool {
-        self.delta == Duration::ZERO
-    }
-
-    pub fn total(&self) -> &Duration {
-        &self.total
-    }
-
-    pub fn delta(&self) -> &Duration {
-        &self.delta
-    }
-
-    fn parse_from_proxy(proxy: &RaceTimeProxy) -> Result<Self, ParseError> {
-        if proxy.time.is_empty() {
-            return Err(ParseError::InvalidRaceTime("Unexpected empty 'time'".to_string()));
-        }
-
-        let has_delta = proxy.time.starts_with('+');
-
-        let total = Duration::milliseconds(i64::from(proxy.millis));
-        let delta = Duration::parse(&proxy.time[usize::from(has_delta)..])?;
-
-        if !has_delta && (total != delta) {
-            return Err(ParseError::InvalidRaceTime(format!(
-                "Non-delta 'time: {}' must match 'millis: {}'",
-                proxy.time, proxy.millis
-            )));
-        }
-
-        if delta > total {
-            return Err(ParseError::InvalidRaceTime(format!(
-                "Delta 'time: {}' must be less than 'millis: {}'",
-                proxy.time, proxy.millis
-            )));
-        }
-
-        if has_delta {
-            Ok(Self::with_delta(total, delta))
-        } else {
-            Ok(Self::lead(total))
-        }
-    }
-}
-
-impl TryFrom<RaceTimeProxy> for RaceTime {
-    type Error = ParseError;
-
-    fn try_from(proxy: RaceTimeProxy) -> Result<Self, Self::Error> {
-        Self::parse_from_proxy(&proxy)
-    }
-}
-
-impl<'de> Deserialize<'de> for RaceTime {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        Self::parse_from_proxy(&RaceTimeProxy::deserialize(deserializer)?)
-            .map_err(|err| serde::de::Error::custom(err.to_string()))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use const_format::formatcp;
 
-    use crate::ergast::{
-        get::SessionResult,
-        time::macros::{date, time},
-    };
+    use crate::ergast::get::SessionResult;
 
     use super::*;
     use crate::ergast::tests::*;
@@ -1260,181 +1116,5 @@ mod tests {
         assert_eq!(pos, 10);
 
         assert!(serde_json::from_str::<Position>("\"unknown\"").is_err());
-    }
-
-    #[test]
-    fn date_time() {
-        let dt: DateTime = serde_json::from_str(
-            r#"{
-            "date": "2021-08-27"}"#,
-        )
-        .unwrap();
-
-        assert_eq!(dt.date, date!(2021 - 08 - 27));
-        assert!(dt.time.is_none());
-
-        let dt: DateTime = serde_json::from_str(
-            r#"{
-            "date": "2022-04-22",
-            "time": "11:30:00Z"}"#,
-        )
-        .unwrap();
-
-        assert_eq!(dt.date, date!(2022 - 04 - 22));
-        assert!(dt.time.is_some());
-        assert_eq!(dt.time.unwrap(), time!(11:30:00));
-    }
-
-    #[test]
-    fn qualifying_time_from_lap_time() {
-        let quali = QualifyingTime::from(LapTime::from_m_s_ms(1, 23, 456));
-
-        assert!(matches!(quali, QualifyingTime::Time(_)));
-        assert!(quali.has_time());
-        assert!(!quali.no_time_set());
-
-        let cloned_lap_time = quali.time().clone();
-
-        if let QualifyingTime::Time(lap_time) = quali {
-            assert_eq!(lap_time, cloned_lap_time);
-            assert_eq!(lap_time, LapTime::from_m_s_ms(1, 23, 456));
-        }
-    }
-
-    #[test]
-    fn qualifying_time_parse() {
-        {
-            let quali = QualifyingTime::parse("1:23.456").unwrap();
-            assert!(quali.has_time());
-            assert!(!quali.no_time_set());
-            assert_eq!(quali.time(), &LapTime::from_m_s_ms(1, 23, 456));
-        }
-
-        {
-            let quali = QualifyingTime::parse("").unwrap();
-            assert!(!quali.has_time());
-            assert!(quali.no_time_set());
-            assert!(matches!(quali, QualifyingTime::NoTimeSet));
-        }
-    }
-
-    #[test]
-    fn qualifying_time_parse_err() {
-        assert!(QualifyingTime::parse("1").is_err());
-    }
-
-    #[test]
-    #[should_panic]
-    fn qualifying_time_time_panics() {
-        let quali = QualifyingTime::NoTimeSet;
-
-        assert!(matches!(quali, QualifyingTime::NoTimeSet));
-        assert!(!quali.has_time());
-        assert!(quali.no_time_set());
-
-        let _ = quali.time();
-    }
-
-    #[test]
-    fn race_time_construction() {
-        let p1 = RaceTime::lead(Duration::milliseconds(5562436));
-        assert!(p1.is_lead());
-        assert_eq!(p1.total(), &Duration::from_hms_ms(1, 32, 42, 436));
-        assert_eq!(p1.delta(), &Duration::ZERO);
-
-        let p2 = RaceTime::with_delta(Duration::milliseconds(5564573), Duration::from_m_s_ms(0, 2, 137));
-        assert!(!p2.is_lead());
-        assert_eq!(p2.total(), &Duration::from_hms_ms(1, 32, 42 + 2, 436 + 137));
-        assert_eq!(p2.delta(), &Duration::from_m_s_ms(0, 2, 137));
-
-        assert_eq!(p2.total().clone() - p1.total().clone(), p2.delta().clone());
-
-        assert_eq!(p1, *RACE_TIME_2023_4_P1);
-        assert_eq!(p2, *RACE_TIME_2023_4_P2);
-    }
-
-    #[test]
-    fn race_time_parse_from_proxy() {
-        let proxy_race_time_pairs = vec![
-            (
-                RaceTimeProxy {
-                    millis: 7373700,
-                    time: "2:02:53.7".to_string(),
-                },
-                RACE_TIME_1950_4_P1.clone(),
-            ),
-            (
-                RaceTimeProxy {
-                    millis: 7374100,
-                    time: "+0.4".to_string(),
-                },
-                RACE_TIME_1950_4_P2.clone(),
-            ),
-            (
-                RaceTimeProxy {
-                    millis: 5562436,
-                    time: "1:32:42.436".to_string(),
-                },
-                RACE_TIME_2023_4_P1.clone(),
-            ),
-            (
-                RaceTimeProxy {
-                    millis: 5564573,
-                    time: "+2.137".to_string(),
-                },
-                RACE_TIME_2023_4_P2.clone(),
-            ),
-        ];
-
-        for (proxy, race_time) in proxy_race_time_pairs.iter() {
-            assert_eq!(RaceTime::parse_from_proxy(&proxy).unwrap(), race_time.clone());
-        }
-    }
-
-    #[test]
-    fn race_time_deserialize() {
-        let deserialize_and_assert_eq = |race_time_strings: &[&str], race_times: &[RaceTime]| {
-            let deserialized_race_times: Vec<_> = race_time_strings
-                .iter()
-                .map(|race_time_str| serde_json::from_str::<RaceTime>(race_time_str).unwrap())
-                .collect();
-
-            assert!(!deserialized_race_times.is_empty());
-            assert_eq!(deserialized_race_times.len(), race_times.len());
-
-            for (des_race_time, ref_race_time) in deserialized_race_times.iter().zip(race_times.iter()) {
-                assert_eq!(des_race_time, ref_race_time);
-            }
-        };
-
-        deserialize_and_assert_eq(&RACE_TIMES_1950_4_STR[..], &RACE_TIMES_1950_4[..]);
-        deserialize_and_assert_eq(&RACE_TIMES_2003_4_STR[..], &RACE_TIMES_2003_4[..]);
-        deserialize_and_assert_eq(&RACE_TIMES_2021_12_STR[..], &RACE_TIMES_2021_12[..]);
-        deserialize_and_assert_eq(&RACE_TIMES_2023_4_STR[..], &RACE_TIMES_2023_4[..]);
-    }
-
-    #[test]
-    fn race_time_validate_assets() {
-        let validate_race_times = |race_times: &[RaceTime]| {
-            assert!(race_times.len() >= 2);
-
-            let lead = race_times.first().unwrap();
-            let others = &race_times[1..];
-
-            assert!(lead.is_lead());
-            assert_eq!(lead.delta(), &Duration::ZERO);
-
-            for other in others.iter() {
-                assert!(!other.is_lead());
-                assert!(other.delta() > &Duration::ZERO);
-                assert!(other.total().clone() > lead.total().clone());
-                assert_eq!(other.total().clone() - lead.total().clone(), other.delta().clone());
-            }
-        };
-
-        validate_race_times(&RACE_TIMES_1950_4[..]);
-        validate_race_times(&RACE_TIMES_2003_4[..]);
-        validate_race_times(&RACE_TIMES_2021_12[..]);
-        validate_race_times(&RACE_TIMES_2023_4[..]);
     }
 }

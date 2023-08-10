@@ -6,9 +6,10 @@ use crate::{
         error::{Error, Result},
         resource::{Filters, LapTimeFilters, Page, PitStopFilters, Resource},
         response::{
-            Circuit, Constructor, Driver, Lap, LapTime, Payload, PitStop, QualifyingResult, Race, RaceResult, Response,
+            Circuit, Constructor, Driver, Lap, Payload, PitStop, QualifyingResult, Race, RaceResult, Response,
             Schedule, Season, SprintResult, Status, Timing,
         },
+        time::Duration,
     },
     id::{CircuitID, ConstructorID, DriverID, RaceID, SeasonID},
 };
@@ -680,7 +681,7 @@ pub struct DriverLap {
     /// Directly maps to [`Timing::position`] for a given driver's [`Timing`] in a given [`Lap`].
     pub position: u32,
     /// Directly maps to [`Timing::time`] for a given driver's [`Timing`] in a given [`Lap`].
-    pub time: LapTime,
+    pub time: Duration,
 }
 
 impl DriverLap {
@@ -714,12 +715,12 @@ impl DriverLap {
 ///
 /// ```no_run
 /// use f1_data::id::{DriverID, RaceID};
-/// use f1_data::ergast::{get::get_driver_laps, time::Duration};
+/// use f1_data::ergast::{get::get_driver_laps, time::duration_m_s_ms};
 ///
 /// let laps = get_driver_laps(RaceID::from(2023, 4), &DriverID::from("leclerc")).unwrap();
 /// assert_eq!(laps.len(), 51);
 /// assert_eq!(laps[0].number, 1);
-/// assert_eq!(laps[0].time, Duration::from_m_s_ms(1, 50, 109));
+/// assert_eq!(laps[0].time, duration_m_s_ms(1, 50, 109));
 ///
 /// assert_eq!(laps[0].position, 1);
 /// assert_eq!(laps[2].position, 2)
@@ -747,13 +748,13 @@ pub fn get_driver_laps(race_id: RaceID, driver_id: &DriverID) -> Result<Vec<Driv
 ///
 /// ```no_run
 /// use f1_data::id::{DriverID, RaceID};
-/// use f1_data::ergast::{get::get_lap_timings, time::Duration};
+/// use f1_data::ergast::{get::get_lap_timings, time::duration_m_s_ms};
 ///
 /// let timings = get_lap_timings(RaceID::from(2023, 4), 1).unwrap();
 /// assert_eq!(timings.len(), 20);
 /// assert_eq!(timings[0].driver_id, DriverID::from("leclerc"));
 /// assert_eq!(timings[0].position, 1);
-/// assert_eq!(timings[0].time, Duration::from_m_s_ms(1, 50, 109));
+/// assert_eq!(timings[0].time, duration_m_s_ms(1, 50, 109));
 /// ```
 pub fn get_lap_timings(race_id: RaceID, lap: u32) -> Result<Vec<Timing>> {
     get_response_max_limit(&Resource::LapTimes(LapTimeFilters {
@@ -779,7 +780,11 @@ pub fn get_lap_timings(race_id: RaceID, lap: u32) -> Result<Vec<Timing>> {
 ///
 /// ```no_run
 /// use f1_data::id::DriverID;
-/// use f1_data::ergast::{get::get_pit_stops, resource::PitStopFilters, time::Duration, response::PitStop};
+/// use f1_data::ergast::{
+///     get::get_pit_stops,
+///     resource::PitStopFilters,
+///     time::duration_m_s_ms,
+///     response::PitStop};
 ///
 /// let pit_stops = get_pit_stops(PitStopFilters::new(2023, 4)).unwrap();
 /// assert_eq!(pit_stops.len(), 23);
@@ -789,7 +794,7 @@ pub fn get_lap_timings(race_id: RaceID, lap: u32) -> Result<Vec<Timing>> {
 ///         driver_id: DriverID::from("gasly"),
 ///         lap: 5,
 ///         stop: 1,
-///         duration: Duration::from_m_s_ms(0, 20, 235)
+///         duration: duration_m_s_ms(0, 20, 235)
 ///     }
 /// );
 /// ```
