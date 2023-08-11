@@ -145,7 +145,7 @@ pub enum Resource {
 
     /// Get pit stops data for a given race.
     ///
-    /// **Note:** Pit stop data is available from the 2012 season onwards.
+    /// **Note:** Pit stop data is available from the 2011 season onwards.
     ///
     /// Directly maps to <http://ergast.com/mrd/methods/pitstops/>
     PitStops(PitStopFilters),
