@@ -1,5 +1,3 @@
-use std::f32::consts::E;
-
 use log::{debug, error, info, trace};
 
 use f1_data::{
