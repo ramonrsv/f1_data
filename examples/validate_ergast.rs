@@ -6,10 +6,11 @@ use f1_data::{
     ergast::{
         error::{Error, Result},
         get::{
-            self, get_circuits, get_constructors, get_driver_laps, get_drivers, get_lap_timings, get_race_schedules,
-            get_seasons, get_session_result, get_session_results, get_session_results_for_event, get_statuses,
+            self, get_circuits, get_constructors, get_driver_laps, get_drivers, get_lap_timings, get_pit_stops,
+            get_race_schedules, get_seasons, get_session_result, get_session_results, get_session_results_for_event,
+            get_statuses,
         },
-        resource::Filters,
+        resource::{Filters, PitStopFilters},
         response::{QualifyingResult, RaceResult, SprintResult},
     },
     id::{RaceID, RoundID, SeasonID},
@@ -23,10 +24,14 @@ fn section_sub_header(name: &str) {
     debug!("-- {} --", name);
 }
 
+fn section_div_line() {
+    trace!("――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――");
+}
+
 fn table_header(sections: &str) {
-    trace!("――――――――――――――――――――――――――――――――――――――――――――――――――");
+    section_div_line();
     trace!("{sections}");
-    trace!("――――――――――――――――――――――――――――――――――――――――――――――――――");
+    section_div_line();
 }
 
 fn count(name: &str, count: usize) {
@@ -270,7 +275,7 @@ where
             count("race", races.len());
 
             for (idx, race) in races.iter().enumerate() {
-                trace!("――――――――――――――――――――――――――――――――――――――――――――――――――");
+                section_div_line();
                 debug!("[{idx:2}] round {:2}, result count: {:2}", race.round, race.payload.len());
 
                 table_header("|    | pos |     driver");
@@ -310,7 +315,7 @@ fn validate_driver_laps() {
 
             let drivers = retry_http(|| get_drivers(round_filters.clone())).unwrap();
 
-            trace!("――――――――――――――――――――――――――――――――――――――――――――――――――");
+            section_div_line();
             debug!("[{race_idx:2}] round {:2}, driver count: {:2}", race.round, drivers.len());
 
             let mut some_laps_found = false;
@@ -334,7 +339,7 @@ fn validate_driver_laps() {
                     continue 'driver_loop;
                 };
 
-                trace!("――――――――――――――――――――――――――――――――――――――――――――――――――");
+                section_div_line();
                 trace!("[{driver_idx:2}] driver: {:20} lap count: {:2}", driver.driver_id, laps.len());
 
                 table_header("|    | lap | pos |     time");
@@ -372,7 +377,7 @@ fn validate_lap_timings() {
         for (race_idx, race) in races.iter().enumerate() {
             let race_id = RaceID::from(race.season, race.round);
 
-            trace!("――――――――――――――――――――――――――――――――――――――――――――――――――");
+            section_div_line();
             debug!("[{race_idx:2}] round {:2}", race.round);
 
             'lap_loop: for lap in 1..1000 {
@@ -393,13 +398,63 @@ fn validate_lap_timings() {
                     continue 'lap_loop;
                 };
 
-                trace!("――――――――――――――――――――――――――――――――――――――――――――――――――");
+                section_div_line();
                 trace!("lap: {lap:2}, timing count: {:2}", lap_timings.len());
 
                 table_header("|    | pos |        driver        |     time");
                 for (idx, timing) in lap_timings.iter().enumerate() {
                     trace!("[{idx:2}]   {:2}    {:20}   {}", timing.position, timing.driver_id, timing.time);
                 }
+            }
+        }
+    }
+}
+
+fn validate_pit_stops() {
+    section_header("pit stops");
+
+    let seasons = retry_http(|| get_seasons(Filters::none())).unwrap();
+
+    'season_loop: for season in seasons {
+        // We know that Resource::LapTimes are not available prior to 2011, so skip those seasons.
+        // Still check 2010 to validate handling of NotFound errors, etc.
+        if season.season < 2010 {
+            continue 'season_loop;
+        }
+
+        section_sub_header(&format!("season: {}", season.season));
+
+        let races = retry_http(|| get_race_schedules(Filters::new().season(season.season))).unwrap();
+        count("race", races.len());
+
+        'race_loop: for (race_idx, race) in races.iter().enumerate() {
+            section_div_line();
+            debug!("[{race_idx:2}] round {:2}", race.round);
+
+            let pit_stops = retry_http(|| get_pit_stops(PitStopFilters::new(race.season, race.round)));
+
+            let pit_stops = if let Ok(pit_stops) = pit_stops {
+                pit_stops
+            }
+            // Stop loop once we find the first lap for which there are no lap timings.
+            else if let Err(Error::NotFound) = pit_stops {
+                debug!(">> No pit stops found");
+                continue 'race_loop;
+            } else {
+                error!("{}, R{} - get_pit_stops failed", race.season, race.round);
+                log_error(pit_stops);
+                continue 'race_loop;
+            };
+
+            table_header("|    | lap | stop |       driver        |     duration");
+            for (idx, pit_stop) in pit_stops.iter().enumerate() {
+                trace!(
+                    "[{idx:2}]   {:2}     {:2}    {:20}  {}",
+                    pit_stop.lap,
+                    pit_stop.stop,
+                    pit_stop.driver_id,
+                    pit_stop.duration
+                );
             }
         }
     }
@@ -422,4 +477,5 @@ fn main() {
 
     validate_driver_laps();
     validate_lap_timings();
+    validate_pit_stops();
 }
