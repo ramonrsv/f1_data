@@ -1,11 +1,13 @@
+use std::f32::consts::E;
+
 use log::{debug, error, info, trace};
 
 use f1_data::{
     ergast::{
         error::{Error, Result},
         get::{
-            self, get_circuits, get_constructors, get_driver_laps, get_drivers, get_race_schedules, get_seasons,
-            get_session_result, get_session_results, get_session_results_for_event, get_statuses,
+            self, get_circuits, get_constructors, get_driver_laps, get_drivers, get_lap_timings, get_race_schedules,
+            get_seasons, get_session_result, get_session_results, get_session_results_for_event, get_statuses,
         },
         resource::Filters,
         response::{QualifyingResult, RaceResult, SprintResult},
@@ -291,9 +293,9 @@ fn validate_driver_laps() {
     let seasons = retry_http(|| get_seasons(Filters::none())).unwrap();
 
     'season_loop: for season in seasons {
-        // We know that Resource::LapTimes are not available prior to 1996, so skip those seasons
-        // since it takes forever to request every driver for every race of a bunch of seasons.
-        if season.season < 1996 {
+        // We know that Resource::LapTimes are not available prior to 1996, so skip those seasons.
+        // Still check 1995 to validate handling of NotFound errors, etc.
+        if season.season < 1995 {
             continue 'season_loop;
         }
 
@@ -304,6 +306,7 @@ fn validate_driver_laps() {
 
         for (race_idx, race) in races.iter().enumerate() {
             let round_filters = Filters::new().season(race.season).round(race.round);
+            let race_id = RaceID::from(race.season, race.round);
 
             let drivers = retry_http(|| get_drivers(round_filters.clone())).unwrap();
 
@@ -314,8 +317,6 @@ fn validate_driver_laps() {
             let mut max_lap_count = 0;
 
             'driver_loop: for (driver_idx, driver) in drivers.iter().enumerate() {
-                let race_id = RaceID::from(race.season, race.round);
-
                 let laps = retry_http(|| get_driver_laps(race_id, &driver.driver_id));
 
                 let laps = if let Ok(laps) = laps {
@@ -323,7 +324,7 @@ fn validate_driver_laps() {
                     max_lap_count = std::cmp::max(max_lap_count, laps.len());
                     laps
                 }
-                // We ignore NotFound errors because those are valid for seasons, prior to 1996,
+                // We ignore NotFound errors because those are valid for seasons prior to 1996,
                 // where Resource::LapTimes were not available; an overall message is still logged.
                 else if let Err(Error::NotFound) = laps {
                     continue 'driver_loop;
@@ -351,6 +352,59 @@ fn validate_driver_laps() {
     }
 }
 
+fn validate_lap_timings() {
+    section_header("lap timings");
+
+    let seasons = retry_http(|| get_seasons(Filters::none())).unwrap();
+
+    'season_loop: for season in seasons {
+        // We know that Resource::LapTimes are not available prior to 1996, so skip those seasons.
+        // Still check 1995 to validate handling of NotFound errors, etc.
+        if season.season < 1995 {
+            continue 'season_loop;
+        }
+
+        section_sub_header(&format!("season: {}", season.season));
+
+        let races = retry_http(|| get_race_schedules(Filters::new().season(season.season))).unwrap();
+        count("race", races.len());
+
+        for (race_idx, race) in races.iter().enumerate() {
+            let race_id = RaceID::from(race.season, race.round);
+
+            trace!("――――――――――――――――――――――――――――――――――――――――――――――――――");
+            debug!("[{race_idx:2}] round {:2}", race.round);
+
+            'lap_loop: for lap in 1..1000 {
+                let lap_timings = retry_http(|| get_lap_timings(race_id, lap));
+
+                let lap_timings = if let Ok(lap_timings) = lap_timings {
+                    lap_timings
+                }
+                // Stop loop once we find the first lap for which there are no lap timings.
+                else if let Err(Error::NotFound) = lap_timings {
+                    if lap == 1 {
+                        debug!(">> No lap timings found");
+                    }
+                    break 'lap_loop;
+                } else {
+                    error!("{}, R{}, {} - get_lap_timings failed", race.season, race.round, lap);
+                    log_error(lap_timings);
+                    continue 'lap_loop;
+                };
+
+                trace!("――――――――――――――――――――――――――――――――――――――――――――――――――");
+                trace!("lap: {lap:2}, timing count: {:2}", lap_timings.len());
+
+                table_header("|    | pos |        driver        |     time");
+                for (idx, timing) in lap_timings.iter().enumerate() {
+                    trace!("[{idx:2}]   {:2}    {:20}   {}", timing.position, timing.driver_id, timing.time);
+                }
+            }
+        }
+    }
+}
+
 fn main() {
     env_logger::builder().format_timestamp(None).init();
 
@@ -366,5 +420,6 @@ fn main() {
     validate_session_results::<SprintResult>();
     validate_session_results::<RaceResult>();
 
-    validate_driver_laps()
+    validate_driver_laps();
+    validate_lap_timings();
 }
