@@ -7,7 +7,8 @@ use url::Url;
 
 use crate::{
     ergast::time::{
-        deserialize_duration, deserialize_optional_time, Date, DateTime, Duration, QualifyingTime, RaceTime, Time,
+        deserialize_duration, deserialize_optional_time, deserialize_time, Date, DateTime, Duration, QualifyingTime,
+        RaceTime, Time,
     },
     id::{CircuitID, ConstructorID, DriverID, RoundID, SeasonID, StatusID},
 };
@@ -602,8 +603,8 @@ pub struct PitStop {
     pub lap: u32,
     #[serde_as(as = "DisplayFromStr")]
     pub stop: u32,
-    // @todo I don't quite understand what this field is supposed to be
-    //pub time, "time"
+    #[serde(deserialize_with = "deserialize_time")]
+    pub time: Time,
     #[serde(deserialize_with = "deserialize_duration")]
     pub duration: Duration,
 }

@@ -127,6 +127,14 @@ where
         .transpose()
 }
 
+/// Deserialize a [`Time`] via [`parse_time`].
+pub(crate) fn deserialize_time<'de, D>(deserializer: D) -> Result<Time, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    parse_time(&String::deserialize(deserializer)?).map_err(serde::de::Error::custom)
+}
+
 /// Deserialize a [`Duration`] via [`parse_duration`].
 pub(crate) fn deserialize_duration<'de, D>(deserializer: D) -> Result<Duration, D::Error>
 where
@@ -509,6 +517,19 @@ mod tests {
         );
 
         assert!(serde_json::from_str::<Proxy>(r#"{}"#).unwrap().time.is_none());
+    }
+
+    #[test]
+    fn deserialize_time() {
+        #[derive(Deserialize)]
+        struct Proxy {
+            #[serde(deserialize_with = "super::deserialize_time")]
+            time: Time,
+        }
+
+        assert_eq!(serde_json::from_str::<Proxy>(r#"{"time": "11:30:00"}"#).unwrap().time, time!(11:30:00));
+
+        assert!(serde_json::from_str::<Proxy>(r#"{}"#).is_err());
     }
 
     #[test]

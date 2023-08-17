@@ -2111,6 +2111,7 @@ pub const PIT_STOP_2023_4_L10_MAX: Lazy<PitStop> = Lazy::new(|| PitStop {
     driver_id: "max_verstappen".into(),
     lap: 10,
     stop: 1,
+    time: time!(15:22:00),
     duration: duration_m_s_ms(0, 20, 707),
 });
 
@@ -2118,6 +2119,7 @@ pub const PIT_STOP_2023_4_L11_LECLERC: Lazy<PitStop> = Lazy::new(|| PitStop {
     driver_id: "leclerc".into(),
     lap: 11,
     stop: 1,
+    time: time!(15:24:25),
     duration: duration_m_s_ms(0, 21, 126),
 });
 

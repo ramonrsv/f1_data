@@ -783,7 +783,7 @@ pub fn get_lap_timings(race_id: RaceID, lap: u32) -> Result<Vec<Timing>> {
 /// use f1_data::ergast::{
 ///     get::get_pit_stops,
 ///     resource::PitStopFilters,
-///     time::duration_m_s_ms,
+///     time::{duration_m_s_ms, macros::time},
 ///     response::PitStop};
 ///
 /// let pit_stops = get_pit_stops(PitStopFilters::new(2023, 4)).unwrap();
@@ -794,6 +794,7 @@ pub fn get_lap_timings(race_id: RaceID, lap: u32) -> Result<Vec<Timing>> {
 ///         driver_id: DriverID::from("gasly"),
 ///         lap: 5,
 ///         stop: 1,
+///         time: time!(15:13:22),
 ///         duration: duration_m_s_ms(0, 20, 235)
 ///     }
 /// );
