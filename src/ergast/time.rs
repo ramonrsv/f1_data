@@ -61,11 +61,14 @@ fn parse_subsecond_into_milli(subsec_str: &str) -> i64 {
     subsec_str.parse::<i64>().unwrap() * (10_i64.pow(3_u32 - u32::try_from(subsec_str.len()).unwrap()))
 }
 
-/// Parse a [`Time`] from a string in the format `HH:MM:SSZ`, e.g. `11:00:00Z`.
-/// This format represents times of day in the Ergast API, e.g. the start time of an event.
+/// Parse a [`Time`] from a string in the format `HH:MM:SS`, e.g. `11:00:00`. An optional suffix
+/// `Z` is also allowed, e.g. `11:00:00Z`. This format represents times of day in the Ergast API,
+/// e.g. the start time of an event, the time of the day at which a pit stop took place, etc.
 fn parse_time(raw_str: &str) -> Result<Time, underlying::error::Parse> {
     const TIME_FORMAT_DESCRIPTION: &[underlying::format_description::FormatItem<'static>] =
-        underlying::macros::format_description!("[hour]:[minute]:[second]Z");
+        underlying::macros::format_description!("[hour]:[minute]:[second]");
+
+    let raw_str = &raw_str[..raw_str.len() - usize::from(raw_str.ends_with('Z'))];
 
     Time::parse(raw_str, &TIME_FORMAT_DESCRIPTION)
 }
@@ -376,10 +379,21 @@ mod tests {
     #[test]
     fn parse_time() {
         let str_value_pairs = vec![
+            // Have suffix 'Z'
             ("12:00:00Z", time!(12:00:00)),
             ("11:30:00Z", time!(11:30:00)),
             ("15:00:00Z", time!(15:00:00)),
             ("10:30:00Z", time!(10:30:00)),
+            // Have suffix 'Z', start 10 past the hour - races from 2018
+            ("05:10:00Z", time!(05:10:00)),
+            ("15:10:00Z", time!(15:10:00)),
+            ("06:10:00Z", time!(06:10:00)),
+            ("12:10:00Z", time!(12:10:00)),
+            // Don't have suffix 'Z' - pitstops from 2023, R4
+            ("15:13:22", time!(15:13:22)),
+            ("15:15:14", time!(15:15:14)),
+            ("16:34:47", time!(16:34:47)),
+            ("16:36:20", time!(16:36:20)),
         ];
 
         for (input, expected) in str_value_pairs {
@@ -389,7 +403,7 @@ mod tests {
 
     #[test]
     fn parse_time_err() {
-        let bad_strings = vec!["12:00:00", "12:00:0Z", "25:00:00Z", "12:00Z"];
+        let bad_strings = vec!["12:00:0Z", "25:00:00Z", "12:00Z"];
 
         for bad_str in bad_strings {
             assert!(super::parse_time(bad_str).is_err());
