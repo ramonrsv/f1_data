@@ -807,6 +807,22 @@ pub fn get_pit_stops(filters: PitStopFilters) -> Result<Vec<PitStop>> {
         .map_err(into)
 }
 
+/// Call the provided function, retrying on HTTP errors, and forwarding anything else.
+/// `max_attempt_count` and `retry_sleep` are used to control the retry behaviour.
+pub fn retry_on_http_error<T>(
+    f: impl Fn() -> Result<T>,
+    max_attempt_count: usize,
+    retry_sleep: std::time::Duration,
+) -> Result<T> {
+    for _ in 0..=max_attempt_count {
+        match f() {
+            Err(Error::Http(_)) => std::thread::sleep(retry_sleep),
+            other => return other,
+        }
+    }
+    panic!("Retried {max_attempt_count} times on HTTP errors, giving up");
+}
+
 /// Convert a [`Response`] to [`Result<Response>`], enforcing that [`Response`] is single-page, via
 /// `response::Pagination::is_single_page`, and returning [`Error::MultiPage`] if it's not.
 fn verify_is_single_page(response: Response) -> Result<Response> {
@@ -867,19 +883,37 @@ mod tests {
     use super::*;
     use crate::ergast::tests::*;
 
+    /// Default maximum number of attempts to retry on HTTP errors, for [`retry_on_http_error`].
+    const DEFAULT_HTTP_RETRY_MAX_ATTEMPT_COUNT: usize = 3;
+
+    /// Default sleep duration between attempts to retry on HTTP errors, for [`retry_on_http_error`]
+    const DEFAULT_HTTP_RETRY_SLEEP: std::time::Duration = std::time::Duration::from_secs(5);
+
+    /// Forward to [`retry_on_http_error`] with default retry parameters.
+    fn retry_http<T>(f: impl Fn() -> Result<T>) -> Result<T> {
+        retry_on_http_error(f, DEFAULT_HTTP_RETRY_MAX_ATTEMPT_COUNT, DEFAULT_HTTP_RETRY_SLEEP)
+    }
+
     /// Represents a constraint on the length of a list, e.g. a minimum or exact length.
     enum LenConstraint {
         Exactly(usize),
         Minimum(usize),
     }
 
-    /// Assert that the actual list contains every expected element - it may be a superset of the
-    /// expected list, and that it meets the length constraint, e.g. a minimum or exact length.
-    fn assert_each_expected_in_actual<T: PartialEq + core::fmt::Debug>(
-        actual_list: &[T],
+    /// Call a `get_actual` function to get an actual list, and assert that this list contains every
+    /// element in an expected lit, and that it meets a given length constraint, e.g. that is has a
+    /// minimum or exact length. The actual list may be a superset of the expected list.
+    fn assert_each_expected_in_actual<G, T>(
+        get_actual: G,
         expected_list: &[T],
         actual_list_len_constraint: LenConstraint,
-    ) {
+    ) where
+        G: Fn() -> Result<Vec<T>>,
+        T: PartialEq + core::fmt::Debug,
+    {
+        let actual_list = retry_http(|| get_actual()).unwrap();
+        let actual_list = &actual_list;
+
         match actual_list_len_constraint {
             LenConstraint::Exactly(exact_len) => assert_eq!(actual_list.len(), exact_len),
             LenConstraint::Minimum(min_len) => assert!(actual_list.len() >= min_len),
@@ -901,7 +935,7 @@ mod tests {
         assert!(!expected_list.is_empty());
 
         for expected in expected_list {
-            assert_eq!(&get(expected).unwrap(), expected);
+            assert_eq!(&retry_http(|| get(expected)).unwrap(), expected);
         }
     }
 
@@ -915,20 +949,24 @@ mod tests {
         race_filters(race.season, race.round)
     }
 
-    /// Assert that the list of session results in an actual [`Race<Vec<T>>`] contains every session
-    /// result from an expected [`Race<Payload>`], and that it meets a length constraint, e.g. a
-    /// minimum or exact length. The actual list may be a superset of the expected list.
-    fn assert_each_expected_session_result_in_actual_event<T>(
-        actual: &Race<Vec<T>>,
+    /// Call a `get_actual` function to an actual [`Race<Vec<T>>`], and assert that its list of
+    /// session results contains every session result from an expected [`Race<Payload>`], and that
+    /// it meets a length constraint, e.g. that is has a minimum or exact length. The actual list
+    /// may be a superset of the expected list.
+    fn assert_each_expected_session_result_in_actual_event<G, T>(
+        get_actual: G,
         expected: &Race<Payload>,
         actual_payload_len_constraint: LenConstraint,
     ) where
-        T: SessionResult + PartialEq + core::fmt::Debug,
+        G: Fn() -> Result<Race<Vec<T>>>,
+        T: SessionResult + PartialEq + Clone + core::fmt::Debug,
     {
-        assert!(eq_race_info(actual, expected));
+        let actual = retry_http(|| get_actual()).unwrap();
+
+        assert!(eq_race_info(&actual, expected));
 
         assert_each_expected_in_actual(
-            &actual.payload,
+            || Ok(actual.payload.clone()),
             &expected.clone().map(|p| T::try_inner_from(p).unwrap()).payload,
             actual_payload_len_constraint,
         );
@@ -944,24 +982,25 @@ mod tests {
         T: SessionResult + Clone + PartialEq + core::fmt::Debug,
     {
         assert_each_get_eq_expected(
-            |result| get(add_result_filter(result, race_filters_from(race))).map(|race| race.payload),
+            |result| retry_http(|| get(add_result_filter(result, race_filters_from(race)))).map(|race| race.payload),
             &race.clone().map(|p| T::try_inner_from(p).unwrap()).payload,
         );
     }
 
-    /// Assert that a given [`Result<Vec<T>>`] is [`Ok`] and the sequence is empty;
-    fn assert_is_empty<T>(result: Result<Vec<T>>) {
-        assert!(result.unwrap().is_empty());
+    /// Call a `get` function and assert that the returned [`Result<Vec<T>>`] is [`Ok`], and that
+    /// held sequence value is empty.
+    fn assert_is_empty<G: Fn() -> Result<Vec<T>>, T>(get: G) {
+        assert!(retry_http(|| get()).unwrap().is_empty());
     }
 
-    /// Assert that a given [`Result`] is [`Err(Error::NotFound)`].
-    fn assert_not_found<T>(result: Result<T>) {
-        assert!(matches!(result, Err(Error::NotFound)));
+    /// Call a `get` function and assert that the returned [`Result`] is [`Err(Error::NotFound)`].
+    fn assert_not_found<G: Fn() -> Result<T>, T>(get: G) {
+        assert!(matches!(get(), Err(Error::NotFound)));
     }
 
-    /// Assert that a given [`Result`] is [`Err(Error::TooMany)`].
-    fn assert_too_many<T>(result: Result<T>) {
-        assert!(matches!(result, Err(Error::TooMany)));
+    /// Call a `get` function and assert that the returned [`Result`] is [`Err(Error::TooMany)`].
+    fn assert_too_many<G: Fn() -> Result<T>, T>(get: G) {
+        assert!(matches!(get(), Err(Error::TooMany)));
     }
 
     // Resource::SeasonList
@@ -971,7 +1010,7 @@ mod tests {
     #[ignore]
     fn get_seasons() {
         assert_each_expected_in_actual(
-            &super::get_seasons(Filters::none()).unwrap(),
+            || super::get_seasons(Filters::none()),
             &SEASON_TABLE.as_seasons().unwrap(),
             LenConstraint::Minimum(74),
         );
@@ -986,13 +1025,13 @@ mod tests {
     #[test]
     #[ignore]
     fn get_seasons_empty() {
-        assert_is_empty(super::get_seasons(Filters::new().season(1949)));
+        assert_is_empty(|| super::get_seasons(Filters::new().season(1949)));
     }
 
     #[test]
     #[ignore]
     fn get_season_error_not_found() {
-        assert_not_found(super::get_season(1949));
+        assert_not_found(|| super::get_season(1949));
     }
 
     // Resource::DriverInfo
@@ -1002,7 +1041,7 @@ mod tests {
     #[ignore]
     fn get_drivers() {
         assert_each_expected_in_actual(
-            &super::get_drivers(Filters::none()).unwrap(),
+            || super::get_drivers(Filters::none()),
             &DRIVER_TABLE.as_drivers().unwrap(),
             LenConstraint::Minimum(857),
         );
@@ -1020,13 +1059,13 @@ mod tests {
     #[test]
     #[ignore]
     fn get_drivers_empty() {
-        assert_is_empty(super::get_drivers(Filters::new().season(1949)));
+        assert_is_empty(|| super::get_drivers(Filters::new().season(1949)));
     }
 
     #[test]
     #[ignore]
     fn get_driver_error_not_found() {
-        assert_not_found(super::get_driver(DriverID::from("unknown")));
+        assert_not_found(|| super::get_driver(DriverID::from("unknown")));
     }
 
     // Resource::ConstructorInfo
@@ -1036,7 +1075,7 @@ mod tests {
     #[ignore]
     fn get_constructors() {
         assert_each_expected_in_actual(
-            &super::get_constructors(Filters::none()).unwrap(),
+            || super::get_constructors(Filters::none()),
             &CONSTRUCTOR_TABLE.as_constructors().unwrap(),
             LenConstraint::Minimum(211),
         );
@@ -1054,13 +1093,13 @@ mod tests {
     #[test]
     #[ignore]
     fn get_constructors_empty() {
-        assert_is_empty(super::get_constructors(Filters::new().season(1949)));
+        assert_is_empty(|| super::get_constructors(Filters::new().season(1949)));
     }
 
     #[test]
     #[ignore]
     fn get_constructor_error_not_found() {
-        assert_not_found(super::get_constructor(ConstructorID::from("unknown")));
+        assert_not_found(|| super::get_constructor(ConstructorID::from("unknown")));
     }
 
     // Resource::CircuitInfo
@@ -1070,7 +1109,7 @@ mod tests {
     #[ignore]
     fn get_circuits() {
         assert_each_expected_in_actual(
-            &super::get_circuits(Filters::none()).unwrap(),
+            || super::get_circuits(Filters::none()),
             &CIRCUIT_TABLE.as_circuits().unwrap(),
             LenConstraint::Minimum(77),
         );
@@ -1088,13 +1127,13 @@ mod tests {
     #[test]
     #[ignore]
     fn get_circuits_empty() {
-        assert_is_empty(super::get_circuits(Filters::new().season(1949)));
+        assert_is_empty(|| super::get_circuits(Filters::new().season(1949)));
     }
 
     #[test]
     #[ignore]
     fn get_circuit_error_not_found() {
-        assert_not_found(super::get_circuit(CircuitID::from("unknown")));
+        assert_not_found(|| super::get_circuit(CircuitID::from("unknown")));
     }
 
     // Resource::RaceSchedule
@@ -1130,7 +1169,7 @@ mod tests {
 
         for (season, expected_list) in &*RACE_SCHEDULES_BY_SEASON {
             assert_each_expected_in_actual(
-                &super::get_race_schedules(Filters::new().season(*season)).unwrap(),
+                || super::get_race_schedules(Filters::new().season(*season)),
                 &map_schedules(expected_list.clone()),
                 LenConstraint::Exactly(*RACE_SCHEDULES_COUNTS_BY_SEASON.get(season).unwrap()),
             );
@@ -1149,13 +1188,13 @@ mod tests {
     #[test]
     #[ignore]
     fn get_race_schedules_empty() {
-        assert_is_empty(super::get_race_schedules(Filters::new().season(1949)));
+        assert_is_empty(|| super::get_race_schedules(Filters::new().season(1949)));
     }
 
     #[test]
     #[ignore]
     fn get_race_schedule_error_not_found() {
-        assert_not_found(super::get_race_schedule(RaceID::from(1949, 1)));
+        assert_not_found(|| super::get_race_schedule(RaceID::from(1949, 1)));
     }
 
     // Resource::QualifyingResults
@@ -1165,7 +1204,7 @@ mod tests {
     #[ignore]
     fn get_qualifying_results() {
         assert_each_expected_in_actual(
-            &super::get_qualifying_results(Filters::new().constructor_id("red_bull".into())).unwrap(),
+            || super::get_qualifying_results(Filters::new().constructor_id("red_bull".into())),
             &RACES_QUALIFYING_RESULTS_RED_BULL,
             LenConstraint::Minimum(357),
         );
@@ -1175,13 +1214,13 @@ mod tests {
     #[ignore]
     fn get_qualifying_results_for_event() {
         assert_each_expected_session_result_in_actual_event(
-            &super::get_qualifying_results_for_event(race_filters(2003, 4)).unwrap(),
+            || super::get_qualifying_results_for_event(race_filters(2003, 4)),
             &RACE_2003_4_QUALIFYING_RESULTS,
             LenConstraint::Exactly(20),
         );
 
         assert_each_expected_session_result_in_actual_event(
-            &super::get_qualifying_results_for_event(race_filters(2023, 4)).unwrap(),
+            || super::get_qualifying_results_for_event(race_filters(2023, 4)),
             &RACE_2023_4_QUALIFYING_RESULTS,
             LenConstraint::Exactly(20),
         );
@@ -1191,13 +1230,13 @@ mod tests {
     #[ignore]
     fn get_qualifying_result_for_events() {
         assert_each_expected_in_actual(
-            &super::get_qualifying_result_for_events(Filters::new().qualifying_pos(1)).unwrap(),
+            || super::get_qualifying_result_for_events(Filters::new().qualifying_pos(1)),
             &RACES_QUALIFYING_RESULT_P1,
             LenConstraint::Minimum(459),
         );
 
         assert_each_expected_in_actual(
-            &super::get_qualifying_result_for_events(Filters::new().qualifying_pos(2)).unwrap(),
+            || super::get_qualifying_result_for_events(Filters::new().qualifying_pos(2)),
             &RACES_QUALIFYING_RESULT_P2,
             LenConstraint::Minimum(459),
         );
@@ -1222,47 +1261,47 @@ mod tests {
     #[test]
     #[ignore]
     fn get_qualifying_results_empty() {
-        assert_is_empty(super::get_qualifying_results(Filters::new().season(1949)));
-        assert_is_empty(super::get_qualifying_results(Filters::new().season(2021).qualifying_pos(100)));
+        assert_is_empty(|| super::get_qualifying_results(Filters::new().season(1949)));
+        assert_is_empty(|| super::get_qualifying_results(Filters::new().season(2021).qualifying_pos(100)));
     }
 
     #[test]
     #[ignore]
     fn get_qualifying_results_for_event_error_not_found() {
-        assert_not_found(super::get_qualifying_results_for_event(Filters::new().season(1949).round(1)));
+        assert_not_found(|| super::get_qualifying_results_for_event(Filters::new().season(1949).round(1)));
     }
 
     #[test]
     #[ignore]
     fn get_qualifying_results_for_event_error_too_many() {
-        assert_too_many(super::get_qualifying_results_for_event(Filters::new().season(2021)));
+        assert_too_many(|| super::get_qualifying_results_for_event(Filters::new().season(2021)));
     }
 
     #[test]
     #[ignore]
     fn get_qualifying_result_for_events_empty() {
-        assert_is_empty(super::get_qualifying_result_for_events(Filters::new().season(1949).qualifying_pos(1)));
-        assert_is_empty(super::get_qualifying_result_for_events(Filters::new().season(2021).qualifying_pos(100)));
+        assert_is_empty(|| super::get_qualifying_result_for_events(Filters::new().season(1949).qualifying_pos(1)));
+        assert_is_empty(|| super::get_qualifying_result_for_events(Filters::new().season(2021).qualifying_pos(100)));
     }
 
     #[test]
     #[ignore]
     fn get_qualifying_result_for_events_error_too_many() {
-        assert_too_many(super::get_qualifying_result_for_events(Filters::new().season(2021)));
+        assert_too_many(|| super::get_qualifying_result_for_events(Filters::new().season(2021)));
     }
 
     #[test]
     #[ignore]
     fn get_qualifying_result_error_not_found() {
-        assert_not_found(super::get_qualifying_result(Filters::new().season(1949).round(1).qualifying_pos(1)));
-        assert_not_found(super::get_qualifying_result(Filters::new().season(2021).round(10).qualifying_pos(100)));
+        assert_not_found(|| super::get_qualifying_result(Filters::new().season(1949).round(1).qualifying_pos(1)));
+        assert_not_found(|| super::get_qualifying_result(Filters::new().season(2021).round(10).qualifying_pos(100)));
     }
 
     #[test]
     #[ignore]
     fn get_qualifying_result_error_too_many() {
-        assert_too_many(super::get_qualifying_result(Filters::new().season(2021).qualifying_pos(1)));
-        assert_too_many(super::get_qualifying_result(Filters::new().season(2021).round(10)));
+        assert_too_many(|| super::get_qualifying_result(Filters::new().season(2021).qualifying_pos(1)));
+        assert_too_many(|| super::get_qualifying_result(Filters::new().season(2021).round(10)));
     }
 
     // Resource::SprintResults
@@ -1272,7 +1311,7 @@ mod tests {
     #[ignore]
     fn get_sprint_results() {
         assert_each_expected_in_actual(
-            &super::get_sprint_results(Filters::new().constructor_id("red_bull".into())).unwrap(),
+            || super::get_sprint_results(Filters::new().constructor_id("red_bull".into())),
             &RACES_SPRINT_RESULTS_RED_BULL,
             LenConstraint::Minimum(8),
         );
@@ -1282,7 +1321,7 @@ mod tests {
     #[ignore]
     fn get_sprint_results_for_event() {
         assert_each_expected_session_result_in_actual_event(
-            &super::get_sprint_results_for_event(race_filters(2023, 4)).unwrap(),
+            || super::get_sprint_results_for_event(race_filters(2023, 4)),
             &RACE_2023_4_SPRINT_RESULTS,
             LenConstraint::Exactly(20),
         );
@@ -1292,7 +1331,7 @@ mod tests {
     #[ignore]
     fn get_sprint_result_for_events() {
         assert_each_expected_in_actual(
-            &super::get_sprint_result_for_events(Filters::new().sprint_pos(1)).unwrap(),
+            || super::get_sprint_result_for_events(Filters::new().sprint_pos(1)),
             &RACES_SPRINT_RESULT_P1,
             LenConstraint::Minimum(8),
         );
@@ -1311,47 +1350,47 @@ mod tests {
     #[test]
     #[ignore]
     fn get_sprint_results_empty() {
-        assert_is_empty(super::get_sprint_results(Filters::new().season(1949)));
-        assert_is_empty(super::get_sprint_results(Filters::new().season(2021).sprint_pos(100)));
+        assert_is_empty(|| super::get_sprint_results(Filters::new().season(1949)));
+        assert_is_empty(|| super::get_sprint_results(Filters::new().season(2021).sprint_pos(100)));
     }
 
     #[test]
     #[ignore]
     fn get_sprint_results_for_event_error_not_found() {
-        assert_not_found(super::get_sprint_results_for_event(Filters::new().season(1949).round(1)));
+        assert_not_found(|| super::get_sprint_results_for_event(Filters::new().season(1949).round(1)));
     }
 
     #[test]
     #[ignore]
     fn get_sprint_results_for_event_error_too_many() {
-        assert_too_many(super::get_sprint_results_for_event(Filters::new().season(2021)));
+        assert_too_many(|| super::get_sprint_results_for_event(Filters::new().season(2021)));
     }
 
     #[test]
     #[ignore]
     fn get_sprint_result_for_events_empty() {
-        assert_is_empty(super::get_sprint_result_for_events(Filters::new().season(1949).sprint_pos(1)));
-        assert_is_empty(super::get_sprint_result_for_events(Filters::new().season(2021).sprint_pos(100)));
+        assert_is_empty(|| super::get_sprint_result_for_events(Filters::new().season(1949).sprint_pos(1)));
+        assert_is_empty(|| super::get_sprint_result_for_events(Filters::new().season(2021).sprint_pos(100)));
     }
 
     #[test]
     #[ignore]
     fn get_sprint_result_for_events_error_too_many() {
-        assert_too_many(super::get_sprint_result_for_events(Filters::new().season(2021)));
+        assert_too_many(|| super::get_sprint_result_for_events(Filters::new().season(2021)));
     }
 
     #[test]
     #[ignore]
     fn get_sprint_result_error_not_found() {
-        assert_not_found(super::get_sprint_result(Filters::new().season(1949).round(1).sprint_pos(1)));
-        assert_not_found(super::get_sprint_result(Filters::new().season(2021).round(10).sprint_pos(100)));
+        assert_not_found(|| super::get_sprint_result(Filters::new().season(1949).round(1).sprint_pos(1)));
+        assert_not_found(|| super::get_sprint_result(Filters::new().season(2021).round(10).sprint_pos(100)));
     }
 
     #[test]
     #[ignore]
     fn get_sprint_result_error_too_many() {
-        assert_too_many(super::get_sprint_result(Filters::new().season(2021).sprint_pos(1)));
-        assert_too_many(super::get_sprint_result(Filters::new().season(2021).round(10)));
+        assert_too_many(|| super::get_sprint_result(Filters::new().season(2021).sprint_pos(1)));
+        assert_too_many(|| super::get_sprint_result(Filters::new().season(2021).round(10)));
     }
 
     // Resource::RaceResults
@@ -1372,7 +1411,7 @@ mod tests {
 
         // @todo Remove once the query above can be used.
         assert_each_expected_in_actual(
-            &super::get_race_results(Filters::new().constructor_id("red_bull".into()).season(2023)).unwrap(),
+            || super::get_race_results(Filters::new().constructor_id("red_bull".into()).season(2023)),
             &RACES_RACE_RESULTS_RED_BULL,
             LenConstraint::Minimum(11),
         );
@@ -1382,19 +1421,19 @@ mod tests {
     #[ignore]
     fn get_race_results_for_event() {
         assert_each_expected_session_result_in_actual_event(
-            &super::get_race_results_for_event(race_filters(2003, 4)).unwrap(),
+            || super::get_race_results_for_event(race_filters(2003, 4)),
             &RACE_2003_4_RACE_RESULTS,
             LenConstraint::Exactly(20),
         );
 
         assert_each_expected_session_result_in_actual_event(
-            &super::get_race_results_for_event(race_filters(2021, 12)).unwrap(),
+            || super::get_race_results_for_event(race_filters(2021, 12)),
             &RACE_2021_12_RACE_RESULTS,
             LenConstraint::Exactly(20),
         );
 
         assert_each_expected_session_result_in_actual_event(
-            &super::get_race_results_for_event(race_filters(2023, 4)).unwrap(),
+            || super::get_race_results_for_event(race_filters(2023, 4)),
             &RACE_2023_4_RACE_RESULTS,
             LenConstraint::Exactly(20),
         );
@@ -1404,13 +1443,13 @@ mod tests {
     #[ignore]
     fn get_race_result_for_events() {
         assert_each_expected_in_actual(
-            &super::get_race_result_for_events(Filters::new().driver_id("michael_schumacher".into())).unwrap(),
+            || super::get_race_result_for_events(Filters::new().driver_id("michael_schumacher".into())),
             &RACES_RACE_RESULT_MICHAEL,
             LenConstraint::Exactly(308),
         );
 
         assert_each_expected_in_actual(
-            &super::get_race_result_for_events(Filters::new().driver_id("max_verstappen".into())).unwrap(),
+            || super::get_race_result_for_events(Filters::new().driver_id("max_verstappen".into())),
             &RACES_RACE_RESULT_MAX,
             LenConstraint::Minimum(174),
         );
@@ -1443,47 +1482,47 @@ mod tests {
     #[test]
     #[ignore]
     fn get_race_results_empty() {
-        assert_is_empty(super::get_race_results(Filters::new().season(1949)));
-        assert_is_empty(super::get_race_results(Filters::new().season(2021).finish_pos(100)));
+        assert_is_empty(|| super::get_race_results(Filters::new().season(1949)));
+        assert_is_empty(|| super::get_race_results(Filters::new().season(2021).finish_pos(100)));
     }
 
     #[test]
     #[ignore]
     fn get_race_results_for_event_error_not_found() {
-        assert_not_found(super::get_race_results_for_event(Filters::new().season(1949).round(1)));
+        assert_not_found(|| super::get_race_results_for_event(Filters::new().season(1949).round(1)));
     }
 
     #[test]
     #[ignore]
     fn get_race_results_for_event_error_too_many() {
-        assert_too_many(super::get_race_results_for_event(Filters::new().season(2021)));
+        assert_too_many(|| super::get_race_results_for_event(Filters::new().season(2021)));
     }
 
     #[test]
     #[ignore]
     fn get_race_result_for_events_empty() {
-        assert_is_empty(super::get_race_result_for_events(Filters::new().season(1949).finish_pos(1)));
-        assert_is_empty(super::get_race_result_for_events(Filters::new().season(2021).finish_pos(100)));
+        assert_is_empty(|| super::get_race_result_for_events(Filters::new().season(1949).finish_pos(1)));
+        assert_is_empty(|| super::get_race_result_for_events(Filters::new().season(2021).finish_pos(100)));
     }
 
     #[test]
     #[ignore]
     fn get_race_result_for_events_error_too_many() {
-        assert_too_many(super::get_race_result_for_events(Filters::new().season(2021)));
+        assert_too_many(|| super::get_race_result_for_events(Filters::new().season(2021)));
     }
 
     #[test]
     #[ignore]
     fn get_race_result_error_not_found() {
-        assert_not_found(super::get_race_result(Filters::new().season(1949).round(1).finish_pos(1)));
-        assert_not_found(super::get_race_result(Filters::new().season(2021).round(10).finish_pos(100)));
+        assert_not_found(|| super::get_race_result(Filters::new().season(1949).round(1).finish_pos(1)));
+        assert_not_found(|| super::get_race_result(Filters::new().season(2021).round(10).finish_pos(100)));
     }
 
     #[test]
     #[ignore]
     fn get_race_result_error_too_many() {
-        assert_too_many(super::get_race_result(Filters::new().season(2021).finish_pos(1)));
-        assert_too_many(super::get_race_result(Filters::new().season(2021).round(10)));
+        assert_too_many(|| super::get_race_result(Filters::new().season(2021).finish_pos(1)));
+        assert_too_many(|| super::get_race_result(Filters::new().season(2021).round(10)));
     }
 
     // Resource::FinishingStatus
@@ -1493,7 +1532,7 @@ mod tests {
     #[ignore]
     fn get_statuses() {
         assert_each_expected_in_actual(
-            &super::get_statuses(Filters::new().season(2022)).unwrap(),
+            || super::get_statuses(Filters::new().season(2022)),
             &STATUS_TABLE_2022.as_status().unwrap(),
             LenConstraint::Exactly(29),
         );
@@ -1502,7 +1541,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_statuses_empty() {
-        assert_is_empty(super::get_statuses(Filters::new().season(1949)));
+        assert_is_empty(|| super::get_statuses(Filters::new().season(1949)));
     }
 
     // Resource::LapTimes
@@ -1517,8 +1556,9 @@ mod tests {
     #[test]
     #[ignore]
     fn get_driver_laps() {
-        let leclerc_laps = super::get_driver_laps(RaceID::from(2023, 4), &DriverID::from("leclerc")).unwrap();
-        let max_laps = super::get_driver_laps(RaceID::from(2023, 4), &DriverID::from("max_verstappen")).unwrap();
+        let race_id = RaceID::from(2023, 4);
+        let leclerc_laps = retry_http(|| super::get_driver_laps(race_id, &DriverID::from("leclerc"))).unwrap();
+        let max_laps = retry_http(|| super::get_driver_laps(race_id, &DriverID::from("max_verstappen"))).unwrap();
 
         assert_driver_lap_eq(&leclerc_laps[0], &LAP_2023_4_L1, &TIMING_2023_4_L1_P1);
         assert_driver_lap_eq(&leclerc_laps[1], &LAP_2023_4_L2, &TIMING_2023_4_L2_P1);
@@ -1546,31 +1586,32 @@ mod tests {
     #[test]
     #[ignore]
     fn get_lap_timings() {
-        let l1 = super::get_lap_timings(RaceID::from(2023, 4), 1).unwrap();
-        let l2 = super::get_lap_timings(RaceID::from(2023, 4), 2).unwrap();
+        let l1 = || super::get_lap_timings(RaceID::from(2023, 4), 1);
+        let l2 = || super::get_lap_timings(RaceID::from(2023, 4), 2);
 
-        assert_each_expected_in_actual(&l1, &LAP_2023_4_L1.timings, LenConstraint::Exactly(20));
-        assert_each_expected_in_actual(&l2, &LAP_2023_4_L2.timings, LenConstraint::Exactly(20));
+        assert_each_expected_in_actual(l1, &LAP_2023_4_L1.timings, LenConstraint::Exactly(20));
+        assert_each_expected_in_actual(l2, &LAP_2023_4_L2.timings, LenConstraint::Exactly(20));
     }
 
     #[test]
     #[ignore]
     fn get_driver_laps_error_not_found() {
-        assert_not_found(super::get_driver_laps(RaceID::from(1949, 1), &DriverID::from("leclerc")));
-        assert_not_found(super::get_driver_laps(RaceID::from(2023, 4), &DriverID::from("abate")));
+        assert_not_found(|| super::get_driver_laps(RaceID::from(1949, 1), &DriverID::from("leclerc")));
+        assert_not_found(|| super::get_driver_laps(RaceID::from(2023, 4), &DriverID::from("abate")));
     }
 
     #[test]
     #[ignore]
     fn get_lap_timings_error_not_found() {
-        assert_not_found(super::get_lap_timings(RaceID::from(1949, 1), 1));
-        assert_not_found(super::get_lap_timings(RaceID::from(2023, 4), 100));
+        assert_not_found(|| super::get_lap_timings(RaceID::from(1949, 1), 1));
+        assert_not_found(|| super::get_lap_timings(RaceID::from(2023, 4), 100));
     }
 
     #[test]
     #[ignore]
     fn get_response_page_lap_times_race_2023_4() {
-        let resp = get_response_page(&Resource::LapTimes(LapTimeFilters::new(2023, 4)), Page::default()).unwrap();
+        let resp = retry_http(|| get_response_page(&Resource::LapTimes(LapTimeFilters::new(2023, 4)), Page::default()))
+            .unwrap();
 
         let actual = verify_has_one_race_and_extract(resp).unwrap();
         let expected = &RACE_2023_4_LAPS;
@@ -1594,7 +1635,7 @@ mod tests {
     #[ignore]
     fn get_pit_stops() {
         assert_each_expected_in_actual(
-            &super::get_pit_stops(PitStopFilters::new(2023, 4)).unwrap(),
+            || super::get_pit_stops(PitStopFilters::new(2023, 4)),
             &RACE_2023_4_PIT_STOPS.payload.as_pit_stops().unwrap(),
             LenConstraint::Exactly(23),
         );
@@ -1603,13 +1644,13 @@ mod tests {
     #[test]
     #[ignore]
     fn get_pit_stops_error_not_found() {
-        assert_not_found(super::get_pit_stops(PitStopFilters::new(1949, 1)));
+        assert_not_found(|| super::get_pit_stops(PitStopFilters::new(1949, 1)));
     }
 
     #[test]
     #[ignore]
     fn get_response_pit_stops_race_2023_4() {
-        let resp = get_response(&Resource::PitStops(PitStopFilters::new(2023, 4))).unwrap();
+        let resp = retry_http(|| get_response(&Resource::PitStops(PitStopFilters::new(2023, 4)))).unwrap();
         let race = verify_has_one_race_and_extract(resp).unwrap();
 
         assert!(eq_race_info(&race, &RACE_2023_4_PIT_STOPS));
@@ -1622,7 +1663,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_single_page() {
-        let resp = get_response(&Resource::SeasonList(Filters::new().season(1950))).unwrap();
+        let resp = retry_http(|| get_response(&Resource::SeasonList(Filters::new().season(1950)))).unwrap();
 
         let pagination = resp.mr_data.pagination;
         assert!(pagination.is_single_page());
@@ -1639,14 +1680,14 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_multi_page_error() {
-        let resp = get_response(&Resource::SeasonList(Filters::none()));
+        let resp = retry_http(|| get_response(&Resource::SeasonList(Filters::none())));
         assert!(matches!(resp, Err(Error::MultiPage)));
     }
 
     #[test]
     #[ignore]
     fn get_response_max_limit_single_page() {
-        let resp = get_response_max_limit(&Resource::SeasonList(Filters::none())).unwrap();
+        let resp = retry_http(|| get_response_max_limit(&Resource::SeasonList(Filters::none()))).unwrap();
 
         let pagination = resp.mr_data.pagination;
         assert!(pagination.is_single_page());
@@ -1665,7 +1706,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_max_limit_multi_page_error() {
-        let resp = get_response_max_limit(&Resource::LapTimes(LapTimeFilters::new(2023, 1)));
+        let resp = retry_http(|| get_response_max_limit(&Resource::LapTimes(LapTimeFilters::new(2023, 1))));
         assert!(matches!(resp, Err(Error::MultiPage)));
     }
 
@@ -1675,7 +1716,7 @@ mod tests {
         let req = Resource::SeasonList(Filters::none());
         let page = Page::with_limit(5);
 
-        let mut resp = get_response_page(&req, page.clone()).unwrap();
+        let mut resp = retry_http(|| get_response_page(&req, page.clone())).unwrap();
         assert!(!resp.mr_data.pagination.is_last_page());
 
         let mut current_offset: u32 = 0;
@@ -1698,7 +1739,7 @@ mod tests {
                 _ => (),
             }
 
-            resp = get_response_page(&req, pagination.next_page().unwrap().into()).unwrap();
+            resp = retry_http(|| get_response_page(&req, pagination.next_page().unwrap().into())).unwrap();
 
             current_offset += page.limit();
         }
