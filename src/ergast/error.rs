@@ -1,4 +1,5 @@
 use serde_json;
+use serde_yaml;
 use ureq;
 
 use crate::ergast::response::{Payload, Table};
@@ -23,6 +24,10 @@ pub enum Error {
     /// Error parsing the JSON response into a serializable type from [`response`], passing through
     /// the [`serde_json::Error`] from [`serde_json::from_str`], or similar [`serde_json`] methods.
     Parse(serde_json::Error),
+
+    /// Error parsing a YAML data file into a serializable type, passing through the
+    /// [`serde_yaml::Error`] from [`serde_yaml::from_str`], or similar [`serde_yaml`] methods.
+    YamlParse(serde_yaml::Error),
 
     /// A request by a method supporting only single-page responses resulted in a multi-page one.
     MultiPage,
@@ -61,6 +66,12 @@ impl From<std::io::Error> for Error {
 impl From<serde_json::Error> for Error {
     fn from(error: serde_json::Error) -> Self {
         Self::Parse(error)
+    }
+}
+
+impl From<serde_yaml::Error> for Error {
+    fn from(error: serde_yaml::Error) -> Self {
+        Self::YamlParse(error)
     }
 }
 
