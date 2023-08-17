@@ -300,7 +300,7 @@ mod tests {
 
     use super::macros::*;
     use super::*;
-    use crate::ergast::tests::*;
+    use crate::ergast::tests::assets::*;
 
     const MIN_IN_HOUR: i64 = 60;
     const SEC_IN_MIN: i64 = 60;

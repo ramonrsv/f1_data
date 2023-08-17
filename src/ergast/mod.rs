@@ -5,4 +5,4 @@ pub mod response;
 pub mod time;
 
 #[cfg(test)]
-pub mod tests;
+pub(crate) mod tests;

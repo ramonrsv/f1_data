@@ -19,7 +19,7 @@ static FILTERS: Lazy<Filters> = Lazy::new(|| Filters::new().season(2022));
 static RESOURCE: Lazy<Resource> = Lazy::new(|| Resource::RaceResults(FILTERS.clone()));
 static URL: Lazy<Url> = Lazy::new(|| RESOURCE.to_url_with(Page::with_max_limit()));
 
-static FILENAME: &str = "benches/data/response_2022_race_results.json";
+static FILENAME: &str = "benches/assets/response_2022_race_results.json";
 
 /// Benchmark a full call to [`get_race_results`], including network overhead, post-processing, etc.
 fn bench_get_race_results(c: &mut Criterion) {

@@ -674,7 +674,7 @@ mod tests {
     use crate::ergast::get::SessionResult;
 
     use super::*;
-    use crate::ergast::tests::*;
+    use crate::ergast::tests::assets::*;
 
     #[test]
     fn season_table() {

@@ -881,7 +881,7 @@ mod tests {
     };
 
     use super::*;
-    use crate::ergast::tests::*;
+    use crate::ergast::tests::assets::*;
 
     /// Default maximum number of attempts to retry on HTTP errors, for [`retry_on_http_error`].
     const DEFAULT_HTTP_RETRY_MAX_ATTEMPT_COUNT: usize = 3;
