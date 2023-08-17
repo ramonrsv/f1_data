@@ -760,6 +760,11 @@ mod tests {
         assert_eq!(from_str(RACE_RESULT_2003_4_P2_STR), *RACE_RESULT_2003_4_P2);
         assert_eq!(from_str(RACE_RESULT_2003_4_P19_STR), *RACE_RESULT_2003_4_P19);
 
+        assert_eq!(from_str(RACE_RESULT_2021_12_P1_STR), *RACE_RESULT_2021_12_P1);
+        assert_eq!(from_str(RACE_RESULT_2021_12_P2_STR), *RACE_RESULT_2021_12_P2);
+        assert_eq!(from_str(RACE_RESULT_2021_12_P3_STR), *RACE_RESULT_2021_12_P3);
+        assert_eq!(from_str(RACE_RESULT_2021_12_P10_STR), *RACE_RESULT_2021_12_P10);
+
         assert_eq!(from_str(RACE_RESULT_2023_4_P1_STR), *RACE_RESULT_2023_4_P1);
         assert_eq!(from_str(RACE_RESULT_2023_4_P2_STR), *RACE_RESULT_2023_4_P2);
         assert_eq!(from_str(RACE_RESULT_2023_4_P20_STR), *RACE_RESULT_2023_4_P20);
@@ -771,6 +776,12 @@ mod tests {
             let race: Race = serde_json::from_str(RACE_2003_4_RACE_RESULTS_STR).unwrap();
             assert!(!race.payload.as_race_results().unwrap().is_empty());
             assert_eq!(race, *RACE_2003_4_RACE_RESULTS);
+        }
+
+        {
+            let race: Race = serde_json::from_str(RACE_2021_12_RACE_RESULTS_STR).unwrap();
+            assert!(!race.payload.as_race_results().unwrap().is_empty());
+            assert_eq!(race, *RACE_2021_12_RACE_RESULTS);
         }
 
         {

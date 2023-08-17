@@ -1546,7 +1546,7 @@ pub const RACE_RESULT_2021_12_P1_STR: &str = formatcp!(
     "grid": "1",
     "laps": "1",
     "status": "Finished",
-    "Time": {RACE_TIME_2021_12_P1_STR},
+    "Time": {RACE_TIME_2021_12_P1_STR}
   }}"#
 );
 
@@ -1561,7 +1561,7 @@ pub const RACE_RESULT_2021_12_P2_STR: &str = formatcp!(
     "grid": "2",
     "laps": "1",
     "status": "Finished",
-    "Time": {RACE_TIME_2021_12_P2_STR},
+    "Time": {RACE_TIME_2021_12_P2_STR}
   }}"#
 );
 
@@ -1577,7 +1577,7 @@ pub const RACE_RESULT_2021_12_P3_STR: &str = formatcp!(
     "grid": "3",
     "laps": "1",
     "status": "Finished",
-    "Time": {RACE_TIME_2021_12_P3_STR},
+    "Time": {RACE_TIME_2021_12_P3_STR}
   }}"#
 );
 
@@ -1593,7 +1593,7 @@ pub const RACE_RESULT_2021_12_P10_STR: &str = formatcp!(
     "grid": "11",
     "laps": "1",
     "status": "Finished",
-    "Time": {RACE_TIME_2021_12_P10_STR},
+    "Time": {RACE_TIME_2021_12_P10_STR}
   }}"#
 );
 
