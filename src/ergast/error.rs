@@ -1,6 +1,8 @@
 use serde_json;
-use serde_yaml;
 use ureq;
+
+#[cfg(feature = "fantasy")]
+use serde_yaml;
 
 use crate::ergast::response::{Payload, Table};
 
@@ -27,6 +29,7 @@ pub enum Error {
 
     /// Error parsing a YAML data file into a serializable type, passing through the
     /// [`serde_yaml::Error`] from [`serde_yaml::from_str`], or similar [`serde_yaml`] methods.
+    #[cfg(feature = "fantasy")]
     YamlParse(serde_yaml::Error),
 
     /// A request by a method supporting only single-page responses resulted in a multi-page one.
@@ -69,6 +72,7 @@ impl From<serde_json::Error> for Error {
     }
 }
 
+#[cfg(feature = "fantasy")]
 impl From<serde_yaml::Error> for Error {
     fn from(error: serde_yaml::Error) -> Self {
         Self::YamlParse(error)
