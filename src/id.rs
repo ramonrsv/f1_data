@@ -4,6 +4,7 @@ use serde_with::{serde_as, DisplayFromStr};
 /// Uniquely identifies a driver by a string, e.g. `"max_verstappen"` for _Max Verstappen_
 pub type DriverID = String;
 
+#[allow(clippy::doc_markdown)] // False positive, complains about "_McLaren_".
 /// Uniquely identifies a constructor by a string, e.g. `"mclaren"` for _McLaren_
 pub type ConstructorID = String;
 
@@ -19,7 +20,7 @@ pub type SeasonID = u32;
 
 /// Uniquely identifies a round (race weekend), in a given season, by an index, with `1` being the
 /// first round of the season. Note that a round is only unique within a given season, and does not
-/// uniquely identify a race in the championship. See [RaceID] for a unique race identifier.
+/// uniquely identify a race in the championship. See [`RaceID`] for a unique race identifier.
 pub type RoundID = u32;
 
 /// Uniquely identifies a race by the season that it took place in, and by its round index, e.g.

@@ -158,10 +158,12 @@ pub enum Resource {
 }
 
 impl Resource {
+    #[allow(clippy::doc_markdown)] // False positive, complains about "RESTful"
     /// The base URL at which requests will be made for Ergast's RESTful API.
     // @todo This should probably be configurable, e.g. to support mirrors, caches, etc.
     pub const ERGAST_BASE_URL: &str = "http://ergast.com/api/f1";
 
+    #[allow(clippy::doc_markdown)] // False positive, complains about "RESTful"
     /// Produce a URL with which to request the given [`Resource`] from Ergast's RESTful API,
     /// including any filters that may have been requested.
     ///

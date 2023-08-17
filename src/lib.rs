@@ -79,7 +79,6 @@
     clippy::module_name_repetitions,
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
-    clippy::doc_markdown,
     clippy::multiple_crate_versions
 )]
 

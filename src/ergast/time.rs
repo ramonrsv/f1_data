@@ -5,7 +5,7 @@ use serde_with::{serde_as, DisplayFromStr};
 
 /// These aliases represent the underlying time/date/duration/etc. types used within the crate to
 /// represent such values from the Ergast API, sometimes as direct aliases, e.g. for a [`Date`], or
-/// used to compose more complex types, e.g. [`DateTime], [`QualifyingTime`], [`RaceTime`], etc.
+/// used to compose more complex types, e.g. [`DateTime`], [`QualifyingTime`], [`RaceTime`], etc.
 // @todo Enable features to use different underlying libraries, e.g. [`time`], `chrono`, etc.
 use time as underlying;
 
