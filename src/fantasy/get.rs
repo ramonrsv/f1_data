@@ -1,7 +1,7 @@
-use crate::{ergast::error::Result, fantasy::price::Season, id::SeasonID};
+use crate::{error::Result, fantasy::price::Season, id::SeasonID};
 
 #[cfg(doc)]
-use crate::ergast::error::Error;
+use crate::error::Error;
 
 /// Get a list of fantasy league prices for all drivers and constructors for all rounds of a given
 /// season. An [`Error::Io`] is returned if data is not available for the requested season.

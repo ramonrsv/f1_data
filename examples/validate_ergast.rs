@@ -2,7 +2,6 @@ use log::{debug, error, info, trace};
 
 use f1_data::{
     ergast::{
-        error::{Error, Result},
         get::{
             self, get_circuits, get_constructors, get_driver_laps, get_drivers, get_lap_timings, get_pit_stops,
             get_race_schedules, get_seasons, get_session_result, get_session_results, get_session_results_for_event,
@@ -11,6 +10,7 @@ use f1_data::{
         resource::{Filters, PitStopFilters},
         response::{QualifyingResult, RaceResult, SprintResult},
     },
+    error::{Error, Result},
     id::{RaceID, RoundID, SeasonID},
 };
 

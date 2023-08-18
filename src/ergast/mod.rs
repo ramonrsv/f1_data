@@ -1,4 +1,3 @@
-pub mod error;
 pub mod get;
 pub mod resource;
 pub mod response;

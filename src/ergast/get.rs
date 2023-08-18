@@ -3,7 +3,6 @@ use ureq;
 
 use crate::{
     ergast::{
-        error::{Error, Result},
         resource::{Filters, LapTimeFilters, Page, PitStopFilters, Resource},
         response::{
             Circuit, Constructor, Driver, Lap, Payload, PitStop, QualifyingResult, Race, RaceResult, Response,
@@ -11,6 +10,7 @@ use crate::{
         },
         time::Duration,
     },
+    error::{Error, Result},
     id::{CircuitID, ConstructorID, DriverID, RaceID, SeasonID},
 };
 
@@ -141,7 +141,8 @@ pub fn get_seasons(filters: Filters) -> Result<Vec<Season>> {
 /// # Examples
 ///
 /// ```no_run
-/// use f1_data::ergast::{error::Error, get::get_season};
+/// use f1_data::error::Error;
+/// use f1_data::ergast::get::get_season;
 ///
 /// assert_eq!(get_season(1950).unwrap().season, 1950);
 /// assert!(matches!(get_season(1940), Err(Error::NotFound)));
@@ -184,8 +185,8 @@ pub fn get_drivers(filters: Filters) -> Result<Vec<Driver>> {
 /// # Examples
 ///
 /// ```no_run
-/// use f1_data::id::DriverID;
-/// use f1_data::ergast::{error::Error, get::get_driver};
+/// use f1_data::{error::Error, id::DriverID};
+/// use f1_data::ergast::get::get_driver;
 ///
 /// assert_eq!(get_driver(DriverID::from("alonso")).unwrap().given_name, "Fernando".to_string());
 /// assert!(matches!(get_driver(DriverID::from("unknown")), Err(Error::NotFound)));
@@ -230,8 +231,8 @@ pub fn get_constructors(filters: Filters) -> Result<Vec<Constructor>> {
 /// # Examples
 ///
 /// ```no_run
-/// use f1_data::id::ConstructorID;
-/// use f1_data::ergast::{error::Error, get::get_constructor};
+/// use f1_data::{error::Error, id::ConstructorID};
+/// use f1_data::ergast::get::get_constructor;
 ///
 /// assert_eq!(get_constructor(ConstructorID::from("ferrari")).unwrap().name, "Ferrari".to_string());
 /// assert!(matches!(get_constructor(ConstructorID::from("unknown")), Err(Error::NotFound)));
@@ -274,8 +275,8 @@ pub fn get_circuits(filters: Filters) -> Result<Vec<Circuit>> {
 /// # Examples
 ///
 /// ```no_run
-/// use f1_data::id::CircuitID;
-/// use f1_data::ergast::{error::Error, get::get_circuit};
+/// use f1_data::{error::Error, id::CircuitID};
+/// use f1_data::ergast::get::get_circuit;
 ///
 /// assert_eq!(
 ///     get_circuit(CircuitID::from("spa")).unwrap().circuit_name,

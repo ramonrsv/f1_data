@@ -8,11 +8,13 @@ use once_cell::sync::Lazy;
 use serde_json;
 use url::Url;
 
-use f1_data::ergast::{
+use f1_data::{
+    ergast::{
+        get::get_race_results,
+        resource::{Filters, Page, Resource},
+        response::{Race, RaceResult, Response},
+    },
     error::{Error, Result},
-    get::get_race_results,
-    resource::{Filters, Page, Resource},
-    response::{Race, RaceResult, Response},
 };
 
 static FILTERS: Lazy<Filters> = Lazy::new(|| Filters::new().season(2022));

@@ -14,7 +14,7 @@ use crate::{
 };
 
 #[cfg(doc)]
-use crate::ergast::{error::Error, resource::Resource};
+use crate::{ergast::resource::Resource, error::Error};
 
 pub const GRID_PIT_LANE: u32 = 0;
 
