@@ -996,12 +996,12 @@ mod tests {
 
     /// Call a `get` function and assert that the returned [`Result`] is [`Err(Error::NotFound)`].
     fn assert_not_found<G: Fn() -> Result<T>, T>(get: G) {
-        assert!(matches!(get(), Err(Error::NotFound)));
+        assert!(matches!(retry_http(|| get()), Err(Error::NotFound)));
     }
 
     /// Call a `get` function and assert that the returned [`Result`] is [`Err(Error::TooMany)`].
     fn assert_too_many<G: Fn() -> Result<T>, T>(get: G) {
-        assert!(matches!(get(), Err(Error::TooMany)));
+        assert!(matches!(retry_http(|| get()), Err(Error::TooMany)));
     }
 
     // Resource::SeasonList
