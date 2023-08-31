@@ -135,6 +135,7 @@ trait SessionResult {
     fn driver_id(&self) -> &str;
     fn position(&self) -> u32;
     fn add_pos_filter(filters: Filters, pos: u32) -> Filters;
+    fn number(&self) -> u32;
 }
 
 impl SessionResult for QualifyingResult {
@@ -152,6 +153,10 @@ impl SessionResult for QualifyingResult {
 
     fn add_pos_filter(filters: Filters, pos: u32) -> Filters {
         filters.qualifying_pos(pos)
+    }
+
+    fn number(&self) -> u32 {
+        self.number
     }
 }
 
@@ -171,6 +176,10 @@ impl SessionResult for SprintResult {
     fn add_pos_filter(filters: Filters, pos: u32) -> Filters {
         filters.sprint_pos(pos)
     }
+
+    fn number(&self) -> u32 {
+        self.number
+    }
 }
 
 impl SessionResult for RaceResult {
@@ -188,6 +197,10 @@ impl SessionResult for RaceResult {
 
     fn add_pos_filter(filters: Filters, pos: u32) -> Filters {
         filters.finish_pos(pos)
+    }
+
+    fn number(&self) -> u32 {
+        self.number
     }
 }
 
@@ -256,6 +269,15 @@ where
     }
 }
 
+/// Check if a given [`RaceResult`] is known to have [`RaceResult::NO_NUMBER`].
+fn is_known_no_number(season: SeasonID, round: RoundID, position: u32) -> bool {
+    const KNOWN_RACE_RESULTS_WITH_NO_NUMBER: &[(u32, u32, &[u32])] = &[(1962, 4, &[19, 20, 21, 22]), (1963, 10, &[23])];
+
+    KNOWN_RACE_RESULTS_WITH_NO_NUMBER
+        .iter()
+        .any(|(s, r, positions)| season == *s && round == *r && positions.contains(&position))
+}
+
 fn validate_session_results<T>()
 where
     T: get::SessionResult + SessionResult,
@@ -279,6 +301,12 @@ where
                 table_header("|    | pos |     driver");
                 for (idx, result) in race.payload.iter().enumerate() {
                     trace!("[{idx:2}]   {:2}    {:2}", result.position(), result.driver_id());
+
+                    if result.number() == RaceResult::NO_NUMBER
+                        && !is_known_no_number(race.season, race.round, result.position())
+                    {
+                        error!("{}, R{} - P{} has unexpected NO_NUMBER", race.season, race.round, result.position());
+                    }
                 }
             }
         } else {
