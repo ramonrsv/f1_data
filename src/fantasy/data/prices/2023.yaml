@@ -463,7 +463,7 @@ rounds:
         { driver_id: kevin_magnussen, price: 7.3 },
         { driver_id: zhou, price: 5.7 },
         { driver_id: tsunoda, price: 5.1 },
-        { driver_id: ricciardo, price: 4.5 },
+        { driver_id: lawson, price: 4.5 },
         { driver_id: sargeant, price: 4.5 },
         { driver_id: hulkenberg, price: 4.3 },
       ]
