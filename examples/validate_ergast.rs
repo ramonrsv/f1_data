@@ -1,3 +1,5 @@
+use anyhow::{anyhow, Result};
+use colored::Colorize;
 use log::{debug, error, info, trace};
 
 use f1_data::{
@@ -10,7 +12,8 @@ use f1_data::{
         resource::{Filters, PitStopFilters},
         response::{QualifyingResult, RaceResult, SprintResult},
     },
-    error::{Error, Result},
+    error::Error as ErgastError,
+    error::Result as ErgastResult,
     id::{RaceID, RoundID, SeasonID},
 };
 
@@ -36,12 +39,23 @@ fn count(name: &str, count: usize) {
     debug!("{name} count: {count}");
 }
 
+fn log_error<T>(result: ErgastResult<T>) {
+    let msg = match result.err().unwrap() {
+        ErgastError::Http(_) => "HTTP error".into(),
+        ErgastError::Io(e) => e.to_string(),
+        ErgastError::Parse(e) => e.to_string(),
+        e => e.to_string(),
+    };
+
+    error!("Error: {}", msg);
+}
+
 /// Call the provided function, retrying on HTTP errors, and forwarding anything else.
-fn retry_http<T>(f: impl Fn() -> Result<T>) -> Result<T> {
+fn retry_http<T>(f: impl Fn() -> ErgastResult<T>) -> ErgastResult<T> {
     for retry_idx in 1..5 {
         match f() {
             Ok(value) => return Ok(value),
-            Err(Error::Http(_)) => {
+            Err(ErgastError::Http(_)) => {
                 debug!("HTTP error, retrying {retry_idx}");
                 debug!("Sleeping for 10 seconds");
                 std::thread::sleep(std::time::Duration::from_secs(10));
@@ -52,75 +66,85 @@ fn retry_http<T>(f: impl Fn() -> Result<T>) -> Result<T> {
     panic!("Retried 4 times on HTTP errors, giving up");
 }
 
-fn validate_seasons() {
+fn validate_seasons(_: Configurations) -> Result<()> {
     section_header("seasons");
 
-    let seasons = retry_http(|| get_seasons(Filters::none())).unwrap();
+    let seasons = retry_http(|| get_seasons(Filters::none()))?;
     count("season", seasons.len());
 
     table_header("|     | year |     url");
     for (idx, season) in seasons.iter().enumerate() {
         trace!("[{idx:3}]   {:4}   {}", season.season, season.url);
     }
+
+    Ok(())
 }
 
-fn validate_drivers() {
+fn validate_drivers(_: Configurations) -> Result<()> {
     section_header("drivers");
 
-    let drivers = retry_http(|| get_drivers(Filters::none())).unwrap();
+    let drivers = retry_http(|| get_drivers(Filters::none()))?;
     count("driver", drivers.len());
 
     table_header("|     |     driver_id      |     given_name family_name");
     for (idx, driver) in drivers.iter().enumerate() {
         trace!("[{idx:3}]   {:20} {} {}", driver.driver_id, driver.given_name, driver.family_name);
     }
+
+    Ok(())
 }
 
-fn validate_constructors() {
+fn validate_constructors(_: Configurations) -> Result<()> {
     section_header("constructors");
 
-    let constructors = retry_http(|| get_constructors(Filters::none())).unwrap();
+    let constructors = retry_http(|| get_constructors(Filters::none()))?;
     count("constructor", constructors.len());
 
     table_header("|     |   constructor_id   |     name");
     for (idx, constructor) in constructors.iter().enumerate() {
         trace!("[{idx:3}]   {:20} {}", constructor.constructor_id, constructor.name);
     }
+
+    Ok(())
 }
 
-fn validate_circuits() {
+fn validate_circuits(_: Configurations) -> Result<()> {
     section_header("circuits");
 
-    let circuits = retry_http(|| get_circuits(Filters::none())).unwrap();
+    let circuits = retry_http(|| get_circuits(Filters::none()))?;
     count("circuit", circuits.len());
 
     table_header("|     |     circuit_id     |     name");
     for (idx, circuit) in circuits.iter().enumerate() {
         trace!("[{idx:3}]   {:20} {}", circuit.circuit_id, circuit.circuit_name);
     }
+
+    Ok(())
 }
 
-fn validate_statuses() {
+fn validate_statuses(_: Configurations) -> Result<()> {
     section_header("statuses");
 
-    let statuses = retry_http(|| get_statuses(Filters::none())).unwrap();
+    let statuses = retry_http(|| get_statuses(Filters::none()))?;
     count("status", statuses.len());
 
     table_header("|     |  id  | count |     status");
     for (idx, status) in statuses.iter().enumerate() {
         trace!("[{idx:3}]   {:3}     {:4}   {}", status.status_id, status.count, status.status);
     }
+
+    Ok(())
 }
 
-fn validate_race_schedules() {
+fn validate_race_schedules(_: Configurations) -> Result<()> {
     section_header("race schedules");
 
-    let seasons = retry_http(|| get_seasons(Filters::none())).unwrap();
+    let seasons = retry_http(|| get_seasons(Filters::none()))?;
 
     for season in seasons {
         section_sub_header(&format!("season: {}", season.season));
 
-        let races = retry_http(|| get_race_schedules(Filters::new().season(season.season))).unwrap();
+        let races = retry_http(|| get_race_schedules(Filters::new().season(season.season)))?;
         count("race", races.len());
 
         table_header("|    | round |    date    |     name");
@@ -128,6 +152,8 @@ fn validate_race_schedules() {
             trace!("[{idx:2}]  {:4}     {}   {}", race.round, race.date, race.race_name);
         }
     }
+
+    Ok(())
 }
 
 trait SessionResult {
@@ -204,17 +230,6 @@ impl SessionResult for RaceResult {
     }
 }
 
-fn log_error<T>(result: Result<T>) {
-    let msg = match result.err().unwrap() {
-        Error::Http(_) => "HTTP error".into(),
-        Error::Io(e) => e.to_string(),
-        Error::Parse(e) => e.to_string(),
-        e => e.to_string(),
-    };
-
-    error!("Error: {}", msg);
-}
-
 fn validate_granular_session_results_for_round<T>(season: SeasonID, round: RoundID)
 where
     T: get::SessionResult + SessionResult,
@@ -236,7 +251,7 @@ where
         }
         // We ignore NotFound errors because the .qualifying_pos/sprint_pos/finish_pos filters do
         // not work for non-fishing positions, i.e. those where position_text is not a number.
-        else if !matches!(race, Err(Error::NotFound)) {
+        else if !matches!(race, Err(ErgastError::NotFound)) {
             error!("P{pos} failed");
             log_error(race);
         }
@@ -278,13 +293,15 @@ fn is_known_no_number(season: SeasonID, round: RoundID, position: u32) -> bool {
         .any(|(s, r, positions)| season == *s && round == *r && positions.contains(&position))
 }
 
-fn validate_session_results<T>()
+fn validate_session_results<T>(configs: Configurations) -> Result<()>
 where
     T: get::SessionResult + SessionResult,
 {
+    let mut status = Ok(());
+
     section_header(T::name());
 
-    let seasons = retry_http(|| get_seasons(Filters::none())).unwrap();
+    let seasons = retry_http(|| get_seasons(Filters::none()))?;
 
     for season in seasons {
         section_sub_header(&format!("season: {}", season.season));
@@ -310,18 +327,31 @@ where
                 }
             }
         } else {
-            error!("{} - get_session_results failed", season.season);
-            log_error(races);
+            let msg = format!("{} - get_session_results failed", season.season);
 
-            validate_granular_session_results_for_season::<T>(season.season);
+            error!("{msg}");
+            log_error(races);
+            status = status.and(Err(anyhow!(msg)));
+
+            if configs.granular_validation_on_error.is_enabled() {
+                validate_granular_session_results_for_season::<T>(season.season);
+            }
+
+            if configs.early_exit_on_error.is_enabled() {
+                return status;
+            }
         }
     }
+
+    status
 }
 
-fn validate_driver_laps() {
+fn validate_driver_laps(configs: Configurations) -> Result<()> {
+    let mut status = Ok(());
+
     section_header("driver laps");
 
-    let seasons = retry_http(|| get_seasons(Filters::none())).unwrap();
+    let seasons = retry_http(|| get_seasons(Filters::none()))?;
 
     'season_loop: for season in seasons {
         // We know that Resource::LapTimes are not available prior to 1996, so skip those seasons.
@@ -332,7 +362,7 @@ fn validate_driver_laps() {
 
         section_sub_header(&format!("season: {}", season.season));
 
-        let races = retry_http(|| get_race_schedules(Filters::new().season(season.season))).unwrap();
+        let races = retry_http(|| get_race_schedules(Filters::new().season(season.season)))?;
         count("race", races.len());
 
         for (race_idx, race) in races.iter().enumerate() {
@@ -357,12 +387,21 @@ fn validate_driver_laps() {
                 }
                 // We ignore NotFound errors because those are valid for seasons prior to 1996,
                 // where Resource::LapTimes were not available; an overall message is still logged.
-                else if let Err(Error::NotFound) = laps {
+                else if let Err(ErgastError::NotFound) = laps {
                     continue 'driver_loop;
                 } else {
-                    error!("{}, R{}, {} - get_driver_laps_failed", race.season, race.round, driver.driver_id);
+                    let msg =
+                        format!("{}, R{}, {} - get_driver_laps_failed", race.season, race.round, driver.driver_id);
+
+                    error!("{msg}");
                     log_error(laps);
-                    continue 'driver_loop;
+                    status = status.and(Err(anyhow!(msg)));
+
+                    if configs.early_exit_on_error.is_enabled() {
+                        return status;
+                    } else {
+                        continue 'driver_loop;
+                    }
                 };
 
                 section_div_line();
@@ -381,9 +420,13 @@ fn validate_driver_laps() {
             }
         }
     }
+
+    status
 }
 
-fn validate_lap_timings() {
+fn validate_lap_timings(configs: Configurations) -> Result<()> {
+    let mut status = Ok(());
+
     section_header("lap timings");
 
     let seasons = retry_http(|| get_seasons(Filters::none())).unwrap();
@@ -413,15 +456,23 @@ fn validate_lap_timings() {
                     lap_timings
                 }
                 // Stop loop once we find the first lap for which there are no lap timings.
-                else if let Err(Error::NotFound) = lap_timings {
+                else if let Err(ErgastError::NotFound) = lap_timings {
                     if lap == 1 {
                         debug!(">> No lap timings found");
                     }
                     break 'lap_loop;
                 } else {
-                    error!("{}, R{}, {} - get_lap_timings failed", race.season, race.round, lap);
+                    let msg = format!("{}, R{}, {} - get_lap_timings failed", race.season, race.round, lap);
+
+                    error!("{msg}");
                     log_error(lap_timings);
-                    continue 'lap_loop;
+                    status = status.and(Err(anyhow!(msg)));
+
+                    if configs.early_exit_on_error.is_enabled() {
+                        return status;
+                    } else {
+                        continue 'lap_loop;
+                    }
                 };
 
                 section_div_line();
@@ -434,9 +485,13 @@ fn validate_lap_timings() {
             }
         }
     }
+
+    status
 }
 
-fn validate_pit_stops() {
+fn validate_pit_stops(_: Configurations) -> Result<()> {
+    let mut status = Ok(());
+
     section_header("pit stops");
 
     let seasons = retry_http(|| get_seasons(Filters::none())).unwrap();
@@ -463,12 +518,16 @@ fn validate_pit_stops() {
                 pit_stops
             }
             // Stop loop once we find the first lap for which there are no lap timings.
-            else if let Err(Error::NotFound) = pit_stops {
+            else if let Err(ErgastError::NotFound) = pit_stops {
                 debug!(">> No pit stops found");
                 continue 'race_loop;
             } else {
-                error!("{}, R{} - get_pit_stops failed", race.season, race.round);
+                let msg = format!("{}, R{} - get_pit_stops failed", race.season, race.round);
+
+                error!("{msg}");
                 log_error(pit_stops);
+                status = status.and(Err(anyhow!(msg)));
+
                 continue 'race_loop;
             };
 
@@ -484,24 +543,90 @@ fn validate_pit_stops() {
             }
         }
     }
+
+    status
 }
 
-fn main() {
+#[derive(Clone, Copy, Debug)]
+enum Toggle {
+    Enabled,
+    Disabled,
+}
+
+impl Toggle {
+    fn is_enabled(&self) -> bool {
+        matches!(self, Toggle::Enabled)
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+struct Configurations {
+    pub early_exit_on_error: Toggle,
+    pub granular_validation_on_error: Toggle,
+}
+
+fn main() -> Result<()> {
     env_logger::builder().format_timestamp(None).init();
 
-    validate_seasons();
-    validate_drivers();
-    validate_constructors();
-    validate_circuits();
-    validate_statuses();
+    const VALIDATORS: &[fn(Configurations) -> Result<()>] = &[
+        validate_seasons,
+        validate_drivers,
+        validate_constructors,
+        validate_circuits,
+        validate_statuses,
+        validate_race_schedules,
+        validate_session_results::<QualifyingResult>,
+        validate_session_results::<SprintResult>,
+        validate_session_results::<RaceResult>,
+        validate_driver_laps,
+        validate_lap_timings,
+        validate_pit_stops,
+    ];
 
-    validate_race_schedules();
+    // @todo Add command line interface to control configuration options.
+    let configs = Configurations {
+        early_exit_on_error: Toggle::Disabled,
+        granular_validation_on_error: Toggle::Enabled,
+    };
 
-    validate_session_results::<QualifyingResult>();
-    validate_session_results::<SprintResult>();
-    validate_session_results::<RaceResult>();
+    let mut status = Ok(());
 
-    validate_driver_laps();
-    validate_lap_timings();
-    validate_pit_stops();
+    for validate in VALIDATORS {
+        if status.is_err() && configs.early_exit_on_error.is_enabled() {
+            info!("Stopping validation due to previous error");
+            break;
+        }
+
+        status = status.and(validate(configs));
+    }
+
+    // ASCII art generated with https://patorjk.com/software/taag/#p=display&h=1&v=1&f=Banner3
+
+    const PASSED: &str = r#"
+        ########     ###     ######   ######  ######## ########
+        ##     ##   ## ##   ##    ## ##    ## ##       ##     ##
+        ##     ##  ##   ##  ##       ##       ##       ##     ##
+        ########  ##     ##  ######   ######  ######   ##     ##
+        ##        #########       ##       ## ##       ##     ##
+        ##        ##     ## ##    ## ##    ## ##       ##     ##
+        ##        ##     ##  ######   ######  ######## ########
+        "#;
+
+    const FAILED: &str = r#"
+        ########    ###    #### ##       ######## ########
+        ##         ## ##    ##  ##       ##       ##     ##
+        ##        ##   ##   ##  ##       ##       ##     ##
+        ######   ##     ##  ##  ##       ######   ##     ##
+        ##       #########  ##  ##       ##       ##     ##
+        ##       ##     ##  ##  ##       ##       ##     ##
+        ##       ##     ## #### ######## ######## ########
+        "#;
+
+    match &status {
+        Ok(_) => info!("{}", PASSED.bold().green()),
+        Err(_) => info!("{}", FAILED.bold().red()),
+    }
+
+    // Regardless of `configs.early_exit_on_error`, `status` will only contain the first error.
+    status
 }

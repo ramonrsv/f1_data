@@ -86,6 +86,8 @@
 // While clippy detects uses in unit tests, it doesn't seem to capture these particular uses.
 #[cfg(test)]
 mod _lint {
+    use anyhow as _;
+    use colored as _;
     use criterion as _;
     use env_logger as _;
     use log as _;
