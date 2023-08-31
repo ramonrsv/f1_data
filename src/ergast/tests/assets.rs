@@ -80,6 +80,16 @@ pub(crate) static SEASON_TABLE: Lazy<Table> = Lazy::new(|| Table::Seasons {
 // --------------------------------------
 
 // Optional fields are missing: ["permanentNumber", "code"]
+pub(crate) const DRIVER_HAILWOOD_STR: &str = r#"{
+    "driverId": "hailwood",
+    "url": "http://en.wikipedia.org/wiki/Mike_Hailwood",
+    "givenName": "Mike",
+    "familyName": "Hailwood",
+    "dateOfBirth": "1940-04-02",
+    "nationality": "British"
+  }"#;
+
+// Optional fields are missing: ["permanentNumber", "code"]
 pub(crate) const DRIVER_ABATE_STR: &str = r#"{
     "driverId": "abate",
     "url": "http://en.wikipedia.org/wiki/Carlo_Mario_Abate",
@@ -229,6 +239,17 @@ pub(crate) const DRIVER_RUSSELL_STR: &str = r#"{
     "dateOfBirth": "1998-02-15",
     "nationality": "British"
   }"#;
+
+pub(crate) static DRIVER_HAILWOOD: Lazy<Driver> = Lazy::new(|| Driver {
+    driver_id: "hailwood".into(),
+    permanent_number: None,
+    code: None,
+    url: Url::parse("http://en.wikipedia.org/wiki/Mike_Hailwood").unwrap(),
+    given_name: "Mike".to_string(),
+    family_name: "Hailwood".to_string(),
+    date_of_birth: date!(1940 - 04 - 02),
+    nationality: "British".to_string(),
+});
 
 pub(crate) static DRIVER_ABATE: Lazy<Driver> = Lazy::new(|| Driver {
     driver_id: "abate".into(),
@@ -388,6 +409,7 @@ pub(crate) const DRIVER_TABLE_STR: &str = formatcp!(
     r#"{{
     "DriverTable": {{
         "Drivers": [
+            {DRIVER_HAILWOOD_STR},
             {DRIVER_ABATE_STR},
             {DRIVER_MICHAEL_STR},
             {DRIVER_JOS_STR},
@@ -408,6 +430,7 @@ pub(crate) const DRIVER_TABLE_STR: &str = formatcp!(
 
 pub(crate) static DRIVER_TABLE: Lazy<Table> = Lazy::new(|| Table::Drivers {
     drivers: vec![
+        DRIVER_HAILWOOD.clone(),
         DRIVER_ABATE.clone(),
         DRIVER_MICHAEL.clone(),
         DRIVER_JOS.clone(),
@@ -427,6 +450,13 @@ pub(crate) static DRIVER_TABLE: Lazy<Table> = Lazy::new(|| Table::Drivers {
 
 // http://ergast.com/mrd/methods/constructors/
 // -------------------------------------------
+
+pub(crate) const CONSTRUCTOR_LOLA_STR: &str = r#"{
+    "constructorId": "lola",
+    "url": "http://en.wikipedia.org/wiki/MasterCard_Lola",
+    "name": "Lola",
+    "nationality": "British"
+  }"#;
 
 pub(crate) const CONSTRUCTOR_MCLAREN_STR: &str = r#"{
     "constructorId": "mclaren",
@@ -476,6 +506,13 @@ pub(crate) const CONSTRUCTOR_MERCEDES_STR: &str = r#"{
     "name": "Mercedes",
     "nationality": "German"
   }"#;
+
+pub(crate) static CONSTRUCTOR_LOLA: Lazy<Constructor> = Lazy::new(|| Constructor {
+    constructor_id: "lola".into(),
+    url: Url::parse("http://en.wikipedia.org/wiki/MasterCard_Lola").unwrap(),
+    name: "Lola".to_string(),
+    nationality: "British".to_string(),
+});
 
 pub(crate) static CONSTRUCTOR_MCLAREN: Lazy<Constructor> = Lazy::new(|| Constructor {
     constructor_id: "mclaren".into(),
@@ -530,6 +567,7 @@ pub(crate) const CONSTRUCTOR_TABLE_STR: &str = formatcp!(
     r#"{{
     "ConstructorTable": {{
         "Constructors": [
+            {CONSTRUCTOR_LOLA_STR},
             {CONSTRUCTOR_MCLAREN_STR},
             {CONSTRUCTOR_FERRARI_STR},
             {CONSTRUCTOR_WILLIAMS_STR},
@@ -543,6 +581,7 @@ pub(crate) const CONSTRUCTOR_TABLE_STR: &str = formatcp!(
 
 pub(crate) static CONSTRUCTOR_TABLE: Lazy<Table> = Lazy::new(|| Table::Constructors {
     constructors: vec![
+        CONSTRUCTOR_LOLA.clone(),
         CONSTRUCTOR_MCLAREN.clone(),
         CONSTRUCTOR_FERRARI.clone(),
         CONSTRUCTOR_WILLIAMS.clone(),
@@ -555,6 +594,18 @@ pub(crate) static CONSTRUCTOR_TABLE: Lazy<Table> = Lazy::new(|| Table::Construct
 
 // http://ergast.com/mrd/methods/circuits/
 // ---------------------------------------
+
+pub(crate) const CIRCUIT_GEORGE_STR: &str = r#"{
+    "circuitId": "george",
+    "url": "http://en.wikipedia.org/wiki/Prince_George_Circuit",
+    "circuitName": "Prince George Circuit",
+    "Location": {
+      "lat": "-33.0486",
+      "long": "27.8736",
+      "locality": "Eastern Cape Province",
+      "country": "South Africa"
+    }
+  }"#;
 
 pub(crate) const CIRCUIT_SPA_STR: &str = r#"{
     "circuitId": "spa",
@@ -603,6 +654,18 @@ pub(crate) const CIRCUIT_BAKU_STR: &str = r#"{
       "country": "Azerbaijan"
     }
   }"#;
+
+pub(crate) static CIRCUIT_GEORGE: Lazy<Circuit> = Lazy::new(|| Circuit {
+    circuit_id: "george".into(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Prince_George_Circuit").unwrap(),
+    circuit_name: "Prince George Circuit".to_string(),
+    location: Location {
+        lat: -33.0486,
+        long: 27.8736,
+        locality: "Eastern Cape Province".to_string(),
+        country: "South Africa".to_string(),
+    },
+});
 
 pub(crate) static CIRCUIT_SPA: Lazy<Circuit> = Lazy::new(|| Circuit {
     circuit_id: "spa".into(),
@@ -656,6 +719,7 @@ pub(crate) const CIRCUIT_TABLE_STR: &str = formatcp!(
     r#"{{
     "CircuitTable": {{
         "Circuits": [
+            {CIRCUIT_GEORGE_STR},
             {CIRCUIT_SPA_STR},
             {CIRCUIT_SILVERSTONE_STR},
             {CIRCUIT_IMOLA_STR},
@@ -666,6 +730,7 @@ pub(crate) const CIRCUIT_TABLE_STR: &str = formatcp!(
 
 pub(crate) static CIRCUIT_TABLE: Lazy<Table> = Lazy::new(|| Table::Circuits {
     circuits: vec![
+        CIRCUIT_GEORGE.clone(),
         CIRCUIT_SPA.clone(),
         CIRCUIT_SILVERSTONE.clone(),
         CIRCUIT_IMOLA.clone(),
@@ -684,6 +749,17 @@ pub(crate) const RACE_1950_1_STR: &str = formatcp!(
     "raceName": "British Grand Prix",
     "Circuit": {CIRCUIT_SILVERSTONE_STR},
     "date": "1950-05-13"
+  "#
+);
+
+pub(crate) const RACE_1963_10_STR: &str = formatcp!(
+    r#"
+    "season": "1963",
+    "round": "10",
+    "url": "http://en.wikipedia.org/wiki/1963_South_African_Grand_Prix",
+    "raceName": "South African Grand Prix",
+    "Circuit": {CIRCUIT_GEORGE_STR},
+    "date": "1963-12-28"
   "#
 );
 
@@ -799,6 +875,16 @@ pub(crate) const RACE_1950_1: Lazy<Race> = Lazy::new(|| Race {
     ..RACE_NONE.clone()
 });
 
+pub(crate) const RACE_1963_10: Lazy<Race> = Lazy::new(|| Race {
+    season: 1963,
+    round: 10,
+    url: Url::parse("http://en.wikipedia.org/wiki/1963_South_African_Grand_Prix").unwrap(),
+    race_name: "South African Grand Prix".to_string(),
+    circuit: CIRCUIT_GEORGE.clone(),
+    date: date!(1963 - 12 - 28),
+    ..RACE_NONE.clone()
+});
+
 pub(crate) const RACE_2003_4: Lazy<Race> = Lazy::new(|| Race {
     season: 2003,
     round: 4,
@@ -871,6 +957,13 @@ pub(crate) const RACE_2023_4: Lazy<Race> = Lazy::new(|| Race {
 pub(crate) const RACE_1950_1_SCHEDULE_STR: &str = formatcp!(
     r#"{{
     {RACE_1950_1_STR}
+  }}"#
+);
+
+// Has "date" only
+pub(crate) const RACE_1963_10_SCHEDULE_STR: &str = formatcp!(
+    r#"{{
+    {RACE_1963_10_STR}
   }}"#
 );
 
@@ -963,6 +1056,7 @@ pub(crate) const RACE_2023_4_SCHEDULE_STR: &str = formatcp!(
 );
 
 pub(crate) const RACE_1950_1_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_1950_1.clone() });
+pub(crate) const RACE_1963_10_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_1963_10.clone() });
 pub(crate) const RACE_2003_4_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_2003_4.clone() });
 pub(crate) const RACE_2015_11_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_2015_11.clone() });
 pub(crate) const RACE_2020_4_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_2020_4.clone() });
@@ -1041,6 +1135,7 @@ pub(crate) const RACE_TABLE_SCHEDULE_STR: &str = formatcp!(
     "RaceTable": {{
         "Races": [
             {RACE_1950_1_SCHEDULE_STR},
+            {RACE_1963_10_SCHEDULE_STR},
             {RACE_2003_4_SCHEDULE_STR},
             {RACE_2015_11_SCHEDULE_STR},
             {RACE_2020_4_SCHEDULE_STR},
@@ -1054,6 +1149,7 @@ pub(crate) const RACE_TABLE_SCHEDULE_STR: &str = formatcp!(
 pub(crate) static RACE_TABLE_SCHEDULE: Lazy<Table> = Lazy::new(|| Table::Races {
     races: vec![
         RACE_1950_1_SCHEDULE.clone(),
+        RACE_1963_10_SCHEDULE.clone(),
         RACE_2003_4_SCHEDULE.clone(),
         RACE_2015_11_SCHEDULE.clone(),
         RACE_2020_4_SCHEDULE.clone(),
@@ -1490,6 +1586,20 @@ pub(crate) static RACE_2023_4_SPRINT_RESULTS: Lazy<Race> = Lazy::new(|| Race {
 // http://ergast.com/mrd/methods/results/
 // --------------------------------------
 
+pub(crate) const RACE_RESULT_1963_10_P23_STR: &str = formatcp!(
+    r#"{{
+    "number": "",
+    "position": "23",
+    "positionText": "W",
+    "points": "0",
+    "Driver": {DRIVER_HAILWOOD_STR},
+    "Constructor": {CONSTRUCTOR_LOLA_STR},
+    "grid": "0",
+    "laps": "0",
+    "status": "Withdrew"
+  }}"#
+);
+
 pub(crate) const RACE_RESULT_2003_4_P1_STR: &str = formatcp!(
     r#"{{
     "number": "1",
@@ -1674,6 +1784,20 @@ pub(crate) const RACE_RESULT_2023_4_P20_STR: &str = formatcp!(
   }}"#
 );
 
+pub(crate) const RACE_RESULT_1963_10_P23: Lazy<RaceResult> = Lazy::new(|| RaceResult {
+    number: RaceResult::NO_NUMBER,
+    position: 23,
+    position_text: Position::Withdrawn,
+    points: 0.0,
+    driver: DRIVER_HAILWOOD.clone(),
+    constructor: CONSTRUCTOR_LOLA.clone(),
+    grid: 0,
+    laps: 0,
+    status: "Withdrew".to_string(),
+    time: None,
+    fastest_lap: None,
+});
+
 pub(crate) const RACE_RESULT_2003_4_P1: Lazy<RaceResult> = Lazy::new(|| RaceResult {
     number: 1,
     position: 1,
@@ -1836,6 +1960,20 @@ pub(crate) const RACE_RESULT_2023_4_P20: Lazy<RaceResult> = Lazy::new(|| RaceRes
             speed: 198.663,
         }),
     }),
+});
+
+pub(crate) const RACE_1963_10_RACE_RESULTS_STR: &str = formatcp!(
+    r#"{{
+    {RACE_1963_10_STR},
+    "Results": [
+        {RACE_RESULT_1963_10_P23_STR}
+    ]
+  }}"#
+);
+
+pub(crate) static RACE_1963_10_RACE_RESULTS: Lazy<Race> = Lazy::new(|| Race {
+    payload: Payload::RaceResults(vec![RACE_RESULT_1963_10_P23.clone()]),
+    ..RACE_1963_10.clone()
 });
 
 pub(crate) const RACE_2003_4_RACE_RESULTS_STR: &str = formatcp!(

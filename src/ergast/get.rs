@@ -1157,6 +1157,7 @@ mod tests {
         static RACE_SCHEDULES_COUNTS_BY_SEASON: Lazy<HashMap<u32, usize>> = Lazy::new(|| {
             HashMap::from([
                 (1950, 7),
+                (1963, 10),
                 (2003, 16),
                 (2015, 19),
                 (2020, 17),
@@ -1421,6 +1422,12 @@ mod tests {
     #[test]
     #[ignore]
     fn get_race_results_for_event() {
+        assert_each_expected_session_result_in_actual_event(
+            || super::get_race_results_for_event(race_filters(1963, 10)),
+            &RACE_1963_10_RACE_RESULTS,
+            LenConstraint::Exactly(23),
+        );
+
         assert_each_expected_session_result_in_actual_event(
             || super::get_race_results_for_event(race_filters(2003, 4)),
             &RACE_2003_4_RACE_RESULTS,

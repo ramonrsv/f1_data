@@ -491,7 +491,7 @@ impl Race<SprintResult> {
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct RaceResult {
-    #[serde_as(as = "DisplayFromStr")]
+    #[serde(deserialize_with = "deserialize_possible_no_number")]
     pub number: u32,
     #[serde_as(as = "DisplayFromStr")]
     pub position: u32,
@@ -535,6 +535,32 @@ impl Race<RaceResult> {
     pub fn into_race_result(self) -> RaceResult {
         self.payload
     }
+}
+
+impl RaceResult {
+    /// Represents that no car number was assigned to a race result, set in [`RaceResult::number`].
+    /// This only happened for a few entries in two races in the 1960s. As such, it's not worth the
+    /// ergonomic cost to have the [`RaceResult::number`] field be [`Option`], and instead this
+    /// value will be set for any [`RaceResult`] where the entry was not assigned a car number.
+    ///
+    /// The historical race results without a car number are:
+    ///   - 1962, round 4 (French Grand Prix): P19-22
+    ///   - 1963, round 10 (South African Grand Prix): P23
+    pub const NO_NUMBER: u32 = u32::MAX;
+}
+
+/// Deserialize a `u32` from a string, where empty is represented by [`RaceResult::NO_NUMBER`].
+fn deserialize_possible_no_number<'de, D>(deserializer: D) -> Result<u32, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    String::deserialize(deserializer).and_then(|str| {
+        if str.is_empty() {
+            Ok(RaceResult::NO_NUMBER)
+        } else {
+            str.parse::<u32>().map_err(serde::de::Error::custom)
+        }
+    })
 }
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
@@ -756,6 +782,8 @@ mod tests {
     fn race_result() {
         let from_str = |result_str| serde_json::from_str::<RaceResult>(result_str).unwrap();
 
+        assert_eq!(from_str(RACE_RESULT_1963_10_P23_STR), *RACE_RESULT_1963_10_P23);
+
         assert_eq!(from_str(RACE_RESULT_2003_4_P1_STR), *RACE_RESULT_2003_4_P1);
         assert_eq!(from_str(RACE_RESULT_2003_4_P2_STR), *RACE_RESULT_2003_4_P2);
         assert_eq!(from_str(RACE_RESULT_2003_4_P19_STR), *RACE_RESULT_2003_4_P19);
@@ -772,6 +800,12 @@ mod tests {
 
     #[test]
     fn race_results() {
+        {
+            let race: Race = serde_json::from_str(RACE_1963_10_RACE_RESULTS_STR).unwrap();
+            assert!(!race.payload.as_race_results().unwrap().is_empty());
+            assert_eq!(race, *RACE_1963_10_RACE_RESULTS);
+        }
+
         {
             let race: Race = serde_json::from_str(RACE_2003_4_RACE_RESULTS_STR).unwrap();
             assert!(!race.payload.as_race_results().unwrap().is_empty());
@@ -1096,6 +1130,18 @@ mod tests {
         let actual = map_race_single_result(reference.clone());
         assert_eq!(actual.race_result(), &expected[0]);
         assert_eq!(actual.into_race_result(), expected[0]);
+    }
+
+    #[test]
+    fn deserialize_possible_no_number() {
+        #[derive(Deserialize, Debug)]
+        struct Proxy {
+            #[serde(deserialize_with = "super::deserialize_possible_no_number")]
+            number: u32,
+        }
+
+        assert_eq!(serde_json::from_str::<Proxy>(r#"{"number": "10"}"#).unwrap().number, 10);
+        assert_eq!(serde_json::from_str::<Proxy>(r#"{"number": ""}"#).unwrap().number, RaceResult::NO_NUMBER);
     }
 
     #[test]
