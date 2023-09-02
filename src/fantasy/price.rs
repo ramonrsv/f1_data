@@ -2,29 +2,42 @@ use serde::{Deserialize, Serialize};
 
 use crate::id::{ConstructorID, DriverID, RoundID};
 
+/// Type alias for the price of a driver or constructor, in millions of dollars.
 pub type Price = f32;
 
+/// Holds price data for all rounds of a single season.
 #[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
 pub struct Season {
+    /// Sequence of [`Round`]s, for all available rounds of a given season.
     pub rounds: Vec<Round>,
 }
 
+/// Holds price data for a single round of a season.
 #[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
 pub struct Round {
+    /// ID/index of the round, e.g. `1` for the first round of the season.
     pub round: RoundID,
+    /// Sequence of [`Driver`]s, for all drivers that have a price for this round.
     pub drivers: Vec<Driver>,
+    /// Sequence of [`Constructor`]s, for all constructors that have a price for this round.
     pub constructors: Vec<Constructor>,
 }
 
+/// Holds price data for a single driver.
 #[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
 pub struct Driver {
+    /// ID of the driver, e.g. `max_verstappen` for _Max Verstappen_.
     pub driver_id: DriverID,
+    /// Price of the driver, in millions of dollars.
     pub price: Price,
 }
 
+/// Holds price data for a single constructor.
 #[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
 pub struct Constructor {
+    /// ID of the constructor, e.g. `red_bull` for _Red Bull Racing_.
     pub constructor_id: ConstructorID,
+    /// Price of the constructor, in millions of dollars.
     pub price: Price,
 }
 
