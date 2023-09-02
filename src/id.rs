@@ -38,13 +38,16 @@ pub type RoundID = u32;
 #[serde_as]
 #[derive(Deserialize, Clone, Copy, PartialEq, Eq, Debug)]
 pub struct RaceID {
+    /// The season/year that a race took place in, e.g. `2023` for the 2023 season.
     #[serde_as(as = "DisplayFromStr")]
     pub season: SeasonID,
+    /// The round index for a race within a season, e.g. `1` for the first race.
     #[serde_as(as = "DisplayFromStr")]
     pub round: RoundID,
 }
 
 impl RaceID {
+    /// Create a new [`RaceID`] from a season and round.
     pub fn from(season: SeasonID, round: RoundID) -> Self {
         Self { season, round }
     }

@@ -91,4 +91,5 @@ impl From<Payload> for Error {
     }
 }
 
+/// Convenience type alias for [`Result<T, f1_data::error::Error>`].
 pub type Result<T> = std::result::Result<T, Error>;
