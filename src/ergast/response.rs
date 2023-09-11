@@ -18,21 +18,48 @@ use crate::{ergast::resource::Resource, error::Error};
 
 pub const GRID_PIT_LANE: u32 = 0;
 
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+/// [`Response`] represents a full JSON response from the Ergast API. It contains metadata about the
+/// API and the response, and a single [`Table`] of data, holding a request-dependent variant. Note
+/// that, while [`Response`] can be deserialized from a full JSON response, it actually represents
+/// the underlying `"MRData"` object, which is flattened in this struct to improve ergonomics.
+#[derive(PartialEq, Clone, Debug)]
 pub struct Response {
-    #[serde(rename = "MRData")]
-    pub mr_data: MrData,
-}
-
-#[derive(Deserialize, PartialEq, Clone, Debug)]
-pub struct MrData {
     pub xmlns: String,
     pub series: String,
     pub url: Url,
-    #[serde(flatten)]
     pub pagination: Pagination,
-    #[serde(flatten)]
     pub table: Table,
+}
+
+impl<'de> Deserialize<'de> for Response {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        struct Proxy {
+            #[serde(rename = "MRData")]
+            mr_data: MrData,
+        }
+
+        #[derive(Deserialize)]
+        struct MrData {
+            xmlns: String,
+            series: String,
+            url: Url,
+            #[serde(flatten)]
+            pagination: Pagination,
+            #[serde(flatten)]
+            table: Table,
+        }
+
+        let mr_data = Proxy::deserialize(deserializer)?.mr_data;
+
+        Ok(Self {
+            xmlns: mr_data.xmlns,
+            series: mr_data.series,
+            url: mr_data.url,
+            pagination: mr_data.pagination,
+            table: mr_data.table,
+        })
+    }
 }
 
 #[serde_as]
@@ -964,16 +991,18 @@ mod tests {
         );
 
         assert_eq!(
-            serde_json::from_str::<MrData>(
+            serde_json::from_str::<Response>(
                 r#"{
-                "xmlns": "http://ergast.com/mrd/1.5",
-                "series": "f1",
-                "url": "http://ergast.com/api/f1/races.json",
-                "limit": "30",
-                "offset": "0",
-                "total": "16",
-                "RaceTable": { "Races": [] }
-              }"#
+                  "MRData": {
+                    "xmlns": "http://ergast.com/mrd/1.5",
+                    "series": "f1",
+                    "url": "http://ergast.com/api/f1/races.json",
+                    "limit": "30",
+                    "offset": "0",
+                    "total": "16",
+                    "RaceTable": { "Races": [] }
+                  }
+                }"#
             )
             .unwrap()
             .pagination,

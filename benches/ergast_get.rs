@@ -91,7 +91,6 @@ fn bench_deserialize_response(c: &mut Criterion) {
 fn process_response(response: Result<Response>) -> Result<Vec<Race<Vec<RaceResult>>>> {
     response
         .and_then(verify_is_single_page)?
-        .mr_data
         .table
         .into_races()?
         .into_iter()
@@ -100,7 +99,7 @@ fn process_response(response: Result<Response>) -> Result<Vec<Race<Vec<RaceResul
 }
 
 fn verify_is_single_page(response: Response) -> Result<Response> {
-    if response.mr_data.pagination.is_single_page() {
+    if response.pagination.is_single_page() {
         Ok(response)
     } else {
         Err(Error::MultiPage)

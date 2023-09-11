@@ -19,7 +19,7 @@ use crate::ergast::response::{Pagination, Table};
 
 /// Performs a GET request to the Ergast API for a specific page of the argument specified
 /// [`Resource`] and returns a [`Response`] with a single page, parsed from the JSON response, of a
-/// possibly multi-page response. `Response::mr_data::pagination` can be used to check for
+/// possibly multi-page response. `Response:::pagination` can be used to check for
 /// [`Pagination::is_last_page`] and get [`Pagination::next_page`] to request the following page of
 /// the response, via another call to this method.
 ///
@@ -35,22 +35,22 @@ use crate::ergast::response::{Pagination, Table};
 ///
 /// let resp = get_response_page(&Resource::SeasonList(Filters::none()), Page::with_limit(50)).unwrap();
 ///
-/// let seasons = resp.mr_data.table.as_seasons().unwrap();
+/// let seasons = resp.table.as_seasons().unwrap();
 /// assert_eq!(seasons.len(), 50);
 /// assert_eq!(seasons.first().unwrap().season, 1950);
 /// assert_eq!(seasons.last().unwrap().season, 1999);
-/// assert!(!resp.mr_data.pagination.is_last_page());
+/// assert!(!resp.pagination.is_last_page());
 ///
 /// let resp = get_response_page(
 ///     &Resource::SeasonList(Filters::none()),
-///     resp.mr_data.pagination.next_page().unwrap().into(),
+///     resp.pagination.next_page().unwrap().into(),
 /// )
 /// .unwrap();
 ///
-/// let seasons = resp.mr_data.table.as_seasons().unwrap();
+/// let seasons = resp.table.as_seasons().unwrap();
 /// assert!(seasons.len() <= 50);
 /// assert_eq!(seasons.first().unwrap().season, 2000);
-/// assert!(resp.mr_data.pagination.is_last_page());
+/// assert!(resp.pagination.is_last_page());
 /// ```
 pub fn get_response_page(resource: &Resource, page: Page) -> Result<Response> {
     ureq::request_url("GET", &resource.to_url_with(page))
@@ -81,7 +81,7 @@ pub fn get_response_page(resource: &Resource, page: Page) -> Result<Response> {
 /// }))
 /// .unwrap();
 ///
-/// assert_eq!(resp.mr_data.table.as_drivers().unwrap()[0].given_name, "Charles".to_string());
+/// assert_eq!(resp.table.as_drivers().unwrap()[0].given_name, "Charles".to_string());
 /// ```
 pub fn get_response(resource: &Resource) -> Result<Response> {
     get_response_page(resource, Page::default()).and_then(verify_is_single_page)
@@ -105,7 +105,7 @@ pub fn get_response(resource: &Resource) -> Result<Response> {
 ///
 /// let resp = get_response_max_limit(&Resource::SeasonList(Filters::none())).unwrap();
 ///
-/// let seasons = resp.mr_data.table.as_seasons().unwrap();
+/// let seasons = resp.table.as_seasons().unwrap();
 /// assert!(seasons.len() >= 74);
 /// assert_eq!(seasons[0].season, 1950);
 /// assert_eq!(seasons[73].season, 2023);
@@ -115,7 +115,7 @@ pub fn get_response_max_limit(resource: &Resource) -> Result<Response> {
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::SeasonList`], with the argument
-/// [`Filters`], and return the resulting inner [`Season`]s from [`Table`] in `resp.mr_data.table`.
+/// [`Filters`], and return the resulting inner [`Season`]s from [`Table`] in `resp.table`.
 /// An [`Error::MultiPage`] is returned if `seasons` would not fit in a [`Page::with_max_limit`].
 ///
 /// # Examples
@@ -129,7 +129,6 @@ pub fn get_response_max_limit(resource: &Resource) -> Result<Response> {
 /// ```
 pub fn get_seasons(filters: Filters) -> Result<Vec<Season>> {
     get_response_max_limit(&Resource::SeasonList(filters))?
-        .mr_data
         .table
         .into_seasons()
         .map_err(into)
@@ -152,7 +151,7 @@ pub fn get_season(season: SeasonID) -> Result<Season> {
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::DriverInfo`], with the argument
-/// [`Filters`], and return the resulting inner [`Driver`]s from [`Table`] in `resp.mr_data.table`.
+/// [`Filters`], and return the resulting inner [`Driver`]s from [`Table`] in `resp.table`.
 /// An [`Error::MultiPage`] is returned if `drivers` would not fit in a [`Page::with_max_limit`].
 ///
 /// # Examples
@@ -173,7 +172,6 @@ pub fn get_season(season: SeasonID) -> Result<Season> {
 /// ```
 pub fn get_drivers(filters: Filters) -> Result<Vec<Driver>> {
     get_response_max_limit(&Resource::DriverInfo(filters))?
-        .mr_data
         .table
         .into_drivers()
         .map_err(into)
@@ -197,7 +195,7 @@ pub fn get_driver(driver_id: DriverID) -> Result<Driver> {
 
 /// Performs a GET request to the Ergast API for [`Resource::ConstructorInfo`], with the argument
 /// [`Filters`], and return the resulting inner [`Constructor`]s from [`Table`] in
-/// `resp.mr_data.table`. An [`Error::MultiPage`] is returned if `constructors` would not fit in a
+/// `resp.table`. An [`Error::MultiPage`] is returned if `constructors` would not fit in a
 /// [`Page::with_max_limit`].
 ///
 /// # Examples
@@ -218,7 +216,6 @@ pub fn get_driver(driver_id: DriverID) -> Result<Driver> {
 /// ```
 pub fn get_constructors(filters: Filters) -> Result<Vec<Constructor>> {
     get_response_max_limit(&Resource::ConstructorInfo(filters))?
-        .mr_data
         .table
         .into_constructors()
         .map_err(into)
@@ -242,7 +239,7 @@ pub fn get_constructor(constructor_id: ConstructorID) -> Result<Constructor> {
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::CircuitInfo`], with the argument
-/// [`Filters`], and return the resulting inner [`Circuit`]s from [`Table`] in `resp.mr_data.table`.
+/// [`Filters`], and return the resulting inner [`Circuit`]s from [`Table`] in `resp.table`.
 /// An [`Error::MultiPage`] is returned if `circuits` would not fit in a [`Page::with_max_limit`].
 ///
 /// # Examples
@@ -263,7 +260,6 @@ pub fn get_constructor(constructor_id: ConstructorID) -> Result<Constructor> {
 /// ```
 pub fn get_circuits(filters: Filters) -> Result<Vec<Circuit>> {
     get_response_max_limit(&Resource::CircuitInfo(filters))?
-        .mr_data
         .table
         .into_circuits()
         .map_err(into)
@@ -318,7 +314,6 @@ pub fn get_circuit(circuit_id: CircuitID) -> Result<Circuit> {
 /// ```
 pub fn get_race_schedules(filters: Filters) -> Result<Vec<Race<Schedule>>> {
     get_response_max_limit(&Resource::RaceSchedule(filters))?
-        .mr_data
         .table
         .into_races()?
         .into_iter()
@@ -462,7 +457,6 @@ impl SessionResult for RaceResult {
 /// ```
 pub fn get_session_results<T: SessionResult>(filters: Filters) -> Result<Vec<Race<Vec<T>>>> {
     get_response_max_limit(&T::to_resource(filters))?
-        .mr_data
         .table
         .into_races()?
         .into_iter()
@@ -646,7 +640,7 @@ pub fn get_race_result(filters: Filters) -> Result<Race<RaceResult>> {
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::FinishingStatus`], with the argument
-/// [`Filters`], and return the resulting inner [`Status`]s from [`Table`] in `resp.mr_data.table`.
+/// [`Filters`], and return the resulting inner [`Status`]s from [`Table`] in `resp.table`.
 /// An [`Error::MultiPage`] is returned if `status` would not fit in a [`Page::with_max_limit`].
 ///
 /// # Examples
@@ -667,7 +661,6 @@ pub fn get_race_result(filters: Filters) -> Result<Race<RaceResult>> {
 /// ```
 pub fn get_statuses(filters: Filters) -> Result<Vec<Status>> {
     get_response_max_limit(&Resource::FinishingStatus(filters))?
-        .mr_data
         .table
         .into_status()
         .map_err(into)
@@ -774,7 +767,7 @@ pub fn get_lap_timings(race_id: RaceID, lap: u32) -> Result<Vec<Timing>> {
 
 /// Performs a GET request to the Ergast API for [`Resource::PitStops`], with the passed argument
 /// [`PitStopFilters`], and return the resulting inner [`PitStop`]s from `race.payload` in the
-/// expected single [`Race`] element from [`Table`] in `resp.mr_data.table`. An [`Error::MultiPage`]
+/// expected single [`Race`] element from [`Table`] in `resp.table`. An [`Error::MultiPage`]
 /// is returned if `payload` would not fit in a [`Page::with_max_limit`].
 ///
 /// # Examples
@@ -827,7 +820,7 @@ pub fn retry_on_http_error<T>(
 /// Convert a [`Response`] to [`Result<Response>`], enforcing that [`Response`] is single-page, via
 /// `response::Pagination::is_single_page`, and returning [`Error::MultiPage`] if it's not.
 fn verify_is_single_page(response: Response) -> Result<Response> {
-    if response.mr_data.pagination.is_single_page() {
+    if response.pagination.is_single_page() {
         Ok(response)
     } else {
         Err(Error::MultiPage)
@@ -850,7 +843,6 @@ fn verify_has_one_element_and_extract<T>(mut sequence: Vec<T>) -> Result<T> {
 /// [`Error::TooMany`] if it contained more than one.
 fn verify_has_one_race_and_extract(response: Response) -> Result<Race> {
     response
-        .mr_data
         .table
         .into_races()
         .map_err(into)
@@ -1673,14 +1665,14 @@ mod tests {
     fn get_response_single_page() {
         let resp = retry_http(|| get_response(&Resource::SeasonList(Filters::new().season(1950)))).unwrap();
 
-        let pagination = resp.mr_data.pagination;
+        let pagination = resp.pagination;
         assert!(pagination.is_single_page());
         assert!(pagination.is_last_page());
         assert_eq!(pagination.limit, 30);
         assert_eq!(pagination.offset, 0);
         assert_eq!(pagination.total, 1);
 
-        let seasons = resp.mr_data.table.as_seasons().unwrap();
+        let seasons = resp.table.as_seasons().unwrap();
         assert_eq!(seasons.len(), 1);
         assert_eq!(seasons[0], *SEASON_1950);
     }
@@ -1697,14 +1689,14 @@ mod tests {
     fn get_response_max_limit_single_page() {
         let resp = retry_http(|| get_response_max_limit(&Resource::SeasonList(Filters::none()))).unwrap();
 
-        let pagination = resp.mr_data.pagination;
+        let pagination = resp.pagination;
         assert!(pagination.is_single_page());
         assert!(pagination.is_last_page());
         assert_eq!(pagination.limit, 1000);
         assert_eq!(pagination.offset, 0);
         assert!(pagination.total >= 74);
 
-        let seasons = resp.mr_data.table.as_seasons().unwrap();
+        let seasons = resp.table.as_seasons().unwrap();
         assert_eq!(seasons[0], *SEASON_1950);
         assert_eq!(seasons[29], *SEASON_1979);
         assert_eq!(seasons[50], *SEASON_2000);
@@ -1725,18 +1717,18 @@ mod tests {
         let page = Page::with_limit(5);
 
         let mut resp = retry_http(|| get_response_page(&req, page.clone())).unwrap();
-        assert!(!resp.mr_data.pagination.is_last_page());
+        assert!(!resp.pagination.is_last_page());
 
         let mut current_offset: u32 = 0;
 
-        while !resp.mr_data.pagination.is_last_page() {
-            let pagination = resp.mr_data.pagination;
+        while !resp.pagination.is_last_page() {
+            let pagination = resp.pagination;
             assert!(!pagination.is_single_page());
             assert_eq!(pagination.limit, page.limit());
             assert_eq!(pagination.offset, current_offset);
             assert!(pagination.total >= 74);
 
-            let seasons = resp.mr_data.table.as_seasons().unwrap();
+            let seasons = resp.table.as_seasons().unwrap();
             assert_eq!(seasons.len(), page.limit() as usize);
 
             match current_offset {
@@ -1752,14 +1744,14 @@ mod tests {
             current_offset += page.limit();
         }
 
-        let pagination = resp.mr_data.pagination;
+        let pagination = resp.pagination;
         assert!(!pagination.is_single_page());
         assert!(pagination.is_last_page());
         assert_eq!(pagination.limit, page.limit());
         assert_eq!(pagination.offset, current_offset);
         assert!(pagination.total >= 74);
 
-        let seasons = resp.mr_data.table.as_seasons().unwrap();
+        let seasons = resp.table.as_seasons().unwrap();
         assert_eq!(seasons.last().unwrap().season, 1950 + current_offset + (seasons.len() as u32) - 1);
     }
 }
