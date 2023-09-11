@@ -9,10 +9,16 @@ use serde_with::{serde_as, DisplayFromStr};
 // @todo Enable features to use different underlying libraries, e.g. [`time`], `chrono`, etc.
 use time as underlying;
 
+/// The clock time within a given date, as supported by the underlying library, e.g. [`time`].
 pub type Time = underlying::Time;
+
+/// The date within a given calendar, as supported by the underlying library, e.g. [`time`].
 pub type Date = underlying::Date;
+
+/// The duration of a time interval, as supported by the underlying library, e.g. [`time`].
 pub type Duration = underlying::Duration;
 
+/// Exports of [`macros::date`] and [`macros::time`] from the underlying library, e.g. [`time`].
 pub mod macros {
     pub use super::underlying::macros::date;
     pub use super::underlying::macros::time;
