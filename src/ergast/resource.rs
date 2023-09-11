@@ -158,14 +158,12 @@ pub enum Resource {
 }
 
 impl Resource {
-    #[allow(clippy::doc_markdown)] // False positive, complains about "RESTful"
-    /// The base URL at which requests will be made for Ergast's RESTful API.
+    /// The base URL at which requests will be made from the Ergast API.
     // @todo This should probably be configurable, e.g. to support mirrors, caches, etc.
     pub const ERGAST_BASE_URL: &str = "http://ergast.com/api/f1";
 
-    #[allow(clippy::doc_markdown)] // False positive, complains about "RESTful"
-    /// Produce a URL with which to request the given [`Resource`] from Ergast's RESTful API,
-    /// including any filters that may have been requested.
+    /// Produce a URL with which to request the given [`Resource`] from the Ergast API, including
+    /// any filters that may have been requested.
     ///
     /// # Examples
     ///
@@ -231,9 +229,8 @@ impl Resource {
         .unwrap()
     }
 
-    #[allow(clippy::doc_markdown)] // False positive, complains about "RESTful"
-    /// Produce a URL with which to request a specific [`Page`] of a given [`Resource`] from
-    /// Ergast's RESTful API, including any filters that may have been requested.
+    /// Produce a URL with which to request a specific [`Page`] of a given [`Resource`] from the
+    /// Ergast API, including any filters that may have been requested.
     ///
     /// # Examples
     ///
@@ -752,8 +749,7 @@ impl FiltersFormatter for PitStopFilters {
     }
 }
 
-#[allow(clippy::doc_markdown)] // False positive, complains about "RESTful"
-/// Identifies a specific pagination page for a given [`Resource`] from the Ergast's RESTful API.
+/// Identifies a specific pagination page for a given [`Resource`] from the Ergast API.
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct Page {
     limit: u32,
