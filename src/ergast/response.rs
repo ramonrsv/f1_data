@@ -179,7 +179,7 @@ pub enum Table {
 #[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 pub struct Season {
     #[serde_as(as = "DisplayFromStr")]
-    pub season: u32,
+    pub season: SeasonID,
     pub url: Url,
 }
 
