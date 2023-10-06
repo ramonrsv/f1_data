@@ -223,8 +223,11 @@ impl Resource {
             filters
                 .iter()
                 .filter(|(key, val)| !val.is_empty() || key == &resource_key)
-                .map(|(key, val)| format!("{key}{val}"))
-                .collect::<String>()
+                .fold(String::new(), |mut acc, (key, val)| {
+                    acc.push_str(key);
+                    acc.push_str(val);
+                    acc
+                })
         ))
         .unwrap()
     }
