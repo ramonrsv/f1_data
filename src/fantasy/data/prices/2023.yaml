@@ -628,3 +628,40 @@ rounds:
         { constructor_id: alphatauri, price: 6.8 },
         { constructor_id: alfa, price: 6.2 },
       ]
+  - round: 18
+    drivers:
+      [
+        { driver_id: max_verstappen, price: 29.3 },
+        { driver_id: hamilton, price: 25.3 },
+        { driver_id: leclerc, price: 23.3 },
+        { driver_id: perez, price: 20.1 },
+        { driver_id: russell, price: 19.9 },
+        { driver_id: sainz, price: 19.4 },
+        { driver_id: norris, price: 17.0 },
+        { driver_id: alonso, price: 15.4 },
+        { driver_id: piastri, price: 14.0 },
+        { driver_id: gasly, price: 12.0 },
+        { driver_id: ocon, price: 11.5 },
+        { driver_id: stroll, price: 11.0 },
+        { driver_id: albon, price: 10.3 },
+        { driver_id: kevin_magnussen, price: 9.3 },
+        { driver_id: bottas, price: 9.2 },
+        { driver_id: zhou, price: 7.2 },
+        { driver_id: lawson, price: 5.9 },
+        { driver_id: tsunoda, price: 5.9 },
+        { driver_id: hulkenberg, price: 5.2 },
+        { driver_id: sargeant, price: 4.8 },
+      ]
+    constructors:
+      [
+        { constructor_id: red_bull, price: 29.3 },
+        { constructor_id: mercedes, price: 25.9 },
+        { constructor_id: ferrari, price: 24.2 },
+        { constructor_id: mclaren, price: 16.3 },
+        { constructor_id: alpine, price: 12.2 },
+        { constructor_id: aston_martin, price: 12.0 },
+        { constructor_id: haas, price: 6.9 },
+        { constructor_id: williams, price: 6.8 },
+        { constructor_id: alphatauri, price: 6.7 },
+        { constructor_id: alfa, price: 6.7 },
+      ]
