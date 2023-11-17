@@ -160,7 +160,7 @@ pub enum Resource {
 impl Resource {
     /// The base URL at which requests will be made from the Ergast API.
     // @todo This should probably be configurable, e.g. to support mirrors, caches, etc.
-    pub const ERGAST_BASE_URL: &str = "http://ergast.com/api/f1";
+    pub const ERGAST_BASE_URL: &'static str = "http://ergast.com/api/f1";
 
     /// Produce a URL with which to request the given [`Resource`] from the Ergast API, including
     /// any filters that may have been requested.
