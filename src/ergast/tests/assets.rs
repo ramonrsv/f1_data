@@ -32,7 +32,7 @@ pub(crate) const SEASON_2000_STR: &str = r#"{
 
 pub(crate) const SEASON_2023_STR: &str = r#"{
     "season": "2023",
-    "url": "https://en.wikipedia.org/wiki/2023_Formula_One_World_Championship"
+    "url": "http://en.wikipedia.org/wiki/2023_Formula_One_World_Championship"
   }"#;
 
 pub(crate) static SEASON_1950: Lazy<Season> = Lazy::new(|| Season {
@@ -52,7 +52,7 @@ pub(crate) static SEASON_2000: Lazy<Season> = Lazy::new(|| Season {
 
 pub(crate) static SEASON_2023: Lazy<Season> = Lazy::new(|| Season {
     season: 2023,
-    url: Url::parse("https://en.wikipedia.org/wiki/2023_Formula_One_World_Championship").unwrap(),
+    url: Url::parse("http://en.wikipedia.org/wiki/2023_Formula_One_World_Championship").unwrap(),
 });
 
 pub(crate) const SEASON_TABLE_STR: &str = formatcp!(
