@@ -37,7 +37,7 @@ const_format = "0.2"
 ureq = { version = "2.9", features = ["json"] }
 criterion = { version = "0.5", features = ["html_reports"] }
 log = "0.4"
-env_logger = "0.10"
+env_logger = "0.11"
 anyhow = "1.0"
 colored = "2.1"
 
