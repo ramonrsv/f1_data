@@ -36,6 +36,7 @@ pub enum Resource {
     /// Directly maps to <http://ergast.com/mrd/methods/drivers/>
     DriverInfo(Filters),
 
+    #[allow(clippy::doc_markdown)] // False positive, complains about "_McLaren_".
     /// Get a list of constructors within the series, and information about them. Each constructor
     /// listed in a response is identified by a unique ID, returned in
     /// [`Constructor::constructor_id`], e.g. `"mclaren"` for _McLaren_. These unique IDs can be
