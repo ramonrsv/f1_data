@@ -2333,6 +2333,35 @@ pub(crate) static DRIVERS_BY_SEASON: Lazy<HashMap<u32, Vec<Driver>>> = Lazy::new
     ])
 });
 
+// [`Constructor`]s by season, helpful for testing
+// -----------------------------------------------
+
+pub(crate) static CONSTRUCTORS_BY_SEASON: Lazy<HashMap<u32, Vec<Constructor>>> = Lazy::new(|| {
+    HashMap::from([
+        (
+            1997,
+            vec![
+                CONSTRUCTOR_LOLA.clone(),
+                CONSTRUCTOR_MCLAREN.clone(),
+                CONSTRUCTOR_FERRARI.clone(),
+                CONSTRUCTOR_WILLIAMS.clone(),
+                CONSTRUCTOR_MINARDI.clone(),
+            ],
+        ),
+        (
+            2020,
+            vec![
+                CONSTRUCTOR_MCLAREN.clone(),
+                CONSTRUCTOR_FERRARI.clone(),
+                CONSTRUCTOR_WILLIAMS.clone(),
+                CONSTRUCTOR_ALPHA_TAURI.clone(),
+                CONSTRUCTOR_RED_BULL.clone(),
+                CONSTRUCTOR_MERCEDES.clone(),
+            ],
+        ),
+    ])
+});
+
 // [`Race<Schedule>`]s by season, helpful for testing
 // --------------------------------------------------
 

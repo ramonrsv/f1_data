@@ -1075,11 +1075,19 @@ mod tests {
     #[test]
     #[ignore]
     fn get_constructors() {
-        assert_each_expected_in_actual(
-            || super::get_constructors(Filters::none()),
-            &CONSTRUCTOR_TABLE.as_constructors().unwrap(),
-            LenConstraint::Minimum(211),
-        );
+        // Calling [`get_constructors`] with no filters returns [`Error::MultiPage`], since there
+        // have been more than 100 constructors. As such, we are testing calls with season filters
+        // to restrict the responses to a smaller, but still plural, element count, usually ~20.
+
+        assert!(!CONSTRUCTORS_BY_SEASON.is_empty());
+
+        for (season, expected_list) in &*CONSTRUCTORS_BY_SEASON {
+            assert_each_expected_in_actual(
+                || super::get_constructors(Filters::new().season(*season)),
+                &expected_list,
+                LenConstraint::Minimum(10),
+            );
+        }
     }
 
     #[test]
