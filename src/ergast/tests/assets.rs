@@ -17,42 +17,62 @@ use crate::ergast::time::{
 
 pub(crate) const SEASON_1950_STR: &str = r#"{
     "season": "1950",
-    "url": "http://en.wikipedia.org/wiki/1950_Formula_One_season"
+    "url": "https://en.wikipedia.org/wiki/1950_Formula_One_season"
   }"#;
 
 pub(crate) const SEASON_1979_STR: &str = r#"{
     "season": "1979",
-    "url": "http://en.wikipedia.org/wiki/1979_Formula_One_season"
+    "url": "https://en.wikipedia.org/wiki/1979_Formula_One_season"
+  }"#;
+
+pub(crate) const SEASON_1980_STR: &str = r#"{
+    "season": "1980",
+    "url": "https://en.wikipedia.org/wiki/1980_Formula_One_season"
+  }"#;
+
+pub(crate) const SEASON_1981_STR: &str = r#"{
+    "season": "1981",
+    "url": "https://en.wikipedia.org/wiki/1981_Formula_One_World_Championship"
   }"#;
 
 pub(crate) const SEASON_2000_STR: &str = r#"{
     "season": "2000",
-    "url": "http://en.wikipedia.org/wiki/2000_Formula_One_season"
+    "url": "https://en.wikipedia.org/wiki/2000_Formula_One_World_Championship"
   }"#;
 
 pub(crate) const SEASON_2023_STR: &str = r#"{
     "season": "2023",
-    "url": "http://en.wikipedia.org/wiki/2023_Formula_One_World_Championship"
+    "url": "https://en.wikipedia.org/wiki/2023_Formula_One_World_Championship"
   }"#;
 
 pub(crate) static SEASON_1950: Lazy<Season> = Lazy::new(|| Season {
     season: 1950,
-    url: Url::parse("http://en.wikipedia.org/wiki/1950_Formula_One_season").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/1950_Formula_One_season").unwrap(),
 });
 
 pub(crate) static SEASON_1979: Lazy<Season> = Lazy::new(|| Season {
     season: 1979,
-    url: Url::parse("http://en.wikipedia.org/wiki/1979_Formula_One_season").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/1979_Formula_One_season").unwrap(),
+});
+
+pub(crate) static SEASON_1980: Lazy<Season> = Lazy::new(|| Season {
+    season: 1980,
+    url: Url::parse("https://en.wikipedia.org/wiki/1980_Formula_One_season").unwrap(),
+});
+
+pub(crate) static SEASON_1981: Lazy<Season> = Lazy::new(|| Season {
+    season: 1981,
+    url: Url::parse("https://en.wikipedia.org/wiki/1981_Formula_One_World_Championship").unwrap(),
 });
 
 pub(crate) static SEASON_2000: Lazy<Season> = Lazy::new(|| Season {
     season: 2000,
-    url: Url::parse("http://en.wikipedia.org/wiki/2000_Formula_One_season").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/2000_Formula_One_World_Championship").unwrap(),
 });
 
 pub(crate) static SEASON_2023: Lazy<Season> = Lazy::new(|| Season {
     season: 2023,
-    url: Url::parse("http://en.wikipedia.org/wiki/2023_Formula_One_World_Championship").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/2023_Formula_One_World_Championship").unwrap(),
 });
 
 pub(crate) const SEASON_TABLE_STR: &str = formatcp!(
@@ -61,6 +81,8 @@ pub(crate) const SEASON_TABLE_STR: &str = formatcp!(
         "Seasons": [
             {SEASON_1950_STR},
             {SEASON_1979_STR},
+            {SEASON_1980_STR},
+            {SEASON_1981_STR},
             {SEASON_2000_STR},
             {SEASON_2023_STR}
         ]
@@ -71,6 +93,8 @@ pub(crate) static SEASON_TABLE: Lazy<Table> = Lazy::new(|| Table::Seasons {
     seasons: vec![
         SEASON_1950.clone(),
         SEASON_1979.clone(),
+        SEASON_1980.clone(),
+        SEASON_1981.clone(),
         SEASON_2000.clone(),
         SEASON_2023.clone(),
     ],
