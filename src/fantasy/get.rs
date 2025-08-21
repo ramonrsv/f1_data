@@ -45,6 +45,8 @@ fn into<T: Into<U>, U>(t: T) -> U {
 
 #[cfg(test)]
 mod tests {
+    use pretty_assertions::assert_eq;
+
     #[test]
     fn get_season_prices() {
         let season_prices_2023 = super::get_season_prices(2023).unwrap();

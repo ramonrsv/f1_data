@@ -864,6 +864,7 @@ mod tests {
     use std::collections::HashMap;
 
     use once_cell::sync::Lazy;
+    use pretty_assertions::assert_eq;
 
     use crate::{
         ergast::{

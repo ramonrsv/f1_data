@@ -55,6 +55,8 @@ impl RaceID {
 
 #[cfg(test)]
 mod tests {
+    use pretty_assertions::{assert_eq, assert_ne};
+
     use super::*;
 
     #[test]

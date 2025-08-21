@@ -723,6 +723,7 @@ pub enum SpeedUnits {
 #[cfg(test)]
 mod tests {
     use const_format::formatcp;
+    use pretty_assertions::{assert_eq, assert_ne};
 
     use crate::ergast::get::SessionResult;
 

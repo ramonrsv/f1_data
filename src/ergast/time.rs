@@ -304,6 +304,8 @@ impl<'de> Deserialize<'de> for RaceTime {
 mod tests {
     use std::panic::catch_unwind;
 
+    use pretty_assertions::assert_eq;
+
     use super::macros::*;
     use super::*;
     use crate::ergast::tests::assets::*;

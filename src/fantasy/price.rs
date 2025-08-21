@@ -45,6 +45,7 @@ pub struct Constructor {
 mod tests {
     use const_format::formatcp;
     use once_cell::sync::Lazy;
+    use pretty_assertions::assert_eq;
 
     use super::*;
 
