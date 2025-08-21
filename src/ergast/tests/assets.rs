@@ -769,7 +769,7 @@ pub(crate) const RACE_1950_1_STR: &str = formatcp!(
     r#"
     "season": "1950",
     "round": "1",
-    "url": "http://en.wikipedia.org/wiki/1950_British_Grand_Prix",
+    "url": "https://en.wikipedia.org/wiki/1950_British_Grand_Prix",
     "raceName": "British Grand Prix",
     "Circuit": {CIRCUIT_SILVERSTONE_STR},
     "date": "1950-05-13"
@@ -780,7 +780,7 @@ pub(crate) const RACE_1963_10_STR: &str = formatcp!(
     r#"
     "season": "1963",
     "round": "10",
-    "url": "http://en.wikipedia.org/wiki/1963_South_African_Grand_Prix",
+    "url": "https://en.wikipedia.org/wiki/1963_South_African_Grand_Prix",
     "raceName": "South African Grand Prix",
     "Circuit": {CIRCUIT_GEORGE_STR},
     "date": "1963-12-28"
@@ -791,7 +791,7 @@ pub(crate) const RACE_2003_4_STR: &str = formatcp!(
     r#"
     "season": "2003",
     "round": "4",
-    "url": "http://en.wikipedia.org/wiki/2003_San_Marino_Grand_Prix",
+    "url": "https://en.wikipedia.org/wiki/2003_San_Marino_Grand_Prix",
     "raceName": "San Marino Grand Prix",
     "Circuit": {CIRCUIT_IMOLA_STR},
     "date": "2003-04-20"
@@ -802,7 +802,7 @@ pub(crate) const RACE_2015_11_STR: &str = formatcp!(
     r#"
     "season": "2015",
     "round": "11",
-    "url": "http://en.wikipedia.org/wiki/2015_Belgian_Grand_Prix",
+    "url": "https://en.wikipedia.org/wiki/2015_Belgian_Grand_Prix",
     "raceName": "Belgian Grand Prix",
     "Circuit": {CIRCUIT_SPA_STR},
     "date": "2015-08-23",
@@ -814,7 +814,7 @@ pub(crate) const RACE_2020_4_STR: &str = formatcp!(
     r#"
     "season": "2020",
     "round": "4",
-    "url": "http://en.wikipedia.org/wiki/2020_British_Grand_Prix",
+    "url": "https://en.wikipedia.org/wiki/2020_British_Grand_Prix",
     "raceName": "British Grand Prix",
     "Circuit": {CIRCUIT_SILVERSTONE_STR},
     "date": "2020-08-02",
@@ -826,7 +826,7 @@ pub(crate) const RACE_2021_12_STR: &str = formatcp!(
     r#"
     "season": "2021",
     "round": "12",
-    "url": "http://en.wikipedia.org/wiki/2021_Belgian_Grand_Prix",
+    "url": "https://en.wikipedia.org/wiki/2021_Belgian_Grand_Prix",
     "raceName": "Belgian Grand Prix",
     "Circuit": {CIRCUIT_SPA_STR},
     "date": "2021-08-29",
@@ -838,7 +838,7 @@ pub(crate) const RACE_2022_4_STR: &str = formatcp!(
     r#"
     "season": "2022",
     "round": "4",
-    "url": "http://en.wikipedia.org/wiki/2022_Emilia_Romagna_Grand_Prix",
+    "url": "https://en.wikipedia.org/wiki/2022_Emilia_Romagna_Grand_Prix",
     "raceName": "Emilia Romagna Grand Prix",
     "Circuit": {CIRCUIT_IMOLA_STR},
     "date": "2022-04-24",
@@ -871,11 +871,11 @@ pub(crate) const SCHEDULE_NONE: Lazy<Schedule> = Lazy::new(|| Schedule {
 pub(crate) const RACE_NONE: Lazy<Race> = Lazy::new(|| Race {
     season: 0,
     round: 0,
-    url: Url::parse("http://empty.org").unwrap(),
+    url: Url::parse("https://empty.org").unwrap(),
     race_name: "".to_string(),
     circuit: Circuit {
         circuit_id: "".to_string(),
-        url: Url::parse("http://empty.org").unwrap(),
+        url: Url::parse("https://empty.org").unwrap(),
         circuit_name: "".to_string(),
         location: Location {
             lat: f64::NAN,
@@ -892,7 +892,7 @@ pub(crate) const RACE_NONE: Lazy<Race> = Lazy::new(|| Race {
 pub(crate) const RACE_1950_1: Lazy<Race> = Lazy::new(|| Race {
     season: 1950,
     round: 1,
-    url: Url::parse("http://en.wikipedia.org/wiki/1950_British_Grand_Prix").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/1950_British_Grand_Prix").unwrap(),
     race_name: "British Grand Prix".to_string(),
     circuit: CIRCUIT_SILVERSTONE.clone(),
     date: date!(1950 - 05 - 13),
@@ -902,7 +902,7 @@ pub(crate) const RACE_1950_1: Lazy<Race> = Lazy::new(|| Race {
 pub(crate) const RACE_1963_10: Lazy<Race> = Lazy::new(|| Race {
     season: 1963,
     round: 10,
-    url: Url::parse("http://en.wikipedia.org/wiki/1963_South_African_Grand_Prix").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/1963_South_African_Grand_Prix").unwrap(),
     race_name: "South African Grand Prix".to_string(),
     circuit: CIRCUIT_GEORGE.clone(),
     date: date!(1963 - 12 - 28),
@@ -912,7 +912,7 @@ pub(crate) const RACE_1963_10: Lazy<Race> = Lazy::new(|| Race {
 pub(crate) const RACE_2003_4: Lazy<Race> = Lazy::new(|| Race {
     season: 2003,
     round: 4,
-    url: Url::parse("http://en.wikipedia.org/wiki/2003_San_Marino_Grand_Prix").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/2003_San_Marino_Grand_Prix").unwrap(),
     race_name: "San Marino Grand Prix".to_string(),
     circuit: CIRCUIT_IMOLA.clone(),
     date: date!(2003 - 04 - 20),
@@ -922,7 +922,7 @@ pub(crate) const RACE_2003_4: Lazy<Race> = Lazy::new(|| Race {
 pub(crate) const RACE_2015_11: Lazy<Race> = Lazy::new(|| Race {
     season: 2015,
     round: 11,
-    url: Url::parse("http://en.wikipedia.org/wiki/2015_Belgian_Grand_Prix").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/2015_Belgian_Grand_Prix").unwrap(),
     race_name: "Belgian Grand Prix".to_string(),
     circuit: CIRCUIT_SPA.clone(),
     date: date!(2015 - 08 - 23),
@@ -933,7 +933,7 @@ pub(crate) const RACE_2015_11: Lazy<Race> = Lazy::new(|| Race {
 pub(crate) const RACE_2020_4: Lazy<Race> = Lazy::new(|| Race {
     season: 2020,
     round: 4,
-    url: Url::parse("http://en.wikipedia.org/wiki/2020_British_Grand_Prix").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/2020_British_Grand_Prix").unwrap(),
     race_name: "British Grand Prix".to_string(),
     circuit: CIRCUIT_SILVERSTONE.clone(),
     date: date!(2020 - 08 - 02),
@@ -944,7 +944,7 @@ pub(crate) const RACE_2020_4: Lazy<Race> = Lazy::new(|| Race {
 pub(crate) const RACE_2021_12: Lazy<Race> = Lazy::new(|| Race {
     season: 2021,
     round: 12,
-    url: Url::parse("http://en.wikipedia.org/wiki/2021_Belgian_Grand_Prix").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/2021_Belgian_Grand_Prix").unwrap(),
     race_name: "Belgian Grand Prix".to_string(),
     circuit: CIRCUIT_SPA.clone(),
     date: date!(2021 - 08 - 29),
@@ -955,7 +955,7 @@ pub(crate) const RACE_2021_12: Lazy<Race> = Lazy::new(|| Race {
 pub(crate) const RACE_2022_4: Lazy<Race> = Lazy::new(|| Race {
     season: 2022,
     round: 4,
-    url: Url::parse("http://en.wikipedia.org/wiki/2022_Emilia_Romagna_Grand_Prix").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/2022_Emilia_Romagna_Grand_Prix").unwrap(),
     race_name: "Emilia Romagna Grand Prix".to_string(),
     circuit: CIRCUIT_IMOLA.clone(),
     date: date!(2022 - 04 - 24),
@@ -1001,14 +1001,38 @@ pub(crate) const RACE_2003_4_SCHEDULE_STR: &str = formatcp!(
 // Has "date" and "time"
 pub(crate) const RACE_2015_11_SCHEDULE_STR: &str = formatcp!(
     r#"{{
-    {RACE_2015_11_STR}
+    {RACE_2015_11_STR},
+    "FirstPractice": {{
+      "date": "2015-08-21"
+    }},
+    "SecondPractice": {{
+      "date": "2015-08-21"
+    }},
+    "ThirdPractice": {{
+      "date": "2015-08-22"
+    }},
+    "Qualifying": {{
+      "date": "2015-08-22"
+    }}
   }}"#
 );
 
 // Has "date" and "time" 10min after the hour
 pub(crate) const RACE_2020_4_SCHEDULE_STR: &str = formatcp!(
     r#"{{
-    {RACE_2020_4_STR}
+    {RACE_2020_4_STR},
+    "FirstPractice": {{
+      "date": "2020-07-31"
+    }},
+    "SecondPractice": {{
+      "date": "2020-07-31"
+    }},
+    "ThirdPractice": {{
+      "date": "2020-08-01"
+    }},
+    "Qualifying": {{
+      "date": "2020-08-01"
+    }}
   }}"#
 );
 
@@ -1068,10 +1092,6 @@ pub(crate) const RACE_2023_4_SCHEDULE_STR: &str = formatcp!(
       "date": "2023-04-28",
       "time": "13:00:00Z"
     }},
-    "SecondPractice":  {{
-      "date": "2023-04-29",
-      "time": "09:30:00Z"
-    }},
     "Sprint": {{
       "date": "2023-04-29",
       "time": "13:30:00Z"
@@ -1082,8 +1102,52 @@ pub(crate) const RACE_2023_4_SCHEDULE_STR: &str = formatcp!(
 pub(crate) const RACE_1950_1_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_1950_1.clone() });
 pub(crate) const RACE_1963_10_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_1963_10.clone() });
 pub(crate) const RACE_2003_4_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_2003_4.clone() });
-pub(crate) const RACE_2015_11_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_2015_11.clone() });
-pub(crate) const RACE_2020_4_SCHEDULE: Lazy<Race> = Lazy::new(|| Race { ..RACE_2020_4.clone() });
+
+pub(crate) const RACE_2015_11_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
+    payload: Payload::Schedule(Schedule {
+        first_practice: Some(DateTime {
+            date: date!(2015 - 08 - 21),
+            time: None,
+        }),
+        second_practice: Some(DateTime {
+            date: date!(2015 - 08 - 21),
+            time: None,
+        }),
+        third_practice: Some(DateTime {
+            date: date!(2015 - 08 - 22),
+            time: None,
+        }),
+        qualifying: Some(DateTime {
+            date: date!(2015 - 08 - 22),
+            time: None,
+        }),
+        sprint: None,
+    }),
+    ..RACE_2015_11.clone()
+});
+
+pub(crate) const RACE_2020_4_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
+    payload: Payload::Schedule(Schedule {
+        first_practice: Some(DateTime {
+            date: date!(2020 - 07 - 31),
+            time: None,
+        }),
+        second_practice: Some(DateTime {
+            date: date!(2020 - 07 - 31),
+            time: None,
+        }),
+        third_practice: Some(DateTime {
+            date: date!(2020 - 08 - 01),
+            time: None,
+        }),
+        qualifying: Some(DateTime {
+            date: date!(2020 - 08 - 01),
+            time: None,
+        }),
+        sprint: None,
+    }),
+    ..RACE_2020_4.clone()
+});
 
 pub(crate) const RACE_2021_12_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
     payload: Payload::Schedule(Schedule {
@@ -1140,10 +1204,6 @@ pub(crate) const RACE_2023_4_SCHEDULE: Lazy<Race> = Lazy::new(|| Race {
         qualifying: Some(DateTime {
             date: date!(2023 - 04 - 28),
             time: Some(time!(13:00:00)),
-        }),
-        second_practice: Some(DateTime {
-            date: date!(2023 - 04 - 29),
-            time: Some(time!(09:30:00)),
         }),
         sprint: Some(DateTime {
             date: date!(2023 - 04 - 29),
