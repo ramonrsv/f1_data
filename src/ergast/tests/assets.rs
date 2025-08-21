@@ -621,7 +621,7 @@ pub(crate) static CONSTRUCTOR_TABLE: Lazy<Table> = Lazy::new(|| Table::Construct
 
 pub(crate) const CIRCUIT_GEORGE_STR: &str = r#"{
     "circuitId": "george",
-    "url": "http://en.wikipedia.org/wiki/Prince_George_Circuit",
+    "url": "https://en.wikipedia.org/wiki/Prince_George_Circuit",
     "circuitName": "Prince George Circuit",
     "Location": {
       "lat": "-33.0486",
@@ -633,7 +633,7 @@ pub(crate) const CIRCUIT_GEORGE_STR: &str = r#"{
 
 pub(crate) const CIRCUIT_SPA_STR: &str = r#"{
     "circuitId": "spa",
-    "url": "http://en.wikipedia.org/wiki/Circuit_de_Spa-Francorchamps",
+    "url": "https://en.wikipedia.org/wiki/Circuit_de_Spa-Francorchamps",
     "circuitName": "Circuit de Spa-Francorchamps",
     "Location": {
       "lat": "50.4372",
@@ -645,7 +645,7 @@ pub(crate) const CIRCUIT_SPA_STR: &str = r#"{
 
 pub(crate) const CIRCUIT_SILVERSTONE_STR: &str = r#"{
     "circuitId": "silverstone",
-    "url": "http://en.wikipedia.org/wiki/Silverstone_Circuit",
+    "url": "https://en.wikipedia.org/wiki/Silverstone_Circuit",
     "circuitName": "Silverstone Circuit",
     "Location": {
       "lat": "52.0786",
@@ -657,7 +657,7 @@ pub(crate) const CIRCUIT_SILVERSTONE_STR: &str = r#"{
 
 pub(crate) const CIRCUIT_IMOLA_STR: &str = r#"{
     "circuitId": "imola",
-    "url": "http://en.wikipedia.org/wiki/Autodromo_Enzo_e_Dino_Ferrari",
+    "url": "https://en.wikipedia.org/wiki/Imola_Circuit",
     "circuitName": "Autodromo Enzo e Dino Ferrari",
     "Location": {
       "lat": "44.3439",
@@ -669,7 +669,7 @@ pub(crate) const CIRCUIT_IMOLA_STR: &str = r#"{
 
 pub(crate) const CIRCUIT_BAKU_STR: &str = r#"{
     "circuitId": "baku",
-    "url": "http://en.wikipedia.org/wiki/Baku_City_Circuit",
+    "url": "https://en.wikipedia.org/wiki/Baku_City_Circuit",
     "circuitName": "Baku City Circuit",
     "Location": {
       "lat": "40.3725",
@@ -681,7 +681,7 @@ pub(crate) const CIRCUIT_BAKU_STR: &str = r#"{
 
 pub(crate) static CIRCUIT_GEORGE: Lazy<Circuit> = Lazy::new(|| Circuit {
     circuit_id: "george".into(),
-    url: Url::parse("http://en.wikipedia.org/wiki/Prince_George_Circuit").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/Prince_George_Circuit").unwrap(),
     circuit_name: "Prince George Circuit".to_string(),
     location: Location {
         lat: -33.0486,
@@ -693,7 +693,7 @@ pub(crate) static CIRCUIT_GEORGE: Lazy<Circuit> = Lazy::new(|| Circuit {
 
 pub(crate) static CIRCUIT_SPA: Lazy<Circuit> = Lazy::new(|| Circuit {
     circuit_id: "spa".into(),
-    url: Url::parse("http://en.wikipedia.org/wiki/Circuit_de_Spa-Francorchamps").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/Circuit_de_Spa-Francorchamps").unwrap(),
     circuit_name: "Circuit de Spa-Francorchamps".to_string(),
     location: Location {
         lat: 50.4372,
@@ -705,7 +705,7 @@ pub(crate) static CIRCUIT_SPA: Lazy<Circuit> = Lazy::new(|| Circuit {
 
 pub(crate) static CIRCUIT_SILVERSTONE: Lazy<Circuit> = Lazy::new(|| Circuit {
     circuit_id: "silverstone".into(),
-    url: Url::parse("http://en.wikipedia.org/wiki/Silverstone_Circuit").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/Silverstone_Circuit").unwrap(),
     circuit_name: "Silverstone Circuit".to_string(),
     location: Location {
         lat: 52.0786,
@@ -717,7 +717,7 @@ pub(crate) static CIRCUIT_SILVERSTONE: Lazy<Circuit> = Lazy::new(|| Circuit {
 
 pub(crate) static CIRCUIT_IMOLA: Lazy<Circuit> = Lazy::new(|| Circuit {
     circuit_id: "imola".into(),
-    url: Url::parse("http://en.wikipedia.org/wiki/Autodromo_Enzo_e_Dino_Ferrari").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/Imola_Circuit").unwrap(),
     circuit_name: "Autodromo Enzo e Dino Ferrari".to_string(),
     location: Location {
         lat: 44.3439,
@@ -729,7 +729,7 @@ pub(crate) static CIRCUIT_IMOLA: Lazy<Circuit> = Lazy::new(|| Circuit {
 
 pub(crate) static CIRCUIT_BAKU: Lazy<Circuit> = Lazy::new(|| Circuit {
     circuit_id: "baku".into(),
-    url: Url::parse("http://en.wikipedia.org/wiki/Baku_City_Circuit").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/Baku_City_Circuit").unwrap(),
     circuit_name: "Baku City Circuit".to_string(),
     location: Location {
         lat: 40.3725,
