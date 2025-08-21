@@ -994,9 +994,9 @@ mod tests {
             serde_json::from_str::<Response>(
                 r#"{
                   "MRData": {
-                    "xmlns": "http://ergast.com/mrd/1.5",
+                    "xmlns": "",
                     "series": "f1",
-                    "url": "http://ergast.com/api/f1/races.json",
+                    "url": "https://api.jolpi.ca/ergast/f1/races.json",
                     "limit": "30",
                     "offset": "0",
                     "total": "16",

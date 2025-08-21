@@ -161,7 +161,7 @@ pub enum Resource {
 impl Resource {
     /// The base URL at which requests will be made from the Ergast API.
     // @todo This should probably be configurable, e.g. to support mirrors, caches, etc.
-    pub const ERGAST_BASE_URL: &'static str = "http://ergast.com/api/f1";
+    pub const ERGAST_BASE_URL: &'static str = "https://api.jolpi.ca/ergast/f1";
 
     /// Produce a URL with which to request the given [`Resource`] from the Ergast API, including
     /// any filters that may have been requested.
@@ -180,7 +180,7 @@ impl Resource {
     ///
     /// assert_eq!(
     ///     request.to_url(),
-    ///     Url::parse("http://ergast.com/api/f1/drivers/leclerc.json").unwrap()
+    ///     Url::parse("https://api.jolpi.ca/ergast/f1/drivers/leclerc.json").unwrap()
     /// );
     /// ```
     pub fn to_url(&self) -> Url {
@@ -250,7 +250,7 @@ impl Resource {
     ///
     /// assert_eq!(
     ///     request.to_url_with(Page::with_limit(100)),
-    ///     Url::parse("http://ergast.com/api/f1/drivers/leclerc.json?limit=100&offset=0").unwrap()
+    ///     Url::parse("https://api.jolpi.ca/ergast/f1/drivers/leclerc.json?limit=100&offset=0").unwrap()
     /// );
     /// ```
     pub fn to_url_with(&self, page: Page) -> Url {
@@ -834,7 +834,7 @@ mod tests {
 
     #[test]
     fn resource_ergast_base_url() {
-        assert_eq!(Resource::ERGAST_BASE_URL, "http://ergast.com/api/f1")
+        assert_eq!(Resource::ERGAST_BASE_URL, "https://api.jolpi.ca/ergast/f1")
     }
 
     fn url(tail: &str) -> Url {
