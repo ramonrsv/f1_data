@@ -1033,11 +1033,19 @@ mod tests {
     #[test]
     #[ignore]
     fn get_drivers() {
-        assert_each_expected_in_actual(
-            || super::get_drivers(Filters::none()),
-            &DRIVER_TABLE.as_drivers().unwrap(),
-            LenConstraint::Minimum(857),
-        );
+        // Calling [`get_drivers`] with no filters returns [`Error::MultiPage`], since there
+        // have been more than 100 drivers. As such, we are testing calls with by-season filters
+        // to restrict the responses to a smaller, but still plural, element count, usually ~20.
+
+        assert!(!DRIVERS_BY_SEASON.is_empty());
+
+        for (season, expected_list) in &*DRIVERS_BY_SEASON {
+            assert_each_expected_in_actual(
+                || super::get_drivers(Filters::new().season(*season)),
+                &expected_list,
+                LenConstraint::Minimum(22),
+            );
+        }
     }
 
     #[test]

@@ -2300,6 +2300,39 @@ pub(crate) static RACE_2023_4_PIT_STOPS: Lazy<Race> = Lazy::new(|| Race {
     ..RACE_2023_4.clone()
 });
 
+// [`Driver`]s by season, helpful for testing
+// ------------------------------------------
+
+pub(crate) static DRIVERS_BY_SEASON: Lazy<HashMap<u32, Vec<Driver>>> = Lazy::new(|| {
+    HashMap::from([
+        (1963, vec![DRIVER_HAILWOOD.clone(), DRIVER_ABATE.clone()]),
+        (
+            2003,
+            vec![
+                DRIVER_MICHAEL.clone(),
+                DRIVER_JOS.clone(),
+                DRIVER_RALF.clone(),
+                DRIVER_WILSON.clone(),
+                DRIVER_KIMI.clone(),
+                DRIVER_ALONSO.clone(),
+            ],
+        ),
+        (
+            2023,
+            vec![
+                DRIVER_ALONSO.clone(),
+                DRIVER_HAMILTON.clone(),
+                DRIVER_PEREZ.clone(),
+                DRIVER_SAINZ.clone(),
+                DRIVER_DE_VRIES.clone(),
+                DRIVER_MAX.clone(),
+                DRIVER_LECLERC.clone(),
+                DRIVER_RUSSELL.clone(),
+            ],
+        ),
+    ])
+});
+
 // [`Race<Schedule>`]s by season, helpful for testing
 // --------------------------------------------------
 
