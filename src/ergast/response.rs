@@ -775,6 +775,8 @@ mod tests {
         assert_eq!(from_str(QUALIFYING_RESULT_2023_4_P1_STR), *QUALIFYING_RESULT_2023_4_P1);
         assert_eq!(from_str(QUALIFYING_RESULT_2023_4_P2_STR), *QUALIFYING_RESULT_2023_4_P2);
         assert_eq!(from_str(QUALIFYING_RESULT_2023_4_P3_STR), *QUALIFYING_RESULT_2023_4_P3);
+        assert_eq!(from_str(QUALIFYING_RESULT_2023_10_P4_STR), *QUALIFYING_RESULT_2023_10_P4);
+        assert_eq!(from_str(QUALIFYING_RESULT_2023_12_P2_STR), *QUALIFYING_RESULT_2023_12_P2);
     }
 
     #[test]
@@ -789,6 +791,18 @@ mod tests {
             let race: Race = serde_json::from_str(RACE_2023_4_QUALIFYING_RESULTS_STR).unwrap();
             assert!(!race.payload.as_qualifying_results().unwrap().is_empty());
             assert_eq!(race, *RACE_2023_4_QUALIFYING_RESULTS);
+        }
+
+        {
+            let race: Race = serde_json::from_str(RACE_2023_10_QUALIFYING_RESULTS_STR).unwrap();
+            assert!(!race.payload.as_qualifying_results().unwrap().is_empty());
+            assert_eq!(race, *RACE_2023_10_QUALIFYING_RESULTS);
+        }
+
+        {
+            let race: Race = serde_json::from_str(RACE_2023_12_QUALIFYING_RESULTS_STR).unwrap();
+            assert!(!race.payload.as_qualifying_results().unwrap().is_empty());
+            assert_eq!(race, *RACE_2023_12_QUALIFYING_RESULTS);
         }
     }
 

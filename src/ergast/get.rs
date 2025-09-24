@@ -1219,9 +1219,9 @@ mod tests {
     #[ignore]
     fn get_qualifying_results() {
         assert_each_expected_in_actual(
-            || super::get_qualifying_results(Filters::new().constructor_id("red_bull".into())),
+            || super::get_qualifying_results(Filters::new().constructor_id("red_bull".into()).season(2023)),
             &RACES_QUALIFYING_RESULTS_RED_BULL,
-            LenConstraint::Minimum(357),
+            LenConstraint::Exactly(22),
         );
     }
 
@@ -1239,36 +1239,65 @@ mod tests {
             &RACE_2023_4_QUALIFYING_RESULTS,
             LenConstraint::Exactly(20),
         );
+
+        assert_each_expected_session_result_in_actual_event(
+            || super::get_qualifying_results_for_event(race_filters(2023, 10)),
+            &RACE_2023_10_QUALIFYING_RESULTS,
+            LenConstraint::Exactly(20),
+        );
+
+        assert_each_expected_session_result_in_actual_event(
+            || super::get_qualifying_results_for_event(race_filters(2023, 12)),
+            &RACE_2023_12_QUALIFYING_RESULTS,
+            LenConstraint::Exactly(20),
+        );
     }
 
     #[test]
     #[ignore]
     fn get_qualifying_result_for_events() {
-        assert_each_expected_in_actual(
-            || super::get_qualifying_result_for_events(Filters::new().qualifying_pos(1)),
-            &RACES_QUALIFYING_RESULT_P1,
-            LenConstraint::Minimum(459),
-        );
+        // @todo [`Filters::qualifying_pos`] appears to not be functional in the new jolpica-f1 API
+        // If/when that is fixed, add tests filtering by `qualifying_pos` for multiple events
+
+        // assert_each_expected_in_actual(
+        //     || super::get_qualifying_result_for_events(Filters::new().qualifying_pos(1)),
+        //     &RACES_QUALIFYING_RESULT_P1,
+        //     LenConstraint::Minimum(459),
+        // );
+
+        // assert_each_expected_in_actual(
+        //     || super::get_qualifying_result_for_events(Filters::new().qualifying_pos(2)),
+        //     &RACES_QUALIFYING_RESULT_P2,
+        //     LenConstraint::Minimum(459),
+        // );
+
+        let _ = &RACES_QUALIFYING_RESULT_P1;
+        let _ = &RACES_QUALIFYING_RESULT_P2;
 
         assert_each_expected_in_actual(
-            || super::get_qualifying_result_for_events(Filters::new().qualifying_pos(2)),
-            &RACES_QUALIFYING_RESULT_P2,
-            LenConstraint::Minimum(459),
+            || super::get_qualifying_result_for_events(Filters::new().season(2023).driver_id("leclerc".into())),
+            &RACES_2023_QUALIFYING_RESULT_CHARLES,
+            LenConstraint::Exactly(22),
         );
     }
 
     #[test]
     #[ignore]
     fn get_qualifying_result() {
+        // @todo [`Filters::qualifying_pos`] appears to not be functional in the new jolpica-f1 API
+        // If/when that is fixed, add tests filtering by `qualifying_pos` in addition to `driver_id`
+
+        // |result, filters| filters.qualifying_pos(result.position),
+
         assert_each_get_eq_expected_session_result(
             super::get_qualifying_result,
-            |result, filters| filters.qualifying_pos(result.position),
+            |result, filters| filters.driver_id(result.driver.driver_id.clone()),
             &RACE_2003_4_QUALIFYING_RESULTS,
         );
 
         assert_each_get_eq_expected_session_result(
             super::get_qualifying_result,
-            |result, filters| filters.qualifying_pos(result.position),
+            |result, filters| filters.driver_id(result.driver.driver_id.clone()),
             &RACE_2023_4_QUALIFYING_RESULTS,
         );
     }
@@ -1289,7 +1318,9 @@ mod tests {
     #[test]
     #[ignore]
     fn get_qualifying_results_for_event_error_too_many() {
-        assert_too_many(|| super::get_qualifying_results_for_event(Filters::new().season(2021)));
+        // Using [`Filters::driver_id`] instead of `season` to avoid getting [`Error::MultiPage`],
+        // with the new jolpica-f1 API lower limit, instead of the [`Error::TooMany`] being tested
+        assert_too_many(|| super::get_qualifying_results_for_event(Filters::new().driver_id("de_vries".into())));
     }
 
     #[test]
@@ -1302,7 +1333,11 @@ mod tests {
     #[test]
     #[ignore]
     fn get_qualifying_result_for_events_error_too_many() {
-        assert_too_many(|| super::get_qualifying_result_for_events(Filters::new().season(2021)));
+        // Using [`Filters::constructor_id`] instead of `season` to avoid getting `MultiPage`,
+        // with the new jolpica-f1 API lower limit, instead of the [`Error::TooMany`] being tested
+        assert_too_many(|| {
+            super::get_qualifying_result_for_events(Filters::new().season(2021).constructor_id("red_bull".into()))
+        });
     }
 
     #[test]
