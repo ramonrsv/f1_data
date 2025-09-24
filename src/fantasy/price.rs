@@ -44,8 +44,8 @@ pub struct Constructor {
 #[cfg(test)]
 mod tests {
     use const_format::formatcp;
-    use once_cell::sync::Lazy;
     use pretty_assertions::assert_eq;
+    use std::sync::LazyLock;
 
     use super::*;
 
@@ -72,20 +72,20 @@ mod tests {
     const DRIVER_HAM_R1_STR: &str = r#"{ driver_id: "hamilton", price: 23.7 }"#;
     const DRIVER_HAM_R2_STR: &str = r#"{ driver_id: "hamilton", price: 23.7 }"#;
 
-    static DRIVER_MAX_R1: Lazy<Driver> = Lazy::new(|| Driver::new("max_verstappen", 26.9));
-    static DRIVER_MAX_R2: Lazy<Driver> = Lazy::new(|| Driver::new("max_verstappen", 27.0));
-    static DRIVER_HAM_R1: Lazy<Driver> = Lazy::new(|| Driver::new("hamilton", 23.7));
-    static DRIVER_HAM_R2: Lazy<Driver> = Lazy::new(|| Driver::new("hamilton", 23.7));
+    static DRIVER_MAX_R1: LazyLock<Driver> = LazyLock::new(|| Driver::new("max_verstappen", 26.9));
+    static DRIVER_MAX_R2: LazyLock<Driver> = LazyLock::new(|| Driver::new("max_verstappen", 27.0));
+    static DRIVER_HAM_R1: LazyLock<Driver> = LazyLock::new(|| Driver::new("hamilton", 23.7));
+    static DRIVER_HAM_R2: LazyLock<Driver> = LazyLock::new(|| Driver::new("hamilton", 23.7));
 
     const CONSTRUCTOR_RED_BULL_R1_STR: &str = r#"{ constructor_id: "red_bull", price: 27.2 }"#;
     const CONSTRUCTOR_RED_BULL_R2_STR: &str = r#"{ constructor_id: "red_bull", price: 27.3 }"#;
     const CONSTRUCTOR_MERCEDES_R1_STR: &str = r#"{ constructor_id: "mercedes", price: 25.1 }"#;
     const CONSTRUCTOR_MERCEDES_R2_STR: &str = r#"{ constructor_id: "mercedes", price: 25.1 }"#;
 
-    static CONSTRUCTOR_RED_BULL_R1: Lazy<Constructor> = Lazy::new(|| Constructor::new("red_bull", 27.2));
-    static CONSTRUCTOR_RED_BULL_R2: Lazy<Constructor> = Lazy::new(|| Constructor::new("red_bull", 27.3));
-    static CONSTRUCTOR_MERCEDES_R1: Lazy<Constructor> = Lazy::new(|| Constructor::new("mercedes", 25.1));
-    static CONSTRUCTOR_MERCEDES_R2: Lazy<Constructor> = Lazy::new(|| Constructor::new("mercedes", 25.1));
+    static CONSTRUCTOR_RED_BULL_R1: LazyLock<Constructor> = LazyLock::new(|| Constructor::new("red_bull", 27.2));
+    static CONSTRUCTOR_RED_BULL_R2: LazyLock<Constructor> = LazyLock::new(|| Constructor::new("red_bull", 27.3));
+    static CONSTRUCTOR_MERCEDES_R1: LazyLock<Constructor> = LazyLock::new(|| Constructor::new("mercedes", 25.1));
+    static CONSTRUCTOR_MERCEDES_R2: LazyLock<Constructor> = LazyLock::new(|| Constructor::new("mercedes", 25.1));
 
     const ROUND_R1_STR: &str = formatcp!(
         r#"{{
@@ -119,13 +119,13 @@ mod tests {
       }}"#
     );
 
-    static ROUND_R1: Lazy<Round> = Lazy::new(|| Round {
+    static ROUND_R1: LazyLock<Round> = LazyLock::new(|| Round {
         round: 1,
         drivers: vec![DRIVER_MAX_R1.clone(), DRIVER_HAM_R1.clone()],
         constructors: vec![CONSTRUCTOR_RED_BULL_R1.clone(), CONSTRUCTOR_MERCEDES_R1.clone()],
     });
 
-    static ROUND_R2: Lazy<Round> = Lazy::new(|| Round {
+    static ROUND_R2: LazyLock<Round> = LazyLock::new(|| Round {
         round: 2,
         drivers: vec![DRIVER_MAX_R2.clone(), DRIVER_HAM_R2.clone()],
         constructors: vec![CONSTRUCTOR_RED_BULL_R2.clone(), CONSTRUCTOR_MERCEDES_R2.clone()],
@@ -139,7 +139,7 @@ mod tests {
     "#
     );
 
-    static SEASON: Lazy<Season> = Lazy::new(|| Season {
+    static SEASON: LazyLock<Season> = LazyLock::new(|| Season {
         rounds: vec![ROUND_R1.clone(), ROUND_R2.clone()],
     });
 

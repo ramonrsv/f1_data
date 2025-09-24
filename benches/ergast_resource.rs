@@ -2,13 +2,13 @@ use criterion::BenchmarkId;
 use criterion::Criterion;
 use criterion::{criterion_group, criterion_main};
 
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
 use f1_data::ergast::resource::{Filters, Resource};
 
-static FILTERS_NONE: Lazy<Filters> = Lazy::new(|| Filters::none());
+static FILTERS_NONE: LazyLock<Filters> = LazyLock::new(|| Filters::none());
 
-static FILTERS_MANY: Lazy<Filters> = Lazy::new(|| Filters {
+static FILTERS_MANY: LazyLock<Filters> = LazyLock::new(|| Filters {
     season: Some(2023),
     round: Some(1),
     driver_id: Some("alonso".into()),

@@ -864,8 +864,8 @@ mod tests {
     use std::collections::HashMap;
 
     use more_asserts::assert_ge;
-    use once_cell::sync::Lazy;
     use pretty_assertions::assert_eq;
+    use std::sync::LazyLock;
 
     use crate::{
         ergast::{
@@ -1168,7 +1168,7 @@ mod tests {
         // have been more than 100 races. As such, we are testing calls with by-season filters to
         // restrict the responses to a smaller, but still plural, element count, usually ~20.
 
-        static RACE_SCHEDULES_COUNTS_BY_SEASON: Lazy<HashMap<u32, usize>> = Lazy::new(|| {
+        static RACE_SCHEDULES_COUNTS_BY_SEASON: LazyLock<HashMap<u32, usize>> = LazyLock::new(|| {
             HashMap::from([
                 (1950, 7),
                 (1963, 10),

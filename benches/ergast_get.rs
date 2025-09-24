@@ -4,8 +4,8 @@ use criterion::{BatchSize, Criterion};
 use std::fs;
 use std::path::PathBuf;
 
-use once_cell::sync::Lazy;
 use serde_json;
+use std::sync::LazyLock;
 use url::Url;
 
 use f1_data::{
@@ -17,9 +17,9 @@ use f1_data::{
     error::{Error, Result},
 };
 
-static FILTERS: Lazy<Filters> = Lazy::new(|| Filters::new().season(2022));
-static RESOURCE: Lazy<Resource> = Lazy::new(|| Resource::RaceResults(FILTERS.clone()));
-static URL: Lazy<Url> = Lazy::new(|| RESOURCE.to_url_with(Page::with_max_limit()));
+static FILTERS: LazyLock<Filters> = LazyLock::new(|| Filters::new().season(2022));
+static RESOURCE: LazyLock<Resource> = LazyLock::new(|| Resource::RaceResults(FILTERS.clone()));
+static URL: LazyLock<Url> = LazyLock::new(|| RESOURCE.to_url_with(Page::with_max_limit()));
 
 static FILENAME: &str = "benches/assets/response_2022_race_results.json";
 

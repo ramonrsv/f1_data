@@ -1,7 +1,7 @@
-use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Deserializer};
 use serde_with::{serde_as, DisplayFromStr};
+use std::sync::LazyLock;
 
 /// These aliases represent the underlying time/date/duration/etc. types used within the crate to
 /// represent such values from the Ergast API, sometimes as direct aliases, e.g. for a [`Date`], or
@@ -85,7 +85,7 @@ fn parse_time(raw_str: &str) -> Result<Time, underlying::error::Parse> {
 /// omitted, and allowing all other components to have fewer than the maximum number of digits.
 fn parse_duration(raw_str: &str) -> Result<Duration, String> {
     const FORMAT_REGEX_STR: &str = r"^(?:(\d{1,2}):)?(?:([0-5]?\d):)?([0-5]?\d)\.(\d{1,3})$";
-    static RE: Lazy<Regex> = Lazy::new(|| Regex::new(FORMAT_REGEX_STR).unwrap());
+    static RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(FORMAT_REGEX_STR).unwrap());
 
     let matches = RE
         .captures(raw_str)
@@ -110,7 +110,7 @@ fn parse_duration(raw_str: &str) -> Result<Duration, String> {
 // @todo There is no consistent format for delta times in the Ergast API. Should that be fixed?
 fn parse_delta(raw_str: &str) -> Result<Duration, String> {
     const FORMAT_REGEX_STR: &str = r"^\+(?:(\d{1,2}):)?(\d{1,3})\.(\d{1,3})$";
-    static RE: Lazy<Regex> = Lazy::new(|| Regex::new(FORMAT_REGEX_STR).unwrap());
+    static RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(FORMAT_REGEX_STR).unwrap());
 
     let matches = RE
         .captures(raw_str)
