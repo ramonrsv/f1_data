@@ -2072,7 +2072,7 @@ pub(crate) const RACE_RESULT_2023_4_P20_STR: &str = formatcp!(
     "Constructor": {CONSTRUCTOR_ALPHA_TAURI_STR},
     "grid": "18",
     "laps": "9",
-    "status": "Accident",
+    "status": "Retired",
     "FastestLap": {{
         "rank": "20",
         "lap": "4",
@@ -2252,7 +2252,7 @@ pub(crate) const RACE_RESULT_2023_4_P20: Lazy<RaceResult> = Lazy::new(|| RaceRes
     constructor: CONSTRUCTOR_ALPHA_TAURI.clone(),
     grid: 18,
     laps: 9,
-    status: "Accident".to_string(),
+    status: "Retired".to_string(),
     time: None,
     fastest_lap: Some(FastestLap {
         rank: Some(20),

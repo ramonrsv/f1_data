@@ -993,6 +993,7 @@ mod tests {
 
     /// Call a `get` function and assert that the returned [`Result`] is [`Err(Error::NotFound)`].
     fn assert_not_found<G: Fn() -> Result<T>, T>(get: G) {
+        // @todo: Consider using `pretty_assertions::assert_matches!` macro when it stabilizes.
         assert!(matches!(retry_http(|| get()), Err(Error::NotFound)));
     }
 
@@ -1333,7 +1334,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_qualifying_result_for_events_error_too_many() {
-        // Using [`Filters::constructor_id`] instead of `season` to avoid getting `MultiPage`,
+        // Using [`Filters::constructor_id`] in addition to `season` to avoid getting `MultiPage`,
         // with the new jolpica-f1 API lower limit, instead of the [`Error::TooMany`] being tested
         assert_too_many(|| {
             super::get_qualifying_result_for_events(Filters::new().season(2021).constructor_id("red_bull".into()))
@@ -1449,21 +1450,10 @@ mod tests {
     #[test]
     #[ignore]
     fn get_race_results() {
-        // @todo Ergast data seems to have an issue for the 2011-14-P1 race result which breaks the
-        // parsing (Time.time is inconsistent with Time.millis), so the full "red_bull" query fails.
-        // Use the commented out query below once this errors has been fixed in the Ergast API.
-
-        // assert_each_expected_in_actual(
-        //     &super::get_race_results(Filters::new().constructor_id("red_bull".into())).unwrap(),
-        //     &RACES_RACE_RESULTS_RED_BULL,
-        //     LenConstraint::Minimum(718),
-        // );
-
-        // @todo Remove once the query above can be used.
         assert_each_expected_in_actual(
-            || super::get_race_results(Filters::new().constructor_id("red_bull".into()).season(2023)),
+            || super::get_race_results(Filters::new().season(2023).constructor_id("red_bull".into())),
             &RACES_RACE_RESULTS_RED_BULL,
-            LenConstraint::Minimum(11),
+            LenConstraint::Exactly(22),
         );
     }
 
@@ -1499,15 +1489,15 @@ mod tests {
     #[ignore]
     fn get_race_result_for_events() {
         assert_each_expected_in_actual(
-            || super::get_race_result_for_events(Filters::new().driver_id("michael_schumacher".into())),
+            || super::get_race_result_for_events(Filters::new().season(2003).driver_id("michael_schumacher".into())),
             &RACES_RACE_RESULT_MICHAEL,
-            LenConstraint::Exactly(308),
+            LenConstraint::Exactly(16),
         );
 
         assert_each_expected_in_actual(
-            || super::get_race_result_for_events(Filters::new().driver_id("max_verstappen".into())),
+            || super::get_race_result_for_events(Filters::new().season(2023).driver_id("max_verstappen".into())),
             &RACES_RACE_RESULT_MAX,
-            LenConstraint::Minimum(174),
+            LenConstraint::Minimum(22),
         );
     }
 
@@ -1551,7 +1541,11 @@ mod tests {
     #[test]
     #[ignore]
     fn get_race_results_for_event_error_too_many() {
-        assert_too_many(|| super::get_race_results_for_event(Filters::new().season(2021)));
+        // Using [`Filters::constructor_id`] in addition to `season` to avoid getting `MultiPage`,
+        // with the new jolpica-f1 API lower limit, instead of the [`Error::TooMany`] being tested
+        assert_too_many(|| {
+            super::get_race_results_for_event(Filters::new().season(2021).constructor_id("ferrari".into()))
+        });
     }
 
     #[test]
@@ -1564,7 +1558,11 @@ mod tests {
     #[test]
     #[ignore]
     fn get_race_result_for_events_error_too_many() {
-        assert_too_many(|| super::get_race_result_for_events(Filters::new().season(2021)));
+        // Using [`Filters::constructor_id`] in addition to `season` to avoid getting `MultiPage`,
+        // with the new jolpica-f1 API lower limit, instead of the [`Error::TooMany`] being tested
+        assert_too_many(|| {
+            super::get_race_result_for_events(Filters::new().season(2021).constructor_id("ferrari".into()))
+        });
     }
 
     #[test]
