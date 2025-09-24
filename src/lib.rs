@@ -49,7 +49,7 @@
 //
 // Clippy lints from the `pedantic`, `nursery`, and `restriction` groups are more finicky and
 // require a combination of opt-in and opt-out strategies to minimize false positives and verbosity.
-// For easy of new development these are set to `warn`, but note that CI will treat them as `deny`.
+// For ease of new development these are set to `warn`, but note that CI will treat them as `deny`.
 #![warn(
     clippy::pedantic,
     clippy::nursery,
@@ -78,7 +78,8 @@
     clippy::module_name_repetitions,
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
-    clippy::multiple_crate_versions
+    clippy::multiple_crate_versions,
+    clippy::too_long_first_doc_paragraph
 )]
 
 // Silence unused_crate_dependencies lint for [dev-dependencies] used in /benches and /examples.
