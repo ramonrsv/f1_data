@@ -15,11 +15,11 @@ name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   schedule:
-    - cron: '00 01 * * *'
+    - cron: "00 01 * * *"
 
 env:
   CARGO_TERM_COLOR: always
