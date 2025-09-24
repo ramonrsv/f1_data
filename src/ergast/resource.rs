@@ -772,7 +772,7 @@ impl Page {
     /// but that is not required for operation correctness. Note, however, that [`Page`]'s interface
     /// will enforce with maximum, e.g. [`Page::with_limit`] will panic if a value greater than this
     /// is passed. The actual limit returned in a [`Response`] may be lower than this maximum.
-    pub const MAX_LIMIT: u32 = 1000;
+    pub const MAX_LIMIT: u32 = 100;
 
     /// Create an instance of [`Page`] with the given limit and offset.
     pub fn with(limit: u32, offset: u32) -> Self {
@@ -988,7 +988,7 @@ mod tests {
 
         assert_eq!(
             Resource::DriverInfo(Filters::none()).to_url_with(Page::with_max_limit()),
-            url("/drivers.json?limit=1000&offset=0")
+            url("/drivers.json?limit=100&offset=0")
         );
     }
 

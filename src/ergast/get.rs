@@ -1164,7 +1164,7 @@ mod tests {
     #[ignore]
     fn get_race_schedules() {
         // Calling [`get_race_schedules`] with no filters returns [`Error::MultiPage`], since there
-        // have been more than 1000 races. As such, we are testing calls with by-season filters to
+        // have been more than 100 races. As such, we are testing calls with by-season filters to
         // restrict the responses to a smaller, but still plural, element count, usually ~20.
 
         static RACE_SCHEDULES_COUNTS_BY_SEASON: Lazy<HashMap<u32, usize>> = Lazy::new(|| {
@@ -1748,7 +1748,7 @@ mod tests {
         let pagination = resp.pagination;
         assert!(pagination.is_single_page());
         assert!(pagination.is_last_page());
-        assert_eq!(pagination.limit, 1000);
+        assert_eq!(pagination.limit, 100);
         assert_eq!(pagination.offset, 0);
         assert!(pagination.total >= 74);
 
