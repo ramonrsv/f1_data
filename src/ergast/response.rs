@@ -582,7 +582,7 @@ where
     D: Deserializer<'de>,
 {
     String::deserialize(deserializer).and_then(|str| {
-        if str.is_empty() {
+        if str == "None" {
             Ok(RaceResult::NO_NUMBER)
         } else {
             str.parse::<u32>().map_err(serde::de::Error::custom)
@@ -1185,7 +1185,7 @@ mod tests {
         }
 
         assert_eq!(serde_json::from_str::<Proxy>(r#"{"number": "10"}"#).unwrap().number, 10);
-        assert_eq!(serde_json::from_str::<Proxy>(r#"{"number": ""}"#).unwrap().number, RaceResult::NO_NUMBER);
+        assert_eq!(serde_json::from_str::<Proxy>(r#"{"number": "None"}"#).unwrap().number, RaceResult::NO_NUMBER);
     }
 
     #[test]

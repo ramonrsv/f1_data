@@ -1891,7 +1891,7 @@ pub(crate) static RACE_2023_4_SPRINT_RESULTS: Lazy<Race> = Lazy::new(|| Race {
 
 pub(crate) const RACE_RESULT_1963_10_P23_STR: &str = formatcp!(
     r#"{{
-    "number": "",
+    "number": "None",
     "position": "23",
     "positionText": "W",
     "points": "0",
