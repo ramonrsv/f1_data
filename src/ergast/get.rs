@@ -863,6 +863,7 @@ fn into_iter<T: IntoIterator>(t: T) -> T::IntoIter {
 mod tests {
     use std::collections::HashMap;
 
+    use more_asserts::assert_ge;
     use once_cell::sync::Lazy;
     use pretty_assertions::assert_eq;
 
@@ -910,13 +911,16 @@ mod tests {
 
         match actual_list_len_constraint {
             LenConstraint::Exactly(exact_len) => assert_eq!(actual_list.len(), exact_len),
-            LenConstraint::Minimum(min_len) => assert!(actual_list.len() >= min_len),
+            LenConstraint::Minimum(min_len) => assert_ge!(actual_list.len(), min_len),
         };
 
         assert!(!expected_list.is_empty());
 
         for expected in expected_list {
-            assert!(actual_list.iter().find(|actual| actual == &expected).is_some());
+            assert!(
+                actual_list.iter().find(|actual| actual == &expected).is_some(),
+                "Expected not found in actual list: {expected:?}"
+            );
         }
     }
 
