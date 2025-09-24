@@ -220,9 +220,9 @@ pub struct Circuit {
 /// This generic struct represents a race weekend event, corresponding to the list element type
 /// under the `"RaceTable.Races"` property key in the JSON response from the Ergast API. The generic
 /// type parameter `T` represents the type of payload that may be returned, depending on the
-/// requested [`Resource`]. The default `T = `[`Payload`] accepts all possible payload types, but
-/// the `T` parameter may be specified during postprocessing to restrict the payload type, e.g. by
-/// `get_*` API functions that know the expected payload variant.
+/// requested [`Resource`]. The default <code>T = [Payload]</code> accepts all possible payload
+/// types, but the `T` parameter may be specified during postprocessing to restrict the payload
+/// type, e.g. by `get_*` API functions that know the expected payload variant.
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]

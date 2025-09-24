@@ -704,6 +704,7 @@ impl PitStopFilters {
     }
 }
 
+#[allow(clippy::ref_option)] // Fix would be very verbose for little gain
 /// Format a generic `Option<T>`; None as "", and Some(val) as "/{val}"
 fn fmt_from_opt<T: std::fmt::Display>(field: &Option<T>) -> String {
     field.as_ref().map_or(String::new(), |val| format!("/{val}"))
