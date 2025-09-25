@@ -11,6 +11,9 @@
 # Benchmarks are built on every CI trigger, but they are only run on a nightly schedule to avoid
 # taxing the Ergast API, because they are very time consuming, and because running them on GitHub's
 # virtualized environment does not produce reliable results.
+#
+# @todo Executing benchmarks is currently disabled entirely due to jolpica-f1 API rate limiting.
+# Need to find a way to do useful benchmarks without violating jolpica-f1's rate limits and ToU.
 name: CI
 
 on:
