@@ -40,7 +40,7 @@ jobs:
       - name: test (non-ignored)
         run: cargo test --workspace --all-features
       - name: test (ignored)
-        run: cargo test --workspace --all-features -- --ignored
+        run: cargo test --workspace --all-features -- --ignored --test-threads 1
 
   build_docs:
     runs-on: ubuntu-latest
