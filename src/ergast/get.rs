@@ -4,18 +4,18 @@ use ureq;
 use crate::{
     ergast::{
         resource::{Filters, LapTimeFilters, Page, PitStopFilters, Resource},
+        response::verify_has_one_element_and_extract,
         response::{
-            Circuit, Constructor, Driver, Lap, Payload, PitStop, QualifyingResult, Race, RaceResult, Response,
-            Schedule, Season, SprintResult, Status, Timing,
+            Circuit, Constructor, Driver, DriverLap, PitStop, QualifyingResult, Race, RaceResult, Response, Schedule,
+            Season, SessionResult, SprintResult, Status, Timing,
         },
-        time::Duration,
     },
     error::{Error, Result},
     id::{CircuitID, ConstructorID, DriverID, RaceID, SeasonID},
 };
 
 #[cfg(doc)]
-use crate::ergast::response::{Pagination, Table};
+use crate::ergast::response::{Lap, Pagination, Payload, Table};
 
 /// Performs a GET request to the Ergast API for a specific page of the argument specified
 /// [`Resource`] and returns a [`Response`] with a single page, parsed from the JSON response, of a
@@ -55,9 +55,9 @@ use crate::ergast::response::{Pagination, Table};
 pub fn get_response_page(resource: &Resource, page: Page) -> Result<Response> {
     ureq::request_url("GET", &resource.to_url_with(page))
         .call()
-        .map_err(into)
+        .map_err(Into::into)
         .map(ureq::Response::into_reader)
-        .and_then(|reader| serde_json::from_reader(reader).map_err(into))
+        .and_then(|reader| serde_json::from_reader(reader).map_err(Into::into))
 }
 
 /// Performs a GET request to the Ergast API for the argument specified [`Resource`] and returns a
@@ -128,10 +128,7 @@ pub fn get_response_max_limit(resource: &Resource) -> Result<Response> {
 /// assert_eq!(seasons[0].season, 1950);
 /// ```
 pub fn get_seasons(filters: Filters) -> Result<Vec<Season>> {
-    get_response_max_limit(&Resource::SeasonList(filters))?
-        .table
-        .into_seasons()
-        .map_err(into)
+    get_response_max_limit(&Resource::SeasonList(filters))?.into_seasons()
 }
 
 /// Performs a GET request to the Ergast API for a single [`Season`], identified by a [`SeasonID`],
@@ -171,10 +168,7 @@ pub fn get_season(season: SeasonID) -> Result<Season> {
 /// );
 /// ```
 pub fn get_drivers(filters: Filters) -> Result<Vec<Driver>> {
-    get_response_max_limit(&Resource::DriverInfo(filters))?
-        .table
-        .into_drivers()
-        .map_err(into)
+    get_response_max_limit(&Resource::DriverInfo(filters))?.into_drivers()
 }
 
 /// Performs a GET request to the Ergast API for a single [`Driver`], identified by a [`DriverID`],
@@ -215,10 +209,7 @@ pub fn get_driver(driver_id: DriverID) -> Result<Driver> {
 /// );
 /// ```
 pub fn get_constructors(filters: Filters) -> Result<Vec<Constructor>> {
-    get_response_max_limit(&Resource::ConstructorInfo(filters))?
-        .table
-        .into_constructors()
-        .map_err(into)
+    get_response_max_limit(&Resource::ConstructorInfo(filters))?.into_constructors()
 }
 
 /// Performs a GET request to the Ergast API for a single [`Constructor`], identified by a
@@ -259,10 +250,7 @@ pub fn get_constructor(constructor_id: ConstructorID) -> Result<Constructor> {
 /// );
 /// ```
 pub fn get_circuits(filters: Filters) -> Result<Vec<Circuit>> {
-    get_response_max_limit(&Resource::CircuitInfo(filters))?
-        .table
-        .into_circuits()
-        .map_err(into)
+    get_response_max_limit(&Resource::CircuitInfo(filters))?.into_circuits()
 }
 
 /// Performs a GET request to the Ergast API for a single [`Circuit`], identified by a [`CircuitID`]
@@ -313,12 +301,7 @@ pub fn get_circuit(circuit_id: CircuitID) -> Result<Circuit> {
 /// assert_eq!(races[0].time.unwrap(), time!(15:00:00));
 /// ```
 pub fn get_race_schedules(filters: Filters) -> Result<Vec<Race<Schedule>>> {
-    get_response_max_limit(&Resource::RaceSchedule(filters))?
-        .table
-        .into_races()?
-        .into_iter()
-        .map(|race| race.try_map(|payload| payload.into_schedule().map_err(into)))
-        .collect()
+    get_response_max_limit(&Resource::RaceSchedule(filters))?.into_race_schedules()
 }
 
 /// Performs a GET request to the Ergast API for a single [`Race<Schedule>`] from
@@ -352,58 +335,6 @@ pub fn get_race_schedules(filters: Filters) -> Result<Vec<Race<Schedule>>> {
 pub fn get_race_schedule(race_id: RaceID) -> Result<Race<Schedule>> {
     get_race_schedules(Filters::new().season(race_id.season).round(race_id.round))
         .and_then(verify_has_one_element_and_extract)
-}
-
-/// Inner type of a [`Payload`] variant for a [`SessionResult`] type, e.g. the inner type of the
-/// [`Payload::RaceResults`] variant is [`Vec<RaceResult>`].
-type Inner<T> = Vec<T>;
-
-/// The [`SessionResult`] trait allows the generic handling of all session result types, resource
-/// requests, and extraction of the corresponding variant from [`Payload`].
-///
-/// For example, [`RaceResult`]s are requested via [`Resource::RaceResults`], and the response can
-/// be extracted from the [`Payload::RaceResults`] variant.
-///
-/// The trait is implemented for [`QualifyingResult`], [`SprintResult`], and [`RaceResult`].
-pub trait SessionResult
-where
-    Self: Sized,
-{
-    /// Wrap a [`Filters`] with the corresponding [`Resource`] variant for this [`SessionResult`].
-    fn to_resource(filters: Filters) -> Resource;
-
-    /// Extract the value from the corresponding [`Payload`] variant for this [`SessionResult`].
-    fn try_inner_from(payload: Payload) -> Result<Inner<Self>>;
-}
-
-impl SessionResult for QualifyingResult {
-    fn to_resource(filters: Filters) -> Resource {
-        Resource::QualifyingResults(filters)
-    }
-
-    fn try_inner_from(payload: Payload) -> Result<Inner<Self>> {
-        payload.into_qualifying_results().map_err(into)
-    }
-}
-
-impl SessionResult for SprintResult {
-    fn to_resource(filters: Filters) -> Resource {
-        Resource::SprintResults(filters)
-    }
-
-    fn try_inner_from(payload: Payload) -> Result<Inner<Self>> {
-        payload.into_sprint_results().map_err(into)
-    }
-}
-
-impl SessionResult for RaceResult {
-    fn to_resource(filters: Filters) -> Resource {
-        Resource::RaceResults(filters)
-    }
-
-    fn try_inner_from(payload: Payload) -> Result<Inner<Self>> {
-        payload.into_race_results().map_err(into)
-    }
 }
 
 /// Performs a GET request to the Ergast API for the [`Resource`] corresponding to the requested
@@ -456,12 +387,7 @@ impl SessionResult for RaceResult {
 /// assert_eq!(race_points + sprint_points, 585.5);
 /// ```
 pub fn get_session_results<T: SessionResult>(filters: Filters) -> Result<Vec<Race<Vec<T>>>> {
-    get_response_max_limit(&T::to_resource(filters))?
-        .table
-        .into_races()?
-        .into_iter()
-        .map(|race| race.try_map(|payload| T::try_inner_from(payload)))
-        .collect()
+    get_response_max_limit(&T::to_resource(filters))?.into_session_results()
 }
 
 /// Performs a GET request to the Ergast API for the [`Resource`] corresponding to the requested
@@ -540,10 +466,7 @@ pub fn get_session_results_for_event<T: SessionResult>(filters: Filters) -> Resu
 /// assert_eq!(seb_poles, 57);
 /// ```
 pub fn get_session_result_for_events<T: SessionResult>(filters: Filters) -> Result<Vec<Race<T>>> {
-    get_session_results(filters)?
-        .into_iter()
-        .map(|race| race.try_map(verify_has_one_element_and_extract))
-        .collect()
+    get_response_max_limit(&T::to_resource(filters))?.into_session_result_for_events()
 }
 
 /// Performs a GET request to the Ergast API for the [`Resource`] corresponding to the requested
@@ -660,44 +583,7 @@ pub fn get_race_result(filters: Filters) -> Result<Race<RaceResult>> {
 /// );
 /// ```
 pub fn get_statuses(filters: Filters) -> Result<Vec<Status>> {
-    get_response_max_limit(&Resource::FinishingStatus(filters))?
-        .table
-        .into_status()
-        .map_err(into)
-}
-
-/// Represents a flattened combination of a [`Lap`] and [`Timing`] for a single driver, indented to
-/// make use more ergonomic, without nesting, when accessing a single driver's lap and timing data.
-#[derive(PartialEq, Eq, Clone, Copy, Debug)]
-pub struct DriverLap {
-    /// Directly maps to [`Lap::number`] for a given [`Lap`].
-    pub number: u32,
-    /// Directly maps to [`Timing::position`] for a given driver's [`Timing`] in a given [`Lap`].
-    pub position: u32,
-    /// Directly maps to [`Timing::time`] for a given driver's [`Timing`] in a given [`Lap`].
-    pub time: Duration,
-}
-
-impl DriverLap {
-    /// Returns a [`Result<DriverLap>`] from the given [`Lap`], verifying that it contains a single
-    /// [`Timing`] and that its `driver_id` field matches the passed [`DriverID`]. It returns
-    /// [`Error::UnexpectedData`] if the data's `driver_id` does not match the argument's.
-    pub fn try_from(lap: Lap, driver_id: &DriverID) -> Result<Self> {
-        let timing = verify_has_one_element_and_extract(lap.timings)?;
-
-        if timing.driver_id != *driver_id {
-            return Err(Error::UnexpectedData(format!(
-                "Expected driver_id '{}' but got '{}'",
-                driver_id, timing.driver_id
-            )));
-        }
-
-        Ok(Self {
-            number: lap.number,
-            position: timing.position,
-            time: timing.time,
-        })
-    }
+    get_response_max_limit(&Resource::FinishingStatus(filters))?.into_statuses()
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::LapTimes`] from a specified [`RaceID`]
@@ -725,13 +611,8 @@ pub fn get_driver_laps(race_id: RaceID, driver_id: &DriverID) -> Result<Vec<Driv
         round: race_id.round,
         lap: None,
         driver_id: Some(driver_id.clone()),
-    }))
-    .and_then(verify_has_one_race_and_extract)?
-    .payload
-    .into_laps()
-    .map_err(into)
-    .map(into_iter)
-    .and_then(|laps| laps.map(|lap| DriverLap::try_from(lap, driver_id)).collect())
+    }))?
+    .into_driver_laps(driver_id)
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::LapTimes`] from a specified [`RaceID`]
@@ -756,13 +637,8 @@ pub fn get_lap_timings(race_id: RaceID, lap: u32) -> Result<Vec<Timing>> {
         round: race_id.round,
         lap: Some(lap),
         driver_id: None,
-    }))
-    .and_then(verify_has_one_race_and_extract)?
-    .payload
-    .into_laps()
-    .map_err(into)
-    .and_then(verify_has_one_element_and_extract)
-    .map(|lap| lap.timings)
+    }))?
+    .into_lap_timings()
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::PitStops`], with the passed argument
@@ -794,11 +670,7 @@ pub fn get_lap_timings(race_id: RaceID, lap: u32) -> Result<Vec<Timing>> {
 /// );
 /// ```
 pub fn get_pit_stops(filters: PitStopFilters) -> Result<Vec<PitStop>> {
-    get_response_max_limit(&Resource::PitStops(filters))
-        .and_then(verify_has_one_race_and_extract)?
-        .payload
-        .into_pit_stops()
-        .map_err(into)
+    get_response_max_limit(&Resource::PitStops(filters))?.into_pit_stops()
 }
 
 /// Call the provided function, retrying on HTTP errors, and forwarding anything else.
@@ -825,38 +697,6 @@ fn verify_is_single_page(response: Response) -> Result<Response> {
     } else {
         Err(Error::MultiPage)
     }
-}
-
-/// Extract a single element `T` from [`Vec<T>`] into [`Result<T>`], enforcing that there is only
-/// one element in the vector, returning [`Error::NotFound`] if it contained no elements, or
-/// [`Error::TooMany`] if it contained more than one.
-fn verify_has_one_element_and_extract<T>(mut sequence: Vec<T>) -> Result<T> {
-    match sequence.len() {
-        0 => Err(Error::NotFound),
-        1 => Ok(sequence.remove(0)),
-        _ => Err(Error::TooMany),
-    }
-}
-
-/// Extract single [`Race`] from a [`Response`], into [`Result<Race>`], enforcing that there is only
-/// one race in the [`Response`], returning [`Error::NotFound`] if the it contained no races, or
-/// [`Error::TooMany`] if it contained more than one.
-fn verify_has_one_race_and_extract(response: Response) -> Result<Race> {
-    response
-        .table
-        .into_races()
-        .map_err(into)
-        .and_then(verify_has_one_element_and_extract)
-}
-
-/// Shorthand for closure `|e| e.into()` and/or `std::convert::Into::into`.
-fn into<T: Into<U>, U>(t: T) -> U {
-    t.into()
-}
-
-/// Shorthand for closure `|v| v.into_iter()` and/or `std::iter::IntoIterator::into_iter`.
-fn into_iter<T: IntoIterator>(t: T) -> T::IntoIter {
-    t.into_iter()
 }
 
 #[cfg(test)]
@@ -999,6 +839,7 @@ mod tests {
 
     /// Call a `get` function and assert that the returned [`Result`] is [`Err(Error::TooMany)`].
     fn assert_too_many<G: Fn() -> Result<T>, T>(get: G) {
+        // @todo: Consider using `pretty_assertions::assert_matches!` macro when it stabilizes.
         assert!(matches!(retry_http(|| get()), Err(Error::TooMany)));
     }
 

@@ -5,12 +5,12 @@ use log::{debug, error, info, trace};
 use f1_data::{
     ergast::{
         get::{
-            self, get_circuits, get_constructors, get_driver_laps, get_drivers, get_lap_timings, get_pit_stops,
+            get_circuits, get_constructors, get_driver_laps, get_drivers, get_lap_timings, get_pit_stops,
             get_race_schedules, get_seasons, get_session_result, get_session_results, get_session_results_for_event,
             get_statuses,
         },
         resource::{Filters, PitStopFilters},
-        response::{QualifyingResult, RaceResult, SprintResult},
+        response::{self, QualifyingResult, RaceResult, SprintResult},
     },
     error::Error as ErgastError,
     error::Result as ErgastResult,
@@ -232,7 +232,7 @@ impl SessionResult for RaceResult {
 
 fn validate_granular_session_results_for_round<T>(season: SeasonID, round: RoundID)
 where
-    T: get::SessionResult + SessionResult,
+    T: response::SessionResult + SessionResult,
 {
     section_sub_header(&format!("granular - {}, R{}", season, round));
 
@@ -260,7 +260,7 @@ where
 
 fn validate_granular_session_results_for_season<T>(season: SeasonID)
 where
-    T: get::SessionResult + SessionResult,
+    T: response::SessionResult + SessionResult,
 {
     section_sub_header(&format!("granular - {}", season));
 
@@ -295,7 +295,7 @@ fn is_known_no_number(season: SeasonID, round: RoundID, position: u32) -> bool {
 
 fn validate_session_results<T>(configs: Configurations) -> Result<()>
 where
-    T: get::SessionResult + SessionResult,
+    T: response::SessionResult + SessionResult,
 {
     let mut status = Ok(());
 

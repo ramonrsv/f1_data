@@ -6,15 +6,16 @@ use serde_with::{serde_as, DisplayFromStr};
 use url::Url;
 
 use crate::{
-    ergast::time::{
-        deserialize_duration, deserialize_optional_time, deserialize_time, Date, DateTime, Duration, QualifyingTime,
-        RaceTime, Time,
+    ergast::{
+        resource::{Filters, Resource},
+        time::{
+            deserialize_duration, deserialize_optional_time, deserialize_time, Date, DateTime, Duration,
+            QualifyingTime, RaceTime, Time,
+        },
     },
+    error::{Error, Result},
     id::{CircuitID, ConstructorID, DriverID, RoundID, SeasonID, StatusID},
 };
-
-#[cfg(doc)]
-use crate::{ergast::resource::Resource, error::Error};
 
 pub const GRID_PIT_LANE: u32 = 0;
 
@@ -31,8 +32,81 @@ pub struct Response {
     pub table: Table,
 }
 
+impl Response {
+    pub fn into_seasons(self) -> Result<Vec<Season>> {
+        self.table.into_seasons().map_err(into)
+    }
+
+    pub fn into_drivers(self) -> Result<Vec<Driver>> {
+        self.table.into_drivers().map_err(into)
+    }
+
+    pub fn into_constructors(self) -> Result<Vec<Constructor>> {
+        self.table.into_constructors().map_err(into)
+    }
+
+    pub fn into_circuits(self) -> Result<Vec<Circuit>> {
+        self.table.into_circuits().map_err(into)
+    }
+
+    pub fn into_race_schedules(self) -> Result<Vec<Race<Schedule>>> {
+        self.table
+            .into_races()?
+            .into_iter()
+            .map(|race| race.try_map(|payload| payload.into_schedule().map_err(into)))
+            .collect()
+    }
+
+    pub fn into_session_results<T: SessionResult>(self) -> Result<Vec<Race<Vec<T>>>> {
+        self.table
+            .into_races()?
+            .into_iter()
+            .map(|race| race.try_map(|payload| T::try_inner_from(payload)))
+            .collect()
+    }
+
+    pub fn into_session_result_for_events<T: SessionResult>(self) -> Result<Vec<Race<T>>> {
+        self.into_session_results()?
+            .into_iter()
+            .map(|race| race.try_map(verify_has_one_element_and_extract))
+            .collect()
+    }
+
+    pub fn into_statuses(self) -> Result<Vec<Status>> {
+        self.table.into_status().map_err(into)
+    }
+
+    pub fn into_driver_laps(self, driver_id: &DriverID) -> Result<Vec<DriverLap>> {
+        Ok(self)
+            .and_then(verify_has_one_race_and_extract)?
+            .payload
+            .into_laps()
+            .map_err(into)
+            .map(into_iter)
+            .and_then(|laps| laps.map(|lap| DriverLap::try_from(lap, driver_id)).collect())
+    }
+
+    pub fn into_lap_timings(self) -> Result<Vec<Timing>> {
+        Ok(self)
+            .and_then(verify_has_one_race_and_extract)?
+            .payload
+            .into_laps()
+            .map_err(into)
+            .and_then(verify_has_one_element_and_extract)
+            .map(|lap| lap.timings)
+    }
+
+    pub fn into_pit_stops(self) -> Result<Vec<PitStop>> {
+        Ok(self)
+            .and_then(verify_has_one_race_and_extract)?
+            .payload
+            .into_pit_stops()
+            .map_err(into)
+    }
+}
+
 impl<'de> Deserialize<'de> for Response {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> std::result::Result<Self, D::Error> {
         #[derive(Deserialize)]
         struct Proxy {
             #[serde(rename = "MRData")]
@@ -91,6 +165,58 @@ impl Pagination {
                 ..*self
             })
         }
+    }
+}
+
+/// Inner type of a [`Payload`] variant for a [`SessionResult`] type, e.g. the inner type of the
+/// [`Payload::RaceResults`] variant is [`Vec<RaceResult>`].
+type Inner<T> = Vec<T>;
+
+/// The [`SessionResult`] trait allows the generic handling of all session result types, resource
+/// requests, and extraction of the corresponding variant from [`Payload`].
+///
+/// For example, [`RaceResult`]s are requested via [`Resource::RaceResults`], and the response can
+/// be extracted from the [`Payload::RaceResults`] variant.
+///
+/// The trait is implemented for [`QualifyingResult`], [`SprintResult`], and [`RaceResult`].
+pub trait SessionResult
+where
+    Self: Sized,
+{
+    /// Wrap a [`Filters`] with the corresponding [`Resource`] variant for this [`SessionResult`].
+    fn to_resource(filters: Filters) -> Resource;
+
+    /// Extract the value from the corresponding [`Payload`] variant for this [`SessionResult`].
+    fn try_inner_from(payload: Payload) -> Result<Inner<Self>>;
+}
+
+impl SessionResult for QualifyingResult {
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::QualifyingResults(filters)
+    }
+
+    fn try_inner_from(payload: Payload) -> Result<Inner<Self>> {
+        payload.into_qualifying_results().map_err(into)
+    }
+}
+
+impl SessionResult for SprintResult {
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::SprintResults(filters)
+    }
+
+    fn try_inner_from(payload: Payload) -> Result<Inner<Self>> {
+        payload.into_sprint_results().map_err(into)
+    }
+}
+
+impl SessionResult for RaceResult {
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::RaceResults(filters)
+    }
+
+    fn try_inner_from(payload: Payload) -> Result<Inner<Self>> {
+        payload.into_race_results().map_err(into)
     }
 }
 
@@ -247,9 +373,9 @@ impl<T> Race<T> {
     /// function, which may fail with error `E`, to the payload, and keeping all the other fields.
     // @todo This implementation can be simplified if/once the type_chaining_struct_update feature
     // is implemented and stabilized; see tracking https://github.com/rust-lang/rust/issues/86555.
-    pub fn try_map<U, F, E>(self, op: F) -> Result<Race<U>, E>
+    pub fn try_map<U, F, E>(self, op: F) -> std::result::Result<Race<U>, E>
     where
-        F: FnOnce(T) -> Result<U, E>,
+        F: FnOnce(T) -> std::result::Result<U, E>,
         E: std::error::Error,
     {
         Ok(Race::<U> {
@@ -384,8 +510,8 @@ impl<'de> Deserialize<'de> for Payload {
     /// which usually later manifests as a cryptic and unhelpful [`Error::BadPayloadVariant`].
     // @todo See if this could be implemented without a custom deserializer, or if it's something
     // that could and should be improved in serde: https://github.com/serde-rs/serde/pull/2403
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        fn from_value<'de, T, D>(value: serde_json::Value) -> Result<T, D::Error>
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> std::result::Result<Self, D::Error> {
+        fn from_value<'de, T, D>(value: serde_json::Value) -> std::result::Result<T, D::Error>
         where
             T: DeserializeOwned,
             D: Deserializer<'de>,
@@ -577,7 +703,7 @@ impl RaceResult {
 }
 
 /// Deserialize a `u32` from a string, where empty is represented by [`RaceResult::NO_NUMBER`].
-fn deserialize_possible_no_number<'de, D>(deserializer: D) -> Result<u32, D::Error>
+fn deserialize_possible_no_number<'de, D>(deserializer: D) -> std::result::Result<u32, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -611,7 +737,7 @@ impl Position {
 }
 
 impl<'de> Deserialize<'de> for Position {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> std::result::Result<Self, D::Error> {
         match String::deserialize(deserializer)?.as_str() {
             "R" => Ok(Self::R),
             "D" => Ok(Self::D),
@@ -624,6 +750,40 @@ impl<'de> Deserialize<'de> for Position {
                     .map_err(|err| serde::de::Error::custom(err.to_string()))?,
             )),
         }
+    }
+}
+
+/// Represents a flattened combination of a [`Lap`] and [`Timing`] for a single driver, indented to
+/// make use more ergonomic, without nesting, when accessing a single driver's lap and timing data.
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
+pub struct DriverLap {
+    /// Directly maps to [`Lap::number`] for a given [`Lap`].
+    pub number: u32,
+    /// Directly maps to [`Timing::position`] for a given driver's [`Timing`] in a given [`Lap`].
+    pub position: u32,
+    /// Directly maps to [`Timing::time`] for a given driver's [`Timing`] in a given [`Lap`].
+    pub time: Duration,
+}
+
+impl DriverLap {
+    /// Returns a [`Result<DriverLap>`] from the given [`Lap`], verifying that it contains a single
+    /// [`Timing`] and that its `driver_id` field matches the passed [`DriverID`]. It returns
+    /// [`Error::UnexpectedData`] if the data's `driver_id` does not match the argument's.
+    pub fn try_from(lap: Lap, driver_id: &DriverID) -> Result<Self> {
+        let timing = verify_has_one_element_and_extract(lap.timings)?;
+
+        if timing.driver_id != *driver_id {
+            return Err(Error::UnexpectedData(format!(
+                "Expected driver_id '{}' but got '{}'",
+                driver_id, timing.driver_id
+            )));
+        }
+
+        Ok(Self {
+            number: lap.number,
+            position: timing.position,
+            time: timing.time,
+        })
     }
 }
 
@@ -697,7 +857,7 @@ pub struct FastestLap {
     pub average_speed: Option<AverageSpeed>,
 }
 
-fn extract_nested_time<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Duration, D::Error> {
+fn extract_nested_time<'de, D: Deserializer<'de>>(deserializer: D) -> std::result::Result<Duration, D::Error> {
     #[derive(Deserialize)]
     struct Time {
         #[serde(deserialize_with = "deserialize_duration")]
@@ -720,12 +880,47 @@ pub enum SpeedUnits {
     Kph,
 }
 
+/// Extract a single element `T` from [`Vec<T>`] into [`Result<T>`], enforcing that there is only
+/// one element in the vector, returning [`Error::NotFound`] if it contained no elements, or
+/// [`Error::TooMany`] if it contained more than one.
+pub(crate) fn verify_has_one_element_and_extract<T>(mut sequence: Vec<T>) -> Result<T> {
+    match sequence.len() {
+        0 => Err(Error::NotFound),
+        1 => Ok(sequence.remove(0)),
+        _ => Err(Error::TooMany),
+    }
+}
+
+/// Extract single [`Race`] from a [`Response`], into [`Result<Race>`], enforcing that there is only
+/// one race in the [`Response`], returning [`Error::NotFound`] if the it contained no races, or
+/// [`Error::TooMany`] if it contained more than one.
+pub(crate) fn verify_has_one_race_and_extract(response: Response) -> Result<Race> {
+    response
+        .table
+        .into_races()
+        .map_err(into)
+        .and_then(verify_has_one_element_and_extract)
+}
+
+/// Shorthand for closure `|e| e.into()` and/or `std::convert::Into::into`.
+// @todo Replace with an import once `import_trait_associated_functions` is stabilized:
+// https://doc.rust-lang.org/nightly/unstable-book/language-features/import-trait-associated-functions.html
+fn into<T: Into<U>, U>(t: T) -> U {
+    t.into()
+}
+
+/// Shorthand for closure `|v| v.into_iter()` and/or `std::iter::IntoIterator::into_iter`.
+// @todo Replace with an import once `import_trait_associated_functions` is stabilized:
+// https://doc.rust-lang.org/nightly/unstable-book/language-features/import-trait-associated-functions.html
+fn into_iter<T: IntoIterator>(t: T) -> T::IntoIter {
+    t.into_iter()
+}
+
 #[cfg(test)]
 mod tests {
     use const_format::formatcp;
     use pretty_assertions::{assert_eq, assert_ne};
-
-    use crate::ergast::get::SessionResult;
+    use std::sync::LazyLock;
 
     use super::*;
     use crate::ergast::tests::assets::*;
@@ -1218,5 +1413,61 @@ mod tests {
         assert_eq!(pos, 10);
 
         assert!(serde_json::from_str::<Position>("\"unknown\"").is_err());
+    }
+
+    const RESPONSE_NONE: LazyLock<Response> = LazyLock::new(|| Response {
+        xmlns: "".into(),
+        series: "f1".into(),
+        url: Url::parse("https://api.jolpi.ca/ergast/f1/").unwrap(),
+        pagination: Pagination {
+            limit: 30,
+            offset: 0,
+            total: 0,
+        },
+        table: Table::Seasons { seasons: vec![] },
+    });
+
+    fn make_response_with_table(table: Table) -> Response {
+        Response {
+            table,
+            ..RESPONSE_NONE.clone()
+        }
+    }
+
+    #[test]
+    fn response_into_seasons() {
+        let response = make_response_with_table(Table::Seasons {
+            seasons: vec![SEASON_2000.clone(), SEASON_2023.clone()],
+        });
+
+        let seasons = response.into_seasons().unwrap();
+        assert_eq!(seasons.len(), 2);
+        assert_eq!(seasons[0], *SEASON_2000);
+        assert_eq!(seasons[1], *SEASON_2023);
+    }
+
+    #[test]
+    fn response_into_seasons_error_bad_table_variant() {
+        assert!(matches!(
+            make_response_with_table(Table::Drivers { drivers: vec![] }).into_seasons(),
+            Err(Error::BadTableVariant)
+        ));
+    }
+
+    #[test]
+    fn response_into_drivers() {
+        let response = make_response_with_table(Table::Drivers {
+            drivers: vec![DRIVER_MAX.clone(), DRIVER_LECLERC.clone()],
+        });
+
+        let drivers = response.into_drivers().unwrap();
+        assert_eq!(drivers.len(), 2);
+        assert_eq!(drivers[0], *DRIVER_MAX);
+        assert_eq!(drivers[1], *DRIVER_LECLERC);
+    }
+
+    #[test]
+    fn response_into_drivers_error_bad_table_variant() {
+        assert!(matches!(RESPONSE_NONE.clone().into_drivers(), Err(Error::BadTableVariant)));
     }
 }
