@@ -81,5 +81,5 @@ jobs:
       - name: bench (build only)
         run: cargo bench --workspace --all-features --no-run
       - name: bench (run)
-        if: github.event_name == 'schedule'
+        if: github.event_name == 'schedule' && false
         run: cargo bench --workspace --all-features
