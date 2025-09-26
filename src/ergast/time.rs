@@ -1,6 +1,6 @@
 use regex::Regex;
 use serde::{Deserialize, Deserializer};
-use serde_with::{serde_as, DisplayFromStr};
+use serde_with::{DisplayFromStr, serde_as};
 use std::sync::LazyLock;
 
 /// These aliases represent the underlying time/date/duration/etc. types used within the crate to

@@ -1,16 +1,16 @@
 use std::convert::Infallible;
 
 use enum_as_inner::EnumAsInner;
-use serde::{de::DeserializeOwned, Deserialize, Deserializer};
-use serde_with::{serde_as, DisplayFromStr};
+use serde::{Deserialize, Deserializer, de::DeserializeOwned};
+use serde_with::{DisplayFromStr, serde_as};
 use url::Url;
 
 use crate::{
     ergast::{
         resource::{Filters, Resource},
         time::{
-            deserialize_duration, deserialize_optional_time, deserialize_time, Date, DateTime, Duration,
-            QualifyingTime, RaceTime, Time,
+            Date, DateTime, Duration, QualifyingTime, RaceTime, Time, deserialize_duration, deserialize_optional_time,
+            deserialize_time,
         },
     },
     error::{Error, Result},
@@ -1115,43 +1115,53 @@ mod tests {
 
     #[test]
     fn pagination_is_last_page() {
-        assert!(Pagination {
-            limit: 30,
-            offset: 0,
-            total: 16
-        }
-        .is_last_page());
+        assert!(
+            Pagination {
+                limit: 30,
+                offset: 0,
+                total: 16
+            }
+            .is_last_page()
+        );
 
-        assert!(Pagination {
-            limit: 10,
-            offset: 5,
-            total: 15
-        }
-        .is_last_page());
+        assert!(
+            Pagination {
+                limit: 10,
+                offset: 5,
+                total: 15
+            }
+            .is_last_page()
+        );
 
-        assert!(!Pagination {
-            limit: 10,
-            offset: 4,
-            total: 15
-        }
-        .is_last_page());
+        assert!(
+            !Pagination {
+                limit: 10,
+                offset: 4,
+                total: 15
+            }
+            .is_last_page()
+        );
     }
 
     #[test]
     fn pagination_is_single_page() {
-        assert!(Pagination {
-            limit: 30,
-            offset: 0,
-            total: 16
-        }
-        .is_single_page());
+        assert!(
+            Pagination {
+                limit: 30,
+                offset: 0,
+                total: 16
+            }
+            .is_single_page()
+        );
 
-        assert!(!Pagination {
-            limit: 10,
-            offset: 5,
-            total: 15
-        }
-        .is_single_page())
+        assert!(
+            !Pagination {
+                limit: 10,
+                offset: 5,
+                total: 15
+            }
+            .is_single_page()
+        )
     }
 
     #[test]
@@ -1171,13 +1181,15 @@ mod tests {
             }
         );
 
-        assert!(Pagination {
-            limit: 10,
-            offset: 10,
-            total: 15
-        }
-        .next_page()
-        .is_none());
+        assert!(
+            Pagination {
+                limit: 10,
+                offset: 10,
+                total: 15
+            }
+            .next_page()
+            .is_none()
+        );
     }
 
     #[test]

@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use serde_with::{serde_as, DisplayFromStr};
+use serde_with::{DisplayFromStr, serde_as};
 
 /// Uniquely identifies a driver by a string, e.g. `"max_verstappen"` for _Max Verstappen_
 pub type DriverID = String;

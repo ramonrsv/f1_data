@@ -7,9 +7,8 @@ use url::Url;
 use crate::ergast::response::*;
 
 use crate::ergast::time::{
-    duration_m_s_ms, duration_millis, duration_s_ms,
+    Date, DateTime, QualifyingTime, RaceTime, duration_m_s_ms, duration_millis, duration_s_ms,
     macros::{date, time},
-    Date, DateTime, QualifyingTime, RaceTime,
 };
 
 // http://ergast.com/mrd/methods/seasons/

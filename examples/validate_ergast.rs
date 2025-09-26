@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use colored::Colorize;
 use log::{debug, error, info, trace};
 
@@ -535,10 +535,7 @@ fn validate_pit_stops(_: Configurations) -> Result<()> {
             for (idx, pit_stop) in pit_stops.iter().enumerate() {
                 trace!(
                     "[{idx:2}]   {:2}     {:2}    {:20}  {}",
-                    pit_stop.lap,
-                    pit_stop.stop,
-                    pit_stop.driver_id,
-                    pit_stop.duration
+                    pit_stop.lap, pit_stop.stop, pit_stop.driver_id, pit_stop.duration
                 );
             }
         }
