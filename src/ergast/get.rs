@@ -144,7 +144,7 @@ pub fn get_seasons(filters: Filters) -> Result<Vec<Season>> {
 /// assert!(matches!(get_season(1940), Err(Error::NotFound)));
 /// ```
 pub fn get_season(season: SeasonID) -> Result<Season> {
-    get_seasons(Filters::new().season(season)).and_then(verify_has_one_element_and_extract)
+    get_response(&Resource::SeasonList(Filters::new().season(season)))?.into_season()
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::DriverInfo`], with the argument
@@ -184,7 +184,7 @@ pub fn get_drivers(filters: Filters) -> Result<Vec<Driver>> {
 /// assert!(matches!(get_driver(DriverID::from("unknown")), Err(Error::NotFound)));
 /// ```
 pub fn get_driver(driver_id: DriverID) -> Result<Driver> {
-    get_drivers(Filters::new().driver_id(driver_id)).and_then(verify_has_one_element_and_extract)
+    get_response(&&Resource::DriverInfo(Filters::new().driver_id(driver_id)))?.into_driver()
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::ConstructorInfo`], with the argument

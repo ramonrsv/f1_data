@@ -37,8 +37,16 @@ impl Response {
         self.table.into_seasons().map_err(into)
     }
 
+    pub fn into_season(self) -> Result<Season> {
+        self.into_seasons().and_then(verify_has_one_element_and_extract)
+    }
+
     pub fn into_drivers(self) -> Result<Vec<Driver>> {
         self.table.into_drivers().map_err(into)
+    }
+
+    pub fn into_driver(self) -> Result<Driver> {
+        self.into_drivers().and_then(verify_has_one_element_and_extract)
     }
 
     pub fn into_constructors(self) -> Result<Vec<Constructor>> {
@@ -1427,6 +1435,9 @@ mod tests {
         assert!(serde_json::from_str::<Position>("\"unknown\"").is_err());
     }
 
+    // Response::into_* tests
+    // ----------------------
+
     const RESPONSE_NONE: LazyLock<Response> = LazyLock::new(|| Response {
         xmlns: "".into(),
         series: "f1".into(),
@@ -1446,40 +1457,105 @@ mod tests {
         }
     }
 
+    const RESPONSE_SEASONS_NONE: LazyLock<Response> =
+        LazyLock::new(|| make_response_with_table(Table::Seasons { seasons: vec![] }));
+
+    const RESPONSE_SEASONS_ONE: LazyLock<Response> = LazyLock::new(|| {
+        make_response_with_table(Table::Seasons {
+            seasons: vec![SEASON_2000.clone()],
+        })
+    });
+
+    const RESPONSE_SEASONS_TWO: LazyLock<Response> = LazyLock::new(|| {
+        make_response_with_table(Table::Seasons {
+            seasons: vec![SEASON_2000.clone(), SEASON_2023.clone()],
+        })
+    });
+
+    const RESPONSE_DRIVERS_NONE: LazyLock<Response> =
+        LazyLock::new(|| make_response_with_table(Table::Drivers { drivers: vec![] }));
+
+    const RESPONSE_DRIVERS_ONE: LazyLock<Response> = LazyLock::new(|| {
+        make_response_with_table(Table::Drivers {
+            drivers: vec![DRIVER_MAX.clone()],
+        })
+    });
+
+    const RESPONSE_DRIVERS_TWO: LazyLock<Response> = LazyLock::new(|| {
+        make_response_with_table(Table::Drivers {
+            drivers: vec![DRIVER_MAX.clone(), DRIVER_LECLERC.clone()],
+        })
+    });
+
+    // ::into_season(s)
+    // ----------------
+
     #[test]
     fn response_into_seasons() {
-        let response = make_response_with_table(Table::Seasons {
-            seasons: vec![SEASON_2000.clone(), SEASON_2023.clone()],
-        });
-
+        let response = RESPONSE_SEASONS_TWO.clone();
         let seasons = response.into_seasons().unwrap();
         assert_eq!(seasons.len(), 2);
-        assert_eq!(seasons[0], *SEASON_2000);
-        assert_eq!(seasons[1], *SEASON_2023);
+        assert_eq!(seasons, vec![SEASON_2000.clone(), SEASON_2023.clone()]);
     }
 
     #[test]
     fn response_into_seasons_error_bad_table_variant() {
-        assert!(matches!(
-            make_response_with_table(Table::Drivers { drivers: vec![] }).into_seasons(),
-            Err(Error::BadTableVariant)
-        ));
+        assert!(matches!(RESPONSE_DRIVERS_NONE.clone().into_seasons(), Err(Error::BadTableVariant)));
     }
 
     #[test]
-    fn response_into_drivers() {
-        let response = make_response_with_table(Table::Drivers {
-            drivers: vec![DRIVER_MAX.clone(), DRIVER_LECLERC.clone()],
-        });
+    fn response_into_season() {
+        assert_eq!(RESPONSE_SEASONS_ONE.clone().into_season().unwrap(), *SEASON_2000);
+    }
 
+    #[test]
+    fn response_into_season_error_bad_table_variant() {
+        assert!(matches!(RESPONSE_DRIVERS_NONE.clone().into_season(), Err(Error::BadTableVariant)));
+    }
+
+    #[test]
+    fn response_into_season_error_not_found() {
+        assert!(matches!(RESPONSE_SEASONS_NONE.clone().into_season(), Err(Error::NotFound)));
+    }
+
+    #[test]
+    fn response_into_season_error_too_many() {
+        assert!(matches!(RESPONSE_SEASONS_TWO.clone().into_season(), Err(Error::TooMany)));
+    }
+
+    // ::into_driver(s)
+    // ----------------
+
+    #[test]
+    fn response_into_drivers() {
+        let response = RESPONSE_DRIVERS_TWO.clone();
         let drivers = response.into_drivers().unwrap();
         assert_eq!(drivers.len(), 2);
-        assert_eq!(drivers[0], *DRIVER_MAX);
-        assert_eq!(drivers[1], *DRIVER_LECLERC);
+        assert_eq!(drivers, vec![DRIVER_MAX.clone(), DRIVER_LECLERC.clone()]);
     }
 
     #[test]
     fn response_into_drivers_error_bad_table_variant() {
         assert!(matches!(RESPONSE_NONE.clone().into_drivers(), Err(Error::BadTableVariant)));
+    }
+
+    #[test]
+    fn response_into_driver() {
+        assert_eq!(RESPONSE_DRIVERS_ONE.clone().into_driver().unwrap(), *DRIVER_MAX);
+    }
+
+    #[test]
+    fn response_into_driver_error_bad_table_variant() {
+        assert!(matches!(RESPONSE_NONE.clone().into_driver(), Err(Error::BadTableVariant)));
+    }
+
+    #[test]
+    fn response_into_driver_error_not_found() {
+        assert!(matches!(RESPONSE_DRIVERS_NONE.clone().into_driver(), Err(Error::NotFound)));
+    }
+
+    #[test]
+    fn response_into_driver_error_too_many() {
+        assert!(matches!(RESPONSE_DRIVERS_TWO.clone().into_driver(), Err(Error::TooMany)));
     }
 }
