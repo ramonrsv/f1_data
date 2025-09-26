@@ -15,3 +15,7 @@ Cargo.lock
 
 # Local Visual Studio Code configuration
 .vscode
+
+# Local environment files
+.env
+.secrets
