@@ -38,11 +38,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-      - name: build
+      - name: Build
         run: cargo build --workspace --all-features
-      - name: test (non-ignored)
+      - name: Test (non-ignored)
         run: cargo test --workspace --all-features
-      - name: test (ignored)
+      - name: Test (ignored)
         run: cargo test --workspace --all-features -- --ignored --test-threads 1
 
   build_docs:
@@ -81,12 +81,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-      - name: install cargo-llvm-cov
+      - name: Install cargo-llvm-cov
         run: cargo install cargo-llvm-cov
-      - name: run cargo-llvm-cov
+      - name: Run cargo-llvm-cov
         run: "cargo llvm-cov --codecov test --workspace --all-features -- \
           --include-ignored --test-threads 1 > codecove_code_coverage.json"
-      - name: archive codecove_code_coverage.json
+      - name: Archive codecove_code_coverage.json
         uses: actions/upload-artifact@v4
         with:
           path: codecove_code_coverage.json
@@ -102,8 +102,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-      - name: bench (build only)
+      - name: Build bench
         run: cargo bench --workspace --all-features --no-run
-      - name: bench (run)
+      - name: Run bench
         if: github.event_name == 'schedule' && false
         run: cargo bench --workspace --all-features
