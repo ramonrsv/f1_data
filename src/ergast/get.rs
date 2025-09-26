@@ -184,7 +184,7 @@ pub fn get_drivers(filters: Filters) -> Result<Vec<Driver>> {
 /// assert!(matches!(get_driver(DriverID::from("unknown")), Err(Error::NotFound)));
 /// ```
 pub fn get_driver(driver_id: DriverID) -> Result<Driver> {
-    get_response(&&Resource::DriverInfo(Filters::new().driver_id(driver_id)))?.into_driver()
+    get_response(&Resource::DriverInfo(Filters::new().driver_id(driver_id)))?.into_driver()
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::ConstructorInfo`], with the argument

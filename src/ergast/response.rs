@@ -41,12 +41,34 @@ impl Response {
         self.into_seasons().and_then(verify_has_one_element_and_extract)
     }
 
+    pub fn as_seasons(&self) -> Result<&Vec<Season>> {
+        self.table.as_seasons().ok_or(Error::BadTableVariant)
+    }
+
+    pub fn as_season(&self) -> Result<&Season> {
+        self.as_seasons()
+            .map(Vec::as_slice)
+            .and_then(verify_has_one_element)
+            .map(|s| s.first().unwrap())
+    }
+
     pub fn into_drivers(self) -> Result<Vec<Driver>> {
         self.table.into_drivers().map_err(into)
     }
 
     pub fn into_driver(self) -> Result<Driver> {
         self.into_drivers().and_then(verify_has_one_element_and_extract)
+    }
+
+    pub fn as_drivers(&self) -> Result<&Vec<Driver>> {
+        self.table.as_drivers().ok_or(Error::BadTableVariant)
+    }
+
+    pub fn as_driver(&self) -> Result<&Driver> {
+        self.as_drivers()
+            .map(Vec::as_slice)
+            .and_then(verify_has_one_element)
+            .map(|s| s.first().unwrap())
     }
 
     pub fn into_constructors(self) -> Result<Vec<Constructor>> {
@@ -888,6 +910,17 @@ pub enum SpeedUnits {
     Kph,
 }
 
+/// Check that there is exactly one element `T` in a slice `&[T]`, and return a
+/// <code>[Result<&\[T\]>]</code> containing the slice if so, [`Error::NotFound`] if it contained no
+/// elements, or [`Error::TooMany`] if it contained more than one.
+pub(crate) fn verify_has_one_element<T>(sequence: &[T]) -> Result<&[T]> {
+    match sequence.len() {
+        0 => Err(Error::NotFound),
+        1 => Ok(sequence),
+        _ => Err(Error::TooMany),
+    }
+}
+
 /// Extract a single element `T` from [`Vec<T>`] into [`Result<T>`], enforcing that there is only
 /// one element in the vector, returning [`Error::NotFound`] if it contained no elements, or
 /// [`Error::TooMany`] if it contained more than one.
@@ -1435,8 +1468,8 @@ mod tests {
         assert!(serde_json::from_str::<Position>("\"unknown\"").is_err());
     }
 
-    // Response::into_* tests
-    // ----------------------
+    // Response::into_* and Response::as_* tests
+    // -----------------------------------------
 
     const RESPONSE_NONE: LazyLock<Response> = LazyLock::new(|| Response {
         xmlns: "".into(),
@@ -1487,8 +1520,8 @@ mod tests {
         })
     });
 
-    // ::into_season(s)
-    // ----------------
+    // ::into/as_season(s)
+    // -------------------
 
     #[test]
     fn response_into_seasons() {
@@ -1523,8 +1556,42 @@ mod tests {
         assert!(matches!(RESPONSE_SEASONS_TWO.clone().into_season(), Err(Error::TooMany)));
     }
 
-    // ::into_driver(s)
-    // ----------------
+    #[test]
+    fn response_as_seasons() {
+        let response = &*RESPONSE_SEASONS_TWO;
+        assert_eq!(response.as_seasons().unwrap().len(), 2);
+        assert_eq!(response.as_seasons().unwrap(), &vec![SEASON_2000.clone(), SEASON_2023.clone()]);
+    }
+
+    #[test]
+    fn response_as_seasons_error_bad_table_variant() {
+        assert!(matches!(RESPONSE_DRIVERS_NONE.as_seasons(), Err(Error::BadTableVariant)));
+    }
+
+    #[test]
+    fn response_as_season() {
+        let response = &*RESPONSE_SEASONS_ONE;
+        assert_eq!(response.as_season().unwrap(), &*SEASON_2000);
+        assert_eq!(response.as_season().unwrap(), &*SEASON_2000);
+    }
+
+    #[test]
+    fn response_as_season_error_bad_table_variant() {
+        assert!(matches!(RESPONSE_DRIVERS_NONE.as_season(), Err(Error::BadTableVariant)));
+    }
+
+    #[test]
+    fn response_as_season_error_not_found() {
+        assert!(matches!(RESPONSE_SEASONS_NONE.as_season(), Err(Error::NotFound)));
+    }
+
+    #[test]
+    fn response_as_season_error_too_many() {
+        assert!(matches!(RESPONSE_SEASONS_TWO.as_season(), Err(Error::TooMany)));
+    }
+
+    // ::into/as_driver(s)
+    // -------------------
 
     #[test]
     fn response_into_drivers() {
@@ -1557,5 +1624,39 @@ mod tests {
     #[test]
     fn response_into_driver_error_too_many() {
         assert!(matches!(RESPONSE_DRIVERS_TWO.clone().into_driver(), Err(Error::TooMany)));
+    }
+
+    #[test]
+    fn response_as_drivers() {
+        let response = &*RESPONSE_DRIVERS_TWO;
+        assert_eq!(response.as_drivers().unwrap().len(), 2);
+        assert_eq!(response.as_drivers().unwrap(), &vec![DRIVER_MAX.clone(), DRIVER_LECLERC.clone()]);
+    }
+
+    #[test]
+    fn response_as_drivers_error_bad_table_variant() {
+        assert!(matches!(RESPONSE_NONE.as_drivers(), Err(Error::BadTableVariant)));
+    }
+
+    #[test]
+    fn response_as_driver() {
+        let response = &*RESPONSE_DRIVERS_ONE;
+        assert_eq!(response.as_driver().unwrap(), &*DRIVER_MAX);
+        assert_eq!(response.as_driver().unwrap(), &*DRIVER_MAX);
+    }
+
+    #[test]
+    fn response_as_driver_error_bad_table_variant() {
+        assert!(matches!(RESPONSE_NONE.as_driver(), Err(Error::BadTableVariant)));
+    }
+
+    #[test]
+    fn response_as_driver_error_not_found() {
+        assert!(matches!(RESPONSE_DRIVERS_NONE.as_driver(), Err(Error::NotFound)));
+    }
+
+    #[test]
+    fn response_as_driver_error_too_many() {
+        assert!(matches!(RESPONSE_DRIVERS_TWO.as_driver(), Err(Error::TooMany)));
     }
 }
