@@ -74,6 +74,27 @@ jobs:
           components: rustfmt
       - run: cargo fmt --all -- --check
 
+  code_coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      - name: install cargo-llvm-cov
+        run: cargo install cargo-llvm-cov
+      - name: run cargo-llvm-cov
+        run: "cargo llvm-cov --codecov test --workspace --all-features -- \
+          --include-ignored --test-threads 1 > codecove_code_coverage.json"
+      - name: archive codecove_code_coverage.json
+        uses: actions/upload-artifact@v4
+        with:
+          path: codecove_code_coverage.json
+      - name: Upload code coverage report to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
   bench:
     runs-on: ubuntu-latest
     steps:
