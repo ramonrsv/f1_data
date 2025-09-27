@@ -198,58 +198,6 @@ impl Pagination {
     }
 }
 
-/// Inner type of a [`Payload`] variant for a [`SessionResult`] type, e.g. the inner type of the
-/// [`Payload::RaceResults`] variant is [`Vec<RaceResult>`].
-type Inner<T> = Vec<T>;
-
-/// The [`SessionResult`] trait allows the generic handling of all session result types, resource
-/// requests, and extraction of the corresponding variant from [`Payload`].
-///
-/// For example, [`RaceResult`]s are requested via [`Resource::RaceResults`], and the response can
-/// be extracted from the [`Payload::RaceResults`] variant.
-///
-/// The trait is implemented for [`QualifyingResult`], [`SprintResult`], and [`RaceResult`].
-pub trait SessionResult
-where
-    Self: Sized,
-{
-    /// Wrap a [`Filters`] with the corresponding [`Resource`] variant for this [`SessionResult`].
-    fn to_resource(filters: Filters) -> Resource;
-
-    /// Extract the value from the corresponding [`Payload`] variant for this [`SessionResult`].
-    fn try_inner_from(payload: Payload) -> Result<Inner<Self>>;
-}
-
-impl SessionResult for QualifyingResult {
-    fn to_resource(filters: Filters) -> Resource {
-        Resource::QualifyingResults(filters)
-    }
-
-    fn try_inner_from(payload: Payload) -> Result<Inner<Self>> {
-        payload.into_qualifying_results().map_err(into)
-    }
-}
-
-impl SessionResult for SprintResult {
-    fn to_resource(filters: Filters) -> Resource {
-        Resource::SprintResults(filters)
-    }
-
-    fn try_inner_from(payload: Payload) -> Result<Inner<Self>> {
-        payload.into_sprint_results().map_err(into)
-    }
-}
-
-impl SessionResult for RaceResult {
-    fn to_resource(filters: Filters) -> Resource {
-        Resource::RaceResults(filters)
-    }
-
-    fn try_inner_from(payload: Payload) -> Result<Inner<Self>> {
-        payload.into_race_results().map_err(into)
-    }
-}
-
 /// [`Table`] represents all the possible different lists of data that may be returned in a
 /// [`Response`] from the Ergast API, e.g. [`Table::Seasons`] corresponds to the `"SeasonTable"`
 /// property key in the JSON response, containing a list of [`Season`]s which corresponds to the
@@ -572,6 +520,28 @@ impl<'de> Deserialize<'de> for Payload {
     }
 }
 
+/// Inner type of a [`Payload`] variant for a [`SessionResult`] type, e.g. the inner type of the
+/// [`Payload::RaceResults`] variant is [`Vec<RaceResult>`].
+type Inner<T> = Vec<T>;
+
+/// The [`SessionResult`] trait allows the generic handling of all session result types, resource
+/// requests, and extraction of the corresponding variant from [`Payload`].
+///
+/// For example, [`RaceResult`]s are requested via [`Resource::RaceResults`], and the response can
+/// be extracted from the [`Payload::RaceResults`] variant.
+///
+/// The trait is implemented for [`QualifyingResult`], [`SprintResult`], and [`RaceResult`].
+pub trait SessionResult
+where
+    Self: Sized,
+{
+    /// Wrap a [`Filters`] with the corresponding [`Resource`] variant for this [`SessionResult`].
+    fn to_resource(filters: Filters) -> Resource;
+
+    /// Extract the value from the corresponding [`Payload`] variant for this [`SessionResult`].
+    fn try_inner_from(payload: Payload) -> Result<Inner<Self>>;
+}
+
 #[serde_as]
 #[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 pub struct QualifyingResult {
@@ -612,6 +582,16 @@ impl Race<QualifyingResult> {
     /// Extracts and returns the field [`Race::payload`], a single [`QualifyingResult`].
     pub fn into_qualifying_result(self) -> QualifyingResult {
         self.payload
+    }
+}
+
+impl SessionResult for QualifyingResult {
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::QualifyingResults(filters)
+    }
+
+    fn try_inner_from(payload: Payload) -> Result<Inner<Self>> {
+        payload.into_qualifying_results().map_err(into)
     }
 }
 
@@ -670,6 +650,16 @@ impl Race<SprintResult> {
     }
 }
 
+impl SessionResult for SprintResult {
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::SprintResults(filters)
+    }
+
+    fn try_inner_from(payload: Payload) -> Result<Inner<Self>> {
+        payload.into_sprint_results().map_err(into)
+    }
+}
+
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -696,6 +686,18 @@ pub struct RaceResult {
     pub fastest_lap: Option<FastestLap>,
 }
 
+impl RaceResult {
+    /// Represents that no car number was assigned to a race result, set in [`RaceResult::number`].
+    /// This only happened for a few entries in two races in the 1960s. As such, it's not worth the
+    /// ergonomic cost to have the [`RaceResult::number`] field be [`Option`], and instead this
+    /// value will be set for any [`RaceResult`] where the entry was not assigned a car number.
+    ///
+    /// The historical race results without a car number are:
+    ///   - 1962, round 4 (French Grand Prix): P19-22
+    ///   - 1963, round 10 (South African Grand Prix): P23
+    pub const NO_NUMBER: u32 = u32::MAX;
+}
+
 impl Race<Vec<RaceResult>> {
     /// Returns a reference to the field [`Race::payload`], a list of [`RaceResult`]s.
     pub fn race_results(&self) -> &[RaceResult] {
@@ -720,16 +722,14 @@ impl Race<RaceResult> {
     }
 }
 
-impl RaceResult {
-    /// Represents that no car number was assigned to a race result, set in [`RaceResult::number`].
-    /// This only happened for a few entries in two races in the 1960s. As such, it's not worth the
-    /// ergonomic cost to have the [`RaceResult::number`] field be [`Option`], and instead this
-    /// value will be set for any [`RaceResult`] where the entry was not assigned a car number.
-    ///
-    /// The historical race results without a car number are:
-    ///   - 1962, round 4 (French Grand Prix): P19-22
-    ///   - 1963, round 10 (South African Grand Prix): P23
-    pub const NO_NUMBER: u32 = u32::MAX;
+impl SessionResult for RaceResult {
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::RaceResults(filters)
+    }
+
+    fn try_inner_from(payload: Payload) -> Result<Inner<Self>> {
+        payload.into_race_results().map_err(into)
+    }
 }
 
 /// Deserialize a `u32` from a string, where empty is represented by [`RaceResult::NO_NUMBER`].
