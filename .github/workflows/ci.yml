@@ -76,6 +76,7 @@ jobs:
 
   code_coverage:
     runs-on: ubuntu-latest
+    if: ${{ vars.SKIP_CODECOV != 'true' }}
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@master
