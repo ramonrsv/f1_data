@@ -7,7 +7,7 @@ use crate::{
         response::verify_has_one_element_and_extract,
         response::{
             Circuit, Constructor, Driver, DriverLap, PitStop, QualifyingResult, Race, RaceResult, Response, Schedule,
-            Season, SessionResult, SprintResult, Status, Timing,
+            Season, SessionResult, SprintResult, Status, TableList, Timing,
         },
     },
     error::{Error, Result},
@@ -114,6 +114,56 @@ pub fn get_response_max_limit(resource: &Resource) -> Result<Response> {
     get_response_page(resource, Page::with_max_limit()).and_then(verify_is_single_page)
 }
 
+/// Performs a GET request to the Ergast API for the [`Resource`] associated with the [`TableList`],
+/// with the argument [`Filters`], and returns the resulting inner list from [`Response::table`].
+///
+/// For example, [`get_table_list::<Season>`] will perform a GET request, with argument [`Filters`],
+/// for [`Resource::SeasonList`] and return the resulting [`Response::into_table_list::<Season>()`].
+///
+/// # Errors
+///
+/// An [`Error::MultiPage`] is returned if the response for requested [`Resource`] is larger than
+/// a [`Page::with_max_limit`] and so results in a multi-page response.
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::ergast::{get::get_seasons, resource::Filters};
+///
+/// let seasons = get_seasons(Filters::none()).unwrap();
+/// assert!(!seasons.is_empty());
+/// assert_eq!(seasons[0].season, 1950);
+/// assert_eq!(seasons[73].season, 2023);
+/// ```
+pub fn get_table_list<T: TableList>(filters: Filters) -> Result<Vec<T>> {
+    get_response_max_limit(&T::to_resource(filters))?.into_table_list()
+}
+
+/// Performs a GET request to the Ergast API for a single element of the [`Resource`] associated
+/// with the [`TableList`], filtered by its associated [`TableList::ID`] type, and returns the
+/// resulting inner single element from [`Response::table`].
+///
+/// For example, [`get_table_list_single_element::<Season>`] will perform a GET request for a single
+/// season, filtered by [`SeasonID`] in [`Filters::season`], and return the resulting inner single
+/// [`Season`] in [`Response::table`], via [`Response::into_table_list_single_element::<Season>()`].
+///
+/// # Errors
+///
+/// An [`Error::NotFound`] is returned if the requested single element is not found in the response.
+///
+/// # Examples
+///
+/// ```no_run
+/// use f1_data::{ergast::response::Season, error::Error};
+/// use f1_data::ergast::get::get_table_list_single_element;
+///
+/// assert_eq!(get_table_list_single_element::<Season>(1950).unwrap().season, 1950);
+/// assert!(matches!(get_table_list_single_element::<Season>(1940), Err(Error::NotFound)));
+/// ```
+pub fn get_table_list_single_element<T: TableList>(id: T::ID) -> Result<T> {
+    get_response(&T::to_resource_with_id_filter(id))?.into_table_list_single_element()
+}
+
 /// Performs a GET request to the Ergast API for [`Resource::SeasonList`], with the argument
 /// [`Filters`], and return the resulting inner [`Season`]s from [`Table`] in `resp.table`.
 /// An [`Error::MultiPage`] is returned if `seasons` would not fit in a [`Page::with_max_limit`].
@@ -128,7 +178,7 @@ pub fn get_response_max_limit(resource: &Resource) -> Result<Response> {
 /// assert_eq!(seasons[0].season, 1950);
 /// ```
 pub fn get_seasons(filters: Filters) -> Result<Vec<Season>> {
-    get_response_max_limit(&Resource::SeasonList(filters))?.into_seasons()
+    get_table_list::<Season>(filters)
 }
 
 /// Performs a GET request to the Ergast API for a single [`Season`], identified by a [`SeasonID`],
@@ -144,7 +194,7 @@ pub fn get_seasons(filters: Filters) -> Result<Vec<Season>> {
 /// assert!(matches!(get_season(1940), Err(Error::NotFound)));
 /// ```
 pub fn get_season(season: SeasonID) -> Result<Season> {
-    get_response(&Resource::SeasonList(Filters::new().season(season)))?.into_season()
+    get_table_list_single_element::<Season>(season)
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::DriverInfo`], with the argument
@@ -168,7 +218,7 @@ pub fn get_season(season: SeasonID) -> Result<Season> {
 /// );
 /// ```
 pub fn get_drivers(filters: Filters) -> Result<Vec<Driver>> {
-    get_response_max_limit(&Resource::DriverInfo(filters))?.into_drivers()
+    get_table_list::<Driver>(filters)
 }
 
 /// Performs a GET request to the Ergast API for a single [`Driver`], identified by a [`DriverID`],
@@ -184,7 +234,7 @@ pub fn get_drivers(filters: Filters) -> Result<Vec<Driver>> {
 /// assert!(matches!(get_driver(DriverID::from("unknown")), Err(Error::NotFound)));
 /// ```
 pub fn get_driver(driver_id: DriverID) -> Result<Driver> {
-    get_response(&Resource::DriverInfo(Filters::new().driver_id(driver_id)))?.into_driver()
+    get_table_list_single_element::<Driver>(driver_id)
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::ConstructorInfo`], with the argument
@@ -209,7 +259,7 @@ pub fn get_driver(driver_id: DriverID) -> Result<Driver> {
 /// );
 /// ```
 pub fn get_constructors(filters: Filters) -> Result<Vec<Constructor>> {
-    get_response_max_limit(&Resource::ConstructorInfo(filters))?.into_constructors()
+    get_table_list::<Constructor>(filters)
 }
 
 /// Performs a GET request to the Ergast API for a single [`Constructor`], identified by a
@@ -226,7 +276,7 @@ pub fn get_constructors(filters: Filters) -> Result<Vec<Constructor>> {
 /// assert!(matches!(get_constructor(ConstructorID::from("unknown")), Err(Error::NotFound)));
 /// ```
 pub fn get_constructor(constructor_id: ConstructorID) -> Result<Constructor> {
-    get_constructors(Filters::new().constructor_id(constructor_id)).and_then(verify_has_one_element_and_extract)
+    get_table_list_single_element::<Constructor>(constructor_id)
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::CircuitInfo`], with the argument
@@ -250,7 +300,7 @@ pub fn get_constructor(constructor_id: ConstructorID) -> Result<Constructor> {
 /// );
 /// ```
 pub fn get_circuits(filters: Filters) -> Result<Vec<Circuit>> {
-    get_response_max_limit(&Resource::CircuitInfo(filters))?.into_circuits()
+    get_table_list::<Circuit>(filters)
 }
 
 /// Performs a GET request to the Ergast API for a single [`Circuit`], identified by a [`CircuitID`]
@@ -805,7 +855,7 @@ mod tests {
 
         assert_each_expected_in_actual(
             || Ok(actual.payload.clone()),
-            &expected.clone().map(|p| T::try_inner_from(p).unwrap()).payload,
+            &expected.clone().map(|p| T::try_into_inner_from(p).unwrap()).payload,
             actual_payload_len_constraint,
         );
     }
@@ -821,7 +871,7 @@ mod tests {
     {
         assert_each_get_eq_expected(
             |result| retry_http(|| get(add_result_filter(result, race_filters_from(race)))).map(|race| race.payload),
-            &race.clone().map(|p| T::try_inner_from(p).unwrap()).payload,
+            &race.clone().map(|p| T::try_into_inner_from(p).unwrap()).payload,
         );
     }
 

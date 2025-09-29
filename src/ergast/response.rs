@@ -33,51 +33,151 @@ pub struct Response {
 }
 
 impl Response {
-    pub fn into_seasons(self) -> Result<Vec<Season>> {
-        self.table.into_seasons().map_err(into)
+    // TableLists
+    // ----------
+
+    /// Extracts the inner value from the corresponding [`Table`] variant for this [`TableList`].
+    ///
+    /// For example, [`Response::into_table_list::<Season>()`] extracts from [`Response::table`]
+    /// the inner [`Vec<Season>`] of the [`Table::Seasons`] variant.
+    ///
+    /// Convenience aliases are provided for all implemented [`TableList`] types, e.g.
+    /// [`Response::into_seasons()`] is an alias for [`Response::into_table_list::<Season>()`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error::BadTableVariant`] if the contained [`Table`] variant does not match the
+    /// requested [`TableList`] type `T`.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use f1_data::ergast::{get::get_response_max_limit, resource::{Filters, Resource}};
+    /// use f1_data::ergast::response::Season;
+    ///
+    /// let resp = get_response_max_limit(&Resource::SeasonList(Filters::none())).unwrap();
+    ///
+    /// let seasons = resp.into_table_list::<Season>().unwrap();
+    /// assert!(seasons.len() >= 74);
+    /// assert_eq!(seasons[0].season, 1950);
+    /// assert_eq!(seasons[73].season, 2023);
+    /// ```
+    pub fn into_table_list<T: TableList>(self) -> Result<Vec<T>> {
+        T::try_into_inner_from(self.table)
     }
 
-    pub fn into_season(self) -> Result<Season> {
-        self.into_seasons().and_then(verify_has_one_element_and_extract)
+    /// Extracts an expected single element from the inner list for the corresponding [`Table`]
+    /// variant for this [`TableList`].
+    ///
+    /// This method is similar to [`Response::into_table_list::<T>()`], but verifies that one and
+    /// only one element is present in the extracted list, returning that element directly.For
+    /// example, [`Response::into_table_list_single_element::<Season>()`] extracts from
+    /// [`Response::table`] the inner [`Vec<Season>`] of the [`Table::Seasons`] variant, verifies
+    /// that it contains only one element, then extracts and returns that single [`Season`].
+    ///
+    /// Convenience aliases are provided for all implemented [`TableList`] types, e.g.
+    /// [`Response::into_season()`] is an alias for
+    /// [`Response::into_table_list_single_element::<Season>()`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error::BadTableVariant`] if the contained [`Table`] variant does not match the
+    /// requested [`TableList`] type `T`. Returns an [`Error::NotFound`] if the extracted list is
+    /// empty, or an [`Error::TooMany`] if it contains more than one element.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use f1_data::ergast::{get::get_response, resource::{Filters, Resource}};
+    /// use f1_data::ergast::response::Season;
+    ///
+    /// let resp = get_response(&Resource::SeasonList(Filters::new().season(2023))).unwrap();
+    /// let season = resp.into_table_list_single_element::<Season>().unwrap();
+    /// assert_eq!(season.season, 2023);
+    /// assert_eq!(
+    ///     season.url.as_str(),
+    ///     "https://en.wikipedia.org/wiki/2023_Formula_One_World_Championship"
+    /// );
+    /// ```
+    pub fn into_table_list_single_element<T: TableList>(self) -> Result<T> {
+        self.into_table_list().and_then(verify_has_one_element_and_extract)
     }
 
-    pub fn as_seasons(&self) -> Result<&Vec<Season>> {
-        self.table.as_seasons().ok_or(Error::BadTableVariant)
+    /// Gets a reference to the inner value from the corresponding [`Table`] variant for this
+    /// [`TableList`].
+    ///
+    /// This method is similar to [`Response::into_table_list::<T>()`], but it returns a reference
+    /// and does not consume the [`Response`]. For example, [`Response::as_table_list::<Season>()`]
+    /// gets a reference to the inner [`Vec<Season>`] of the [`Table::Seasons`] variant in
+    /// [`Response::table`].
+    ///
+    /// Convenience aliases are provided for all implemented [`TableList`] types, e.g.
+    /// [`Response::as_season()`] is an alias for [`Response::as_table_list::<Season>()`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error::BadTableVariant`] if the contained [`Table`] variant does not match the
+    /// requested [`TableList`] type `T`.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use f1_data::ergast::{get::get_response_max_limit, resource::{Filters, Resource}};
+    /// use f1_data::ergast::response::Season;
+    ///
+    /// let resp = get_response_max_limit(&Resource::SeasonList(Filters::none())).unwrap();
+    ///
+    /// assert!(resp.as_seasons().unwrap().len() >= 74);
+    /// assert_eq!(resp.as_seasons().unwrap()[0].season, 1950);
+    /// assert_eq!(resp.as_seasons().unwrap()[73].season, 2023);
+    /// ```
+    pub fn as_table_list<T: TableList>(&self) -> Result<&Vec<T>> {
+        T::try_as_inner_from(&self.table)
     }
 
-    pub fn as_season(&self) -> Result<&Season> {
-        self.as_seasons()
+    /// Gets a reference to an expected single element from the inner list for the corresponding
+    /// [`Table`] variant for this [`TableList`].
+    ///
+    /// This method is similar to [`Response::as_table_list::<T>()`], but verifies that one and
+    /// only one element is present in the list, returning a reference to that element directly.
+    /// It's also similar to [`Response::into_table_list_single_element::<T>()`], but it returns a
+    /// reference instead of consuming the [`Response`]. For example,
+    /// [`Response::as_table_list_single_element::<Season>()`] gets a reference to the
+    /// [`Vec<Season>`] from the [`Table::Seasons`] variant in [`Response::table`], verifies that it
+    /// contains only one element, then returns a reference to that single [`Season`].
+    ///
+    /// Convenience aliases are provided for all implemented [`TableList`] types, e.g.
+    /// [`Response::as_season()`] is an alias for
+    /// [`Response::as_table_list_single_element::<Season>()`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error::BadTableVariant`] if the contained [`Table`] variant does not match the
+    /// requested [`TableList`] type `T`. Returns an [`Error::NotFound`] if the extracted list is
+    /// empty, or an [`Error::TooMany`] if it contains more than one element.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use f1_data::ergast::{get::get_response, resource::{Filters, Resource}};
+    /// use f1_data::ergast::response::Season;
+    ///
+    /// let resp = get_response(&Resource::SeasonList(Filters::new().season(2023))).unwrap();
+    /// assert_eq!(resp.as_season().unwrap().season, 2023);
+    /// assert_eq!(
+    ///     resp.as_season().unwrap().url.as_str(),
+    ///     "https://en.wikipedia.org/wiki/2023_Formula_One_World_Championship"
+    /// );
+    /// ```
+    pub fn as_table_list_single_element<T: TableList>(&self) -> Result<&T> {
+        self.as_table_list()
             .map(Vec::as_slice)
             .and_then(verify_has_one_element)
             .map(|s| s.first().unwrap())
     }
 
-    pub fn into_drivers(self) -> Result<Vec<Driver>> {
-        self.table.into_drivers().map_err(into)
-    }
-
-    pub fn into_driver(self) -> Result<Driver> {
-        self.into_drivers().and_then(verify_has_one_element_and_extract)
-    }
-
-    pub fn as_drivers(&self) -> Result<&Vec<Driver>> {
-        self.table.as_drivers().ok_or(Error::BadTableVariant)
-    }
-
-    pub fn as_driver(&self) -> Result<&Driver> {
-        self.as_drivers()
-            .map(Vec::as_slice)
-            .and_then(verify_has_one_element)
-            .map(|s| s.first().unwrap())
-    }
-
-    pub fn into_constructors(self) -> Result<Vec<Constructor>> {
-        self.table.into_constructors().map_err(into)
-    }
-
-    pub fn into_circuits(self) -> Result<Vec<Circuit>> {
-        self.table.into_circuits().map_err(into)
-    }
+    // Races and SessionResults
+    // ------------------------
 
     pub fn into_race_schedules(self) -> Result<Vec<Race<Schedule>>> {
         self.table
@@ -91,7 +191,7 @@ impl Response {
         self.table
             .into_races()?
             .into_iter()
-            .map(|race| race.try_map(|payload| T::try_inner_from(payload)))
+            .map(|race| race.try_map(|payload| T::try_into_inner_from(payload)))
             .collect()
     }
 
@@ -102,9 +202,8 @@ impl Response {
             .collect()
     }
 
-    pub fn into_statuses(self) -> Result<Vec<Status>> {
-        self.table.into_status().map_err(into)
-    }
+    // Laps, Timings, PitStops
+    // -----------------------
 
     pub fn into_driver_laps(self, driver_id: &DriverID) -> Result<Vec<DriverLap>> {
         Ok(self)
@@ -132,6 +231,110 @@ impl Response {
             .payload
             .into_pit_stops()
             .map_err(into)
+    }
+
+    // Convenience aliases for into/as_table_list(s)::<T> and into/as_table_list_single_element::<T>
+    // Aliases implemented for TableList types: Seasons, Drivers, Constructors, Circuits, Statuses
+    // ---------------------------------------------------------------------------------------------
+
+    /// Convenience alias for `into_table_list::<Season>()`.
+    pub fn into_seasons(self) -> Result<Vec<Season>> {
+        self.into_table_list::<Season>()
+    }
+
+    /// Convenience alias for `into_table_list_single_element::<Season>()`.
+    pub fn into_season(self) -> Result<Season> {
+        self.into_table_list_single_element::<Season>()
+    }
+
+    /// Convenience alias for `as_table_list::<Season>()`.
+    pub fn as_seasons(&self) -> Result<&Vec<Season>> {
+        self.as_table_list::<Season>()
+    }
+
+    /// Convenience alias for `as_table_list_single_element::<Season>()`.
+    pub fn as_season(&self) -> Result<&Season> {
+        self.as_table_list_single_element::<Season>()
+    }
+
+    /// Convenience alias for `into_table_list::<Driver>()`.
+    pub fn into_drivers(self) -> Result<Vec<Driver>> {
+        self.into_table_list::<Driver>()
+    }
+
+    /// Convenience alias for `into_table_list_single_element::<Driver>()`.
+    pub fn into_driver(self) -> Result<Driver> {
+        self.into_table_list_single_element::<Driver>()
+    }
+
+    /// Convenience alias for `as_table_list::<Driver>()`.
+    pub fn as_drivers(&self) -> Result<&Vec<Driver>> {
+        self.as_table_list::<Driver>()
+    }
+
+    /// Convenience alias for `as_table_list_single_element::<Driver>()`.
+    pub fn as_driver(&self) -> Result<&Driver> {
+        self.as_table_list_single_element::<Driver>()
+    }
+
+    /// Convenience alias for `into_table_list::<Constructor>()`.
+    pub fn into_constructors(self) -> Result<Vec<Constructor>> {
+        self.into_table_list::<Constructor>()
+    }
+
+    /// Convenience alias for `into_table_list_single_element::<Constructor>()`.
+    pub fn into_constructor(self) -> Result<Constructor> {
+        self.into_table_list_single_element::<Constructor>()
+    }
+
+    /// Convenience alias for `as_table_list::<Constructor>()`.
+    pub fn as_constructors(&self) -> Result<&Vec<Constructor>> {
+        self.as_table_list::<Constructor>()
+    }
+
+    /// Convenience alias for `as_table_list_single_element::<Constructor>()`.
+    pub fn as_constructor(&self) -> Result<&Constructor> {
+        self.as_table_list_single_element::<Constructor>()
+    }
+
+    /// Convenience alias for `as_table_list::<Constructor>()`.
+    pub fn into_circuits(self) -> Result<Vec<Circuit>> {
+        self.into_table_list::<Circuit>()
+    }
+
+    /// Convenience alias for `into_table_list_single_element::<Constructor>()`.
+    pub fn into_circuit(self) -> Result<Circuit> {
+        self.into_table_list_single_element::<Circuit>()
+    }
+
+    /// Convenience alias for `as_table_list::<Constructor>()`.
+    pub fn as_circuits(&self) -> Result<&Vec<Circuit>> {
+        self.as_table_list::<Circuit>()
+    }
+
+    /// Convenience alias for `as_table_list_single_element::<Constructor>()`.
+    pub fn as_circuit(&self) -> Result<&Circuit> {
+        self.as_table_list_single_element::<Circuit>()
+    }
+
+    /// Convenience alias for `as_table_list::<Constructor>()`.
+    pub fn into_statuses(self) -> Result<Vec<Status>> {
+        self.into_table_list::<Status>()
+    }
+
+    /// Convenience alias for `into_table_list_single_element::<Constructor>()`.
+    pub fn into_status(self) -> Result<Status> {
+        self.into_table_list_single_element::<Status>()
+    }
+
+    /// Convenience alias for `as_table_list::<Constructor>()`.
+    pub fn as_statuses(&self) -> Result<&Vec<Status>> {
+        self.as_table_list::<Status>()
+    }
+
+    /// Convenience alias for `as_table_list_single_element::<Constructor>()`.
+    pub fn as_status(&self) -> Result<&Status> {
+        self.as_table_list_single_element::<Status>()
     }
 }
 
@@ -279,12 +482,68 @@ pub enum Table {
     },
 }
 
+/// Inner type of a [`Payload`] variant for a [`SessionResult`] type, and of a [`Table`] variant
+/// for a [`TableList`] type, e.g. the inner type of the [`Payload::RaceResults`] variant is
+/// [`Vec<RaceResult>`], and the inner type of the [`Table::Seasons`] variant is [`Vec<Season>`].
+type Inner<T> = Vec<T>;
+
+/// The [`TableList`] trait allows the generic handling of all [`Table`] list inner types,
+/// associated [`Resource`] requests, and the extraction of the corresponding variants.
+///
+/// For example, [`Season`]s, which are requested via [`Resource::SeasonList`], can be extracted
+/// from a [`Response`] via [`Response::table`], from the [`Table::Seasons`] variant.
+///
+/// The trait is implemented for [`Season`], [`Driver`], [`Constructor`], [`Circuit`], [`Status`].
+pub trait TableList
+where
+    Self: Sized,
+{
+    /// The type of the [`Filters`] ID for this [`TableList`], e.g. [`SeasonID`] for [`Season`].
+    type ID;
+
+    /// Wrap a [`Filters`] with the corresponding [`Resource`] variant for this [`TableList`],
+    /// e.g. [`Resource::SeasonList`] for [`Season`].
+    fn to_resource(filters: Filters) -> Resource;
+
+    /// Wrap a [`Filters`] with the corresponding ID filter and [`Resource`] for this [`TableList`],
+    /// e.g. a [`Filters::season`] filter for [`Season`], to be passed to [`Resource::SeasonList`].
+    fn to_resource_with_id_filter(id: Self::ID) -> Resource;
+
+    /// Extract the inner value from the corresponding [`Table`] variant for this [`TableList`],
+    /// e.g. a [`Vec<Season>`] from the [`Table::Seasons`] variant for [`Season`].
+    fn try_into_inner_from(table: Table) -> Result<Inner<Self>>;
+
+    /// Get a reference to the inner value from the corresponding [`Table`] variant for this
+    /// [`TableList`], e.g. a <code>&[`Vec<Season>`]</code> from the [`Table::Seasons`] variant.
+    fn try_as_inner_from(table: &Table) -> Result<&Inner<Self>>;
+}
+
 #[serde_as]
 #[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 pub struct Season {
     #[serde_as(as = "DisplayFromStr")]
     pub season: SeasonID,
     pub url: Url,
+}
+
+impl TableList for Season {
+    type ID = SeasonID;
+
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::SeasonList(filters)
+    }
+
+    fn to_resource_with_id_filter(season: Self::ID) -> Resource {
+        Self::to_resource(Filters::new().season(season))
+    }
+
+    fn try_into_inner_from(table: Table) -> Result<Inner<Self>> {
+        table.into_seasons().map_err(into)
+    }
+
+    fn try_as_inner_from(table: &Table) -> Result<&Inner<Self>> {
+        table.as_seasons().ok_or(Error::BadTableVariant)
+    }
 }
 
 #[serde_as]
@@ -302,6 +561,26 @@ pub struct Driver {
     pub nationality: String,
 }
 
+impl TableList for Driver {
+    type ID = DriverID;
+
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::DriverInfo(filters)
+    }
+
+    fn to_resource_with_id_filter(id: Self::ID) -> Resource {
+        Self::to_resource(Filters::new().driver_id(id))
+    }
+
+    fn try_into_inner_from(table: Table) -> Result<Inner<Self>> {
+        table.into_drivers().map_err(into)
+    }
+
+    fn try_as_inner_from(table: &Table) -> Result<&Inner<Self>> {
+        table.as_drivers().ok_or(Error::BadTableVariant)
+    }
+}
+
 #[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Constructor {
@@ -309,6 +588,26 @@ pub struct Constructor {
     pub url: Url,
     pub name: String,
     pub nationality: String,
+}
+
+impl TableList for Constructor {
+    type ID = ConstructorID;
+
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::ConstructorInfo(filters)
+    }
+
+    fn to_resource_with_id_filter(id: Self::ID) -> Resource {
+        Self::to_resource(Filters::new().constructor_id(id))
+    }
+
+    fn try_into_inner_from(table: Table) -> Result<Inner<Self>> {
+        table.into_constructors().map_err(into)
+    }
+
+    fn try_as_inner_from(table: &Table) -> Result<&Inner<Self>> {
+        table.as_constructors().ok_or(Error::BadTableVariant)
+    }
 }
 
 #[derive(Deserialize, PartialEq, Clone, Debug)]
@@ -319,6 +618,57 @@ pub struct Circuit {
     pub circuit_name: String,
     #[serde(rename = "Location")]
     pub location: Location,
+}
+
+impl TableList for Circuit {
+    type ID = CircuitID;
+
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::CircuitInfo(filters)
+    }
+
+    fn to_resource_with_id_filter(id: Self::ID) -> Resource {
+        Self::to_resource(Filters::new().circuit_id(id))
+    }
+
+    fn try_into_inner_from(table: Table) -> Result<Inner<Self>> {
+        table.into_circuits().map_err(into)
+    }
+
+    fn try_as_inner_from(table: &Table) -> Result<&Inner<Self>> {
+        table.as_circuits().ok_or(Error::BadTableVariant)
+    }
+}
+
+#[serde_as]
+#[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct Status {
+    #[serde_as(as = "DisplayFromStr")]
+    pub status_id: StatusID,
+    #[serde_as(as = "DisplayFromStr")]
+    pub count: u32,
+    pub status: String,
+}
+
+impl TableList for Status {
+    type ID = StatusID;
+
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::FinishingStatus(filters)
+    }
+
+    fn to_resource_with_id_filter(id: Self::ID) -> Resource {
+        Self::to_resource(Filters::new().finishing_status(id))
+    }
+
+    fn try_into_inner_from(table: Table) -> Result<Inner<Self>> {
+        table.into_status().map_err(into)
+    }
+
+    fn try_as_inner_from(table: &Table) -> Result<&Inner<Self>> {
+        table.as_status().ok_or(Error::BadTableVariant)
+    }
 }
 
 /// This generic struct represents a race weekend event, corresponding to the list element type
@@ -520,26 +870,24 @@ impl<'de> Deserialize<'de> for Payload {
     }
 }
 
-/// Inner type of a [`Payload`] variant for a [`SessionResult`] type, e.g. the inner type of the
-/// [`Payload::RaceResults`] variant is [`Vec<RaceResult>`].
-type Inner<T> = Vec<T>;
-
-/// The [`SessionResult`] trait allows the generic handling of all session result types, resource
-/// requests, and extraction of the corresponding variant from [`Payload`].
+/// The [`SessionResult`] trait allows the generic handling of all [`Payload`] session result inner
+/// types, associated [`Resource`] requests, and extraction of the corresponding variants.
 ///
-/// For example, [`RaceResult`]s are requested via [`Resource::RaceResults`], and the response can
-/// be extracted from the [`Payload::RaceResults`] variant.
+/// For example, [`RaceResult`]s are requested via [`Resource::RaceResults`], and the response
+/// [`Vec<RaceResult>`] can be extracted from the [`Payload::RaceResults`] variant.
 ///
 /// The trait is implemented for [`QualifyingResult`], [`SprintResult`], and [`RaceResult`].
 pub trait SessionResult
 where
     Self: Sized,
 {
-    /// Wrap a [`Filters`] with the corresponding [`Resource`] variant for this [`SessionResult`].
+    /// Wrap a [`Filters`] with the corresponding [`Resource`] variant for this [`SessionResult`],
+    /// e.g. [`Resource::RaceResults`] for [`RaceResult`].
     fn to_resource(filters: Filters) -> Resource;
 
-    /// Extract the value from the corresponding [`Payload`] variant for this [`SessionResult`].
-    fn try_inner_from(payload: Payload) -> Result<Inner<Self>>;
+    /// Extract the inner value from the corresponding [`Payload`] variant for this
+    /// [`SessionResult`], e.g. a [`Vec<RaceResult>`] from the [`Payload::RaceResults`] variant.
+    fn try_into_inner_from(payload: Payload) -> Result<Inner<Self>>;
 }
 
 #[serde_as]
@@ -590,7 +938,7 @@ impl SessionResult for QualifyingResult {
         Resource::QualifyingResults(filters)
     }
 
-    fn try_inner_from(payload: Payload) -> Result<Inner<Self>> {
+    fn try_into_inner_from(payload: Payload) -> Result<Inner<Self>> {
         payload.into_qualifying_results().map_err(into)
     }
 }
@@ -655,7 +1003,7 @@ impl SessionResult for SprintResult {
         Resource::SprintResults(filters)
     }
 
-    fn try_inner_from(payload: Payload) -> Result<Inner<Self>> {
+    fn try_into_inner_from(payload: Payload) -> Result<Inner<Self>> {
         payload.into_sprint_results().map_err(into)
     }
 }
@@ -727,7 +1075,7 @@ impl SessionResult for RaceResult {
         Resource::RaceResults(filters)
     }
 
-    fn try_inner_from(payload: Payload) -> Result<Inner<Self>> {
+    fn try_into_inner_from(payload: Payload) -> Result<Inner<Self>> {
         payload.into_race_results().map_err(into)
     }
 }
@@ -850,17 +1198,6 @@ pub struct PitStop {
     pub time: Time,
     #[serde(deserialize_with = "deserialize_duration")]
     pub duration: Duration,
-}
-
-#[serde_as]
-#[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct Status {
-    #[serde_as(as = "DisplayFromStr")]
-    pub status_id: StatusID,
-    #[serde_as(as = "DisplayFromStr")]
-    pub count: u32,
-    pub status: String,
 }
 
 #[serde_as]
@@ -1375,7 +1712,7 @@ mod tests {
     }
 
     fn map_race_multi_results<T: SessionResult>(race: Race<Payload>) -> Race<Vec<T>> {
-        race.map(|payload| T::try_inner_from(payload).unwrap())
+        race.map(|payload| T::try_into_inner_from(payload).unwrap())
     }
 
     fn map_race_single_result<T: SessionResult>(race: Race<Payload>) -> Race<T> {
