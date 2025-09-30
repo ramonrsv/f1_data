@@ -76,8 +76,7 @@
     missing_docs,
     rustdoc::missing_crate_level_docs,
     clippy::missing_errors_doc,
-    clippy::missing_panics_doc,
-    clippy::multiple_crate_versions
+    clippy::missing_panics_doc
 )]
 
 // Silence unused_crate_dependencies lint for [dev-dependencies] used in /benches and /examples.
