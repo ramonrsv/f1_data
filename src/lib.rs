@@ -75,7 +75,6 @@
 #![allow(
     missing_docs,
     rustdoc::missing_crate_level_docs,
-    clippy::module_name_repetitions,
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
     clippy::multiple_crate_versions
