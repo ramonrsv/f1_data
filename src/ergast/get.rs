@@ -17,9 +17,11 @@ use crate::{
 #[cfg(doc)]
 use crate::ergast::response::{Lap, Pagination, Payload, Table};
 
-/// Performs a GET request to the Ergast API for a specific page of the argument specified
-/// [`Resource`] and returns a [`Response`] with a single page, parsed from the JSON response, of a
-/// possibly multi-page response. `Response:::pagination` can be used to check for
+/// Performs a GET request to the Ergast API for a specific page of the specified [`Resource`].
+///
+/// Performs a GET request to the Ergast API for a specific page of the specified [`Resource`], and
+/// returns an [`Response`] with a single page, parsed from the JSON response, of a possibly
+/// multi-page response. [`Response::pagination`] can be used to check for
 /// [`Pagination::is_last_page`] and get [`Pagination::next_page`] to request the following page of
 /// the response, via another call to this method.
 ///
@@ -60,14 +62,18 @@ pub fn get_response_page(resource: &Resource, page: Page) -> Result<Response> {
         .and_then(|reader| serde_json::from_reader(reader).map_err(Into::into))
 }
 
-/// Performs a GET request to the Ergast API for the argument specified [`Resource`] and returns a
-/// single-page [`Response`], parsed from the JSON response. An [`Error::MultiPage`] is returned if
-/// the requested [`Resource`] results in a multi-page response.
+/// Performs a GET request to the Ergast API for a single page of specified [`Resource`] and
+/// returns a single-page [`Response`], parsed from the JSON response.
 ///
 /// This method performs no additional processing, it returns the top-level [`Response`] type that
 /// is a direct representation of the full JSON response. It is expected that users will use one of
 /// the other convenience `get_*` methods, e.g. [`get_seasons`], in almost all cases, but this
 /// method is provided for maximum flexibility.
+///
+/// # Errors
+///
+/// An [`Error::MultiPage`] is returned if the requested [`Resource`] results in a multi-page
+/// response.
 ///
 /// # Examples
 ///
@@ -87,16 +93,21 @@ pub fn get_response(resource: &Resource) -> Result<Response> {
     get_response_page(resource, Page::default()).and_then(verify_is_single_page)
 }
 
-/// Performs a GET request to the Ergast API for the argument specified [`Resource`] and returns a
-/// single-page [`Response`], parsed from the JSON response, with the maximum allowed pagination
-/// limit. An [`Error::MultiPage`] is returned if the requested [`Resource`] results in a multi-page
-/// response. This method is similar to [`get_response`] but allows for larger requests to be
-/// accommodated in a single page.
+/// Performs a GET request to the Ergast API for the specified [`Resource`] and returns a maximum
+/// size single-page [`Response`], parsed from the JSON response.
+///
+/// This method is similar to [`get_response`] but allows for larger requests to be
+/// accommodated in a single page, by requesting the maximum allowed pagination limit.
 ///
 /// This method performs no additional processing, it returns the top-level [`Response`] type that
 /// is a direct representation of the full JSON response. It is expected that users will use one of
 /// the other convenience `get_*` methods, e.g. `get_driver_info`, in almost all cases, but this
 /// method is provided for maximum flexibility.
+///
+/// # Errors
+///
+/// An [`Error::MultiPage`] is returned if the requested [`Resource`] results in a multi-page
+/// response.
 ///
 /// # Examples
 ///
@@ -140,8 +151,9 @@ pub fn get_table_list<T: TableList>(filters: Filters) -> Result<Vec<T>> {
 }
 
 /// Performs a GET request to the Ergast API for a single element of the [`Resource`] associated
-/// with the [`TableList`], filtered by its associated [`TableList::ID`] type, and returns the
-/// resulting inner single element from [`Response::table`].
+/// with the [`TableList`], filtered by an `ID` value of its associated [`TableList::ID`] type.
+///
+/// It returns the resulting inner single element from the [`Response::table`] list.
 ///
 /// For example, [`get_table_list_single_element::<Season>`] will perform a GET request for a single
 /// season, filtered by [`SeasonID`] in [`Filters::season`], and return the resulting inner single
@@ -165,7 +177,10 @@ pub fn get_table_list_single_element<T: TableList>(id: T::ID) -> Result<T> {
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::SeasonList`], with the argument
-/// [`Filters`], and return the resulting inner [`Season`]s from [`Table`] in `resp.table`.
+/// [`Filters`], and returns the resulting inner [`Season`]s from [`Table`] in [`Response::table`].
+///
+/// # Errors
+///
 /// An [`Error::MultiPage`] is returned if `seasons` would not fit in a [`Page::with_max_limit`].
 ///
 /// # Examples
@@ -182,7 +197,11 @@ pub fn get_seasons(filters: Filters) -> Result<Vec<Season>> {
 }
 
 /// Performs a GET request to the Ergast API for a single [`Season`], identified by a [`SeasonID`],
-/// from [`Resource::SeasonList`]. An [`Error::NotFound`] is returned if the season is not found.
+/// from [`Resource::SeasonList`].
+///
+/// # Errors
+///
+/// An [`Error::NotFound`] is returned if the season is not found.
 ///
 /// # Examples
 ///
@@ -198,7 +217,10 @@ pub fn get_season(season: SeasonID) -> Result<Season> {
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::DriverInfo`], with the argument
-/// [`Filters`], and return the resulting inner [`Driver`]s from [`Table`] in `resp.table`.
+/// [`Filters`], and returns the resulting inner [`Driver`]s from [`Table`] in [`Response::table`].
+///
+/// # Errors
+///
 /// An [`Error::MultiPage`] is returned if `drivers` would not fit in a [`Page::with_max_limit`].
 ///
 /// # Examples
@@ -222,7 +244,11 @@ pub fn get_drivers(filters: Filters) -> Result<Vec<Driver>> {
 }
 
 /// Performs a GET request to the Ergast API for a single [`Driver`], identified by a [`DriverID`],
-/// from [`Resource::DriverInfo`]. An [`Error::NotFound`] is returned if the driver is not found.
+/// from [`Resource::DriverInfo`].
+///
+/// # Errors
+///
+/// An [`Error::NotFound`] is returned if the driver is not found.
 ///
 /// # Examples
 ///
@@ -238,8 +264,11 @@ pub fn get_driver(driver_id: DriverID) -> Result<Driver> {
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::ConstructorInfo`], with the argument
-/// [`Filters`], and return the resulting inner [`Constructor`]s from [`Table`] in
-/// `resp.table`. An [`Error::MultiPage`] is returned if `constructors` would not fit in a
+/// [`Filters`], and returns the resulting [`Constructor`]s from [`Table`] in [`Response::table`].
+///
+/// # Errors
+///
+/// An [`Error::MultiPage`] is returned if `constructors` would not fit in a
 /// [`Page::with_max_limit`].
 ///
 /// # Examples
@@ -263,8 +292,11 @@ pub fn get_constructors(filters: Filters) -> Result<Vec<Constructor>> {
 }
 
 /// Performs a GET request to the Ergast API for a single [`Constructor`], identified by a
-/// [`ConstructorID`], from [`Resource::ConstructorInfo`]. An [`Error::NotFound`] is returned if the
-/// constructor is not found.
+/// [`ConstructorID`], from [`Resource::ConstructorInfo`].
+///
+/// #Errors
+///
+/// An [`Error::NotFound`] is returned if the constructor is not found.
 ///
 /// # Examples
 ///
@@ -280,7 +312,10 @@ pub fn get_constructor(constructor_id: ConstructorID) -> Result<Constructor> {
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::CircuitInfo`], with the argument
-/// [`Filters`], and return the resulting inner [`Circuit`]s from [`Table`] in `resp.table`.
+/// [`Filters`], and returns the resulting inner [`Circuit`]s from [`Table`] in [`Response::table`].
+///
+/// # Errors
+///
 /// An [`Error::MultiPage`] is returned if `circuits` would not fit in a [`Page::with_max_limit`].
 ///
 /// # Examples
@@ -304,7 +339,11 @@ pub fn get_circuits(filters: Filters) -> Result<Vec<Circuit>> {
 }
 
 /// Performs a GET request to the Ergast API for a single [`Circuit`], identified by a [`CircuitID`]
-/// from [`Resource::CircuitInfo`]. An [`Error::NotFound`] is returned if the circuit is not found.
+/// from [`Resource::CircuitInfo`].
+///
+/// # Errors
+///
+/// An [`Error::NotFound`] is returned if the circuit is not found.
 ///
 /// # Examples
 ///
@@ -322,10 +361,8 @@ pub fn get_circuit(circuit_id: CircuitID) -> Result<Circuit> {
     get_circuits(Filters::new().circuit_id(circuit_id)).and_then(verify_has_one_element_and_extract)
 }
 
-/// Performs a GET request to the Ergast API for [`Resource::RaceSchedule`], with the argument
-/// [`Filters`], and returns a sequence of [`Race<Schedule>`]s processed from the inner [`Race`]s
-/// from [`Table`]. An [`Error::MultiPage`] is returned if the results would not fit in a
-/// [`Page::with_max_limit`].
+/// Performs a GET request to the Ergast API for [`Resource::RaceSchedule`], with the [`Filters`],
+/// and returns a sequence of [`Race<Schedule>`]s processed from the inner [`Race`]s from [`Table`].
 ///
 /// **Note:** The returned [`Race<Schedule>`]s contain all the common fields in a [`Race`], e.g.
 /// [`Race::season`], [`Race::round`], [`Race::race_name`], etc., so this function can be used to
@@ -334,6 +371,10 @@ pub fn get_circuit(circuit_id: CircuitID) -> Result<Circuit> {
 /// **Note:** Since more than [`Page::MAX_LIMIT`] races have taken place in the history of F1,
 /// calling this function without any filters will return [`Error::MultiPage`]. As such, it is
 /// necessary to pass some filters, e.g. [`Filters::season`], [`Filters::driver_id`], etc.
+///
+/// # Errors
+///
+/// An [`Error::MultiPage`] is returned if the results would not fit in a [`Page::with_max_limit`].
 ///
 /// # Examples
 ///
@@ -356,11 +397,15 @@ pub fn get_race_schedules(filters: Filters) -> Result<Vec<Race<Schedule>>> {
 
 /// Performs a GET request to the Ergast API for a single [`Race<Schedule>`] from
 /// [`Resource::RaceSchedule`], identified by a [`RaceID`], a combination of a [`Race::season`] and
-/// [`Race::round`]. An [`Error::NotFound`] is returned if the race is not found.
+/// [`Race::round`].
 ///
 /// **Note:** The returned [`Race<Schedule>`] contains all the common fields in a [`Race`], e.g.
 /// [`Race::race_name`], [`Race::circuit`], etc., so this function can be used to obtain general
 /// information about a race weekend event.
+///
+/// # Errors
+///
+/// An [`Error::NotFound`] is returned if the race is not found.
 ///
 /// # Examples
 ///
@@ -388,9 +433,10 @@ pub fn get_race_schedule(race_id: RaceID) -> Result<Race<Schedule>> {
 }
 
 /// Performs a GET request to the Ergast API for the [`Resource`] corresponding to the requested
-/// [`SessionResult`], with the argument [`Filters`], and returns a sequence of [`Race`]s, each with
-/// a sequence of [`SessionResult`]s, processed from the inner [`Race`]s from [`Table`]. An
-/// [`Error::MultiPage`] is returned if the results would not fit in a [`Page::with_max_limit`].
+/// [`SessionResult`], with the argument [`Filters`]
+///
+/// It returns a sequence of [`Race`]s, each with a sequence of [`SessionResult`]s, processed from
+/// the inner [`Race`]s from the [`Table`] in [`Response::table`].
 ///
 /// For example, [`get_session_results::<RaceResult>`] will perform a GET request to the Ergast API
 /// for [`Resource::RaceResults`], and return a sequence of [`Race<Vec<RaceResult>>`], where the
@@ -403,6 +449,10 @@ pub fn get_race_schedule(race_id: RaceID) -> Result<Race<Schedule>> {
 /// single [`SessionResult`] per [`Race`], or other, consider using one of the other methods with
 /// the desired processing: [`get_session_results_for_event`], [`get_session_result_for_events`], or
 /// [`get_session_result`].
+///
+/// # Errors
+///
+/// An [`Error::MultiPage`] is returned if the results would not fit in a [`Page::with_max_limit`].
 ///
 /// # Examples
 ///
@@ -441,11 +491,10 @@ pub fn get_session_results<T: SessionResult>(filters: Filters) -> Result<Vec<Rac
 }
 
 /// Performs a GET request to the Ergast API for the [`Resource`] corresponding to the requested
-/// [`SessionResult`], with the argument [`Filters`], and returns a sequence of [`SessionResult`]s
-/// for a single [`Race`], processed from the inner [`Race`]s from [`Table`]. An
-/// [`Error::MultiPage`] is returned if the results would not fit in a [`Page::with_max_limit`].
-/// An [`Error::NotFound`] or [`Error::TooMany`] is returned if the expected number of [`Race`]s and
-/// [`SessionResult`]s per [`Race`] are not found in the response.
+/// [`SessionResult`], with the argument [`Filters`].
+///
+/// It returns a sequence of [`SessionResult`]s for a single [`Race`], processed from the inner
+/// [`Race`]s from the [`Table`] in [`Response::table`].
 ///
 /// For example, [`get_session_results_for_event::<RaceResult>`] will perform a GET request to the
 /// Ergast API for [`Resource::RaceResults`], and return a single [`Race<Vec<RaceResult>>`], where
@@ -458,6 +507,12 @@ pub fn get_session_results<T: SessionResult>(filters: Filters) -> Result<Vec<Rac
 /// [`SessionResult`] per [`Race`], or other, consider using one of the other methods with the
 /// desired processing: [`get_session_results`], [`get_session_result_for_events`], or
 /// [`get_session_result`].
+///
+/// # Errors
+///
+/// An [`Error::MultiPage`] is returned if the results would not fit in a [`Page::with_max_limit`].
+/// An [`Error::NotFound`] or [`Error::TooMany`] is returned if the expected number of [`Race`]s and
+/// [`SessionResult`]s per [`Race`] are not found in the response.
 ///
 /// # Examples
 ///
@@ -477,11 +532,10 @@ pub fn get_session_results_for_event<T: SessionResult>(filters: Filters) -> Resu
 }
 
 /// Performs a GET request to the Ergast API for the [`Resource`] corresponding to the requested
-/// [`SessionResult`], with the argument [`Filters`], and returns a sequence of [`Race`]s with a
-/// single [`SessionResult`] each, processed from the inner [`Race`]s from [`Table`]. An
-/// [`Error::MultiPage`] is returned if the results would not fit in a [`Page::with_max_limit`].
-/// An [`Error::NotFound`] or [`Error::TooMany`] is returned if the expected number of [`Race`]s and
-/// [`SessionResult`]s per [`Race`] are not found in the response.
+/// [`SessionResult`], with the argument [`Filters`].
+///
+/// It returns a sequence of [`Race`]s with a single [`SessionResult`] each, processed from the
+/// inner [`Race`]s from the [`Table`] in [`Response::table`].
 ///
 /// For example, [`get_session_result_for_events::<RaceResult>`] will perform a GET request to the
 /// Ergast API for [`Resource::RaceResults`], and return a sequence of [`Race<RaceResult>`], where
@@ -494,6 +548,12 @@ pub fn get_session_results_for_event<T: SessionResult>(filters: Filters) -> Resu
 /// [`SessionResult`] per [`Race`], or other, consider using one of the other methods with the
 /// desired processing: [`get_session_results`], [`get_session_results_for_event`], or
 /// [`get_session_result`].
+///
+/// # Errors
+///
+/// An [`Error::MultiPage`] is returned if the results would not fit in a [`Page::with_max_limit`].
+/// An [`Error::NotFound`] or [`Error::TooMany`] is returned if the expected number of [`Race`]s and
+/// [`SessionResult`]s per [`Race`] are not found in the response.
 ///
 /// # Examples
 ///
@@ -520,11 +580,10 @@ pub fn get_session_result_for_events<T: SessionResult>(filters: Filters) -> Resu
 }
 
 /// Performs a GET request to the Ergast API for the [`Resource`] corresponding to the requested
-/// [`SessionResult`], with the argument [`Filters`], and returns a single [`Race`] with a single
-/// [`SessionResult`], processed from the inner [`Race`]s from [`Table`]. An [`Error::MultiPage`] is
-/// returned if the results would not fit in a [`Page::with_max_limit`]. An [`Error::NotFound`] or
-/// [`Error::TooMany`] is returned if the expected number of [`Race`]s and [`SessionResult`]s per
-/// [`Race`] are not found in the response.
+/// [`SessionResult`], with the argument [`Filters`].
+///
+/// It returns a single [`Race`] with a single [`SessionResult`], processed from the inner [`Race`]s
+/// from the [`Table`] in [`Response::table`].
 ///
 /// For example, [`get_session_result::<RaceResult>`] will perform a GET request to the Ergast API
 /// for [`Resource::RaceResults`], and return a single [`Race<RaceResult>`], where the [`Payload`]
@@ -537,6 +596,12 @@ pub fn get_session_result_for_events<T: SessionResult>(filters: Filters) -> Resu
 /// [`Race<T>`]. If multiple [`Race`]s or [`SessionResult`]s are expected in the response, consider
 /// using one of the other methods with the desired processing: [`get_session_results`],
 /// [`get_session_results_for_event`], or [`get_session_result_for_events`].
+///
+/// # Errors
+///
+/// An [`Error::MultiPage`] is returned if the results would not fit in a [`Page::with_max_limit`].
+/// An [`Error::NotFound`] or [`Error::TooMany`] is returned if the expected number of [`Race`]s and
+/// [`SessionResult`]s per [`Race`] are not found in the response.
 ///
 /// # Examples
 ///
@@ -613,7 +678,10 @@ pub fn get_race_result(filters: Filters) -> Result<Race<RaceResult>> {
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::FinishingStatus`], with the argument
-/// [`Filters`], and return the resulting inner [`Status`]s from [`Table`] in `resp.table`.
+/// [`Filters`], and return the resulting inner [`Status`]s from [`Table`] in [`Response::table`].
+///
+/// # Errors
+///
 /// An [`Error::MultiPage`] is returned if `status` would not fit in a [`Page::with_max_limit`].
 ///
 /// # Examples
@@ -637,9 +705,14 @@ pub fn get_statuses(filters: Filters) -> Result<Vec<Status>> {
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::LapTimes`] from a specified [`RaceID`]
-/// and for a specified single [`DriverID`], returning a list of [`DriverLap`]s, which is a
-/// flattened combination of [`Lap`]s and [`Timing`]s. An [`Error::MultiPage`] is returned if
-/// `lap_times` would not fit in a [`Page::with_max_limit`].
+/// and for a specified single [`DriverID`].
+///
+/// It returns a list of [`DriverLap`]s, which is a flattened combination of [`Lap`]s and
+/// [`Timing`]s.
+///
+/// # Errors
+///
+/// An [`Error::MultiPage`] is returned if `lap_times` would not fit in a [`Page::with_max_limit`].
 ///
 /// # Examples
 ///
@@ -667,6 +740,9 @@ pub fn get_driver_laps(race_id: RaceID, driver_id: &DriverID) -> Result<Vec<Driv
 
 /// Performs a GET request to the Ergast API for [`Resource::LapTimes`] from a specified [`RaceID`]
 /// and for a specified single lap, returning a list of [`Timing`]s from the requested [`Lap`].
+///
+/// # Errors
+///
 /// An [`Error::MultiPage`] is returned if `lap_times` would not fit in a [`Page::with_max_limit`].
 ///
 /// # Examples
@@ -692,9 +768,14 @@ pub fn get_lap_timings(race_id: RaceID, lap: u32) -> Result<Vec<Timing>> {
 }
 
 /// Performs a GET request to the Ergast API for [`Resource::PitStops`], with the passed argument
-/// [`PitStopFilters`], and return the resulting inner [`PitStop`]s from `race.payload` in the
-/// expected single [`Race`] element from [`Table`] in `resp.table`. An [`Error::MultiPage`]
-/// is returned if `payload` would not fit in a [`Page::with_max_limit`].
+/// [`PitStopFilters`].
+///
+/// It returns the resulting inner [`PitStop`]s from [`Race::payload`] in the expected single
+/// [`Race`] element from [`Table`] in [`Response::table`].
+///
+/// # Errors
+///
+/// An [`Error::MultiPage`] is returned if `payload` would not fit in a [`Page::with_max_limit`].
 ///
 /// # Examples
 ///

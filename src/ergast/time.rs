@@ -48,7 +48,10 @@ pub(crate) fn duration_millis(milliseconds: i64) -> Duration {
     Duration::milliseconds(milliseconds)
 }
 
-/// Parse an integer element from a time string, e.g. `"41"` from `"1:41.269"` -> `41`.
+/// Parses an integer element from a time string, e.g. `"41"` from `"1:41.269"` -> `41`.
+///
+/// # Panics
+///
 /// Panics if the string cannot be parsed into an integer, i.e. no empty strings allowed.
 fn parse_integer(s: &str) -> i64 {
     s.parse::<i64>().unwrap()
@@ -59,7 +62,8 @@ fn parse_integer_or(mtch: Option<regex::Match<'_>>, default: i64) -> i64 {
     mtch.map_or(default, |mtch| parse_integer(mtch.as_str()))
 }
 
-/// Parse a `[subseconds]` string into milliseconds, e.g. `"123"` -> `123`, `"12"` -> `120`, etc.
+/// Parses a `[subseconds]` string into milliseconds, e.g. `"123"` -> `123`, `"12"` -> `120`, etc.
+///
 /// See <https://time-rs.github.io/book/api/format-description.html> for more format information.
 fn parse_subsecond_into_milli(subsec_str: &str) -> i64 {
     debug_assert!(!subsec_str.is_empty() && subsec_str.len() <= 3);
@@ -67,9 +71,11 @@ fn parse_subsecond_into_milli(subsec_str: &str) -> i64 {
     subsec_str.parse::<i64>().unwrap() * (10_i64.pow(3_u32 - u32::try_from(subsec_str.len()).unwrap()))
 }
 
-/// Parse a [`Time`] from a string in the format `HH:MM:SS`, e.g. `11:00:00`. An optional suffix
-/// `Z` is also allowed, e.g. `11:00:00Z`. This format represents times of day in the Ergast API,
-/// e.g. the start time of an event, the time of the day at which a pit stop took place, etc.
+/// Parses a [`Time`] from a string in the format `HH:MM:SS`, e.g. `11:00:00`.
+///
+/// An optional suffix `Z` is also allowed, e.g. `11:00:00Z`. This format represents times of day in
+/// the Ergast API, e.g. the start time of an event, the time of the day at which a pit stop took
+/// place, etc.
 fn parse_time(raw_str: &str) -> Result<Time, underlying::error::Parse> {
     const TIME_FORMAT_DESCRIPTION: &[underlying::format_description::FormatItem<'static>] =
         underlying::macros::format_description!("[hour]:[minute]:[second]");
@@ -79,7 +85,8 @@ fn parse_time(raw_str: &str) -> Result<Time, underlying::error::Parse> {
     Time::parse(raw_str, &TIME_FORMAT_DESCRIPTION)
 }
 
-/// Parse a [`Duration`] from a string in the format `H:MM:SS.SSS`, e.g. `"2:05:05.152"`.
+/// Parses a [`Duration`] from a string in the format `H:MM:SS.SSS`, e.g. `"2:05:05.152"`.
+///
 /// This format represents durations the Ergast API, i.e. the duration of a single lap or race.
 /// Note that the parsing is very permissive, allowing the `[hour]` and `[minute]` components to be
 /// omitted, and allowing all other components to have fewer than the maximum number of digits.
@@ -104,8 +111,9 @@ fn parse_duration(raw_str: &str) -> Result<Duration, String> {
     Ok(duration_hms_ms(hours, minutes, seconds, milliseconds))
 }
 
-/// Parse a [`Duration`] from a string in one of the following formats: `+SSS.SSS` OR `+M:SS.SSS`,
-/// for example `+0.4`, `+1.882`, `+21.217`, `+89.241`, `+103.796`, `+1:14.240`, etc.
+/// Parses a [`Duration`] from a string in one of the following formats: `+SSS.SSS` OR `+M:SS.SSS`.
+///
+/// Some example valid times are `+0.4`, `+1.882`, `+21.217`, `+89.241`, `+103.796`, `+1:14.240`.
 /// These formats represent delta times in the Ergast API, i.e. the difference between lap times.
 // @todo There is no consistent format for delta times in the Ergast API. Should that be fixed?
 fn parse_delta(raw_str: &str) -> Result<Duration, String> {
@@ -161,9 +169,11 @@ pub struct DateTime {
 }
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
-/// Represents the duration of the best qualifying lap set by a driver in a qualifying session,
-/// e.g. Q1, Q2, etc. A lap time is represented by the [`QualifyingTime::Time`]. If a driver took
-/// part in a qualifying session but did not set a lap time, then [`QualifyingTime::NoTimeSet`].
+/// Represents the duration of the best qualifying lap set by a driver in a qualifying session, e.g.
+/// Q1, Q2, etc.
+///
+/// A lap time is represented by the [`QualifyingTime::Time`]. If a driver took part in a qualifying
+/// session but did not set a lap time, then [`QualifyingTime::NoTimeSet`].
 pub enum QualifyingTime {
     /// The duration of the best qualifying lap set by a driver in a qualifying session.
     Time(Duration),

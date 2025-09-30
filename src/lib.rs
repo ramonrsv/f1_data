@@ -78,8 +78,7 @@
     clippy::module_name_repetitions,
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
-    clippy::multiple_crate_versions,
-    clippy::too_long_first_doc_paragraph
+    clippy::multiple_crate_versions
 )]
 
 // Silence unused_crate_dependencies lint for [dev-dependencies] used in /benches and /examples.

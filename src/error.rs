@@ -10,10 +10,12 @@ use crate::ergast::response::{Payload, Table};
 use crate::ergast::{resource::Resource, response};
 
 /// An error that may occur while processing a [`Resource`] HTTP request from the Ergast API, via
-/// the provided family of `get_*` methods. These may be underlying HTTP errors, represented by
-/// [`Error::Http`], errors parsing the JSON response, represented by [`Error::Parse`], or errors
-/// due to unmet restrictions imposed on the response, e.g. a request by a method supporting only
-/// single-page responses resulted in a multi-page response, represented by [`Error::MultiPage`].
+/// the provided family of `get_*` methods.
+///
+/// These may be underlying HTTP errors, represented by [`Error::Http`], errors parsing the JSON
+/// response, represented by [`Error::Parse`], or errors due to unmet restrictions imposed on the
+/// response, e.g. a request by a method supporting only single-page responses resulted in a
+/// multi-page response, represented by [`Error::MultiPage`].
 #[derive(Debug)]
 pub enum Error {
     /// Underlying HTTP error, passing through the [`ureq::Error`] from [`ureq::Request::call`].

@@ -18,9 +18,11 @@ pub type StatusID = u32;
 /// _2023 FIA Formula One World Championship_
 pub type SeasonID = u32;
 
-/// Uniquely identifies a round (race weekend), in a given season, by an index, with `1` being the
-/// first round of the season. Note that a round is only unique within a given season, and does not
-/// uniquely identify a race in the championship. See [`RaceID`] for a unique race identifier.
+/// Uniquely identifies a round (race weekend) in a given season by an index, with `1` being the
+/// first round of the season.
+///
+/// **Note:** A round is only unique within a given season, and does not uniquely identify a race in
+/// the championship. See [`RaceID`] for a unique race identifier.
 pub type RoundID = u32;
 
 /// Uniquely identifies a race by the season that it took place in, and by its round index, e.g.

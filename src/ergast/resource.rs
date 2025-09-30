@@ -163,7 +163,7 @@ impl Resource {
     // @todo This should probably be configurable, e.g. to support mirrors, caches, etc.
     pub const ERGAST_BASE_URL: &'static str = "https://api.jolpi.ca/ergast/f1";
 
-    /// Produce a URL with which to request the given [`Resource`] from the Ergast API, including
+    /// Produces a URL with which to request the given [`Resource`] from the Ergast API, including
     /// any filters that may have been requested.
     ///
     /// # Examples
@@ -519,9 +519,8 @@ impl Default for Filters {
     }
 }
 
-/// Can be used to filter [`Resource::LapTimes`] from the Ergast API by a number of parameters,
-/// identified by the struct fields, some of which are required, and the rest are optional and can
-/// be set simultaneously.
+/// Can be used to filter [`Resource::LapTimes`] from the Ergast API by a number of required and
+/// optional parameters, identified by the struct fields, which can be set simultaneously.
 ///
 /// Except for some additional enforcement of required fields, e.g. [`LapTimeFilters::season`], and
 /// a smaller supported subset of parameters, this type is meant to function similarly to
@@ -604,9 +603,8 @@ impl LapTimeFilters {
     }
 }
 
-/// Can be used to filter [`Resource::PitStops`] from the Ergast API by a number of parameters,
-/// identified by the struct fields, some of which are required, and the rest are optional and can
-/// be set simultaneously.
+/// Can be used to filter [`Resource::PitStops`] from the Ergast API by a number of required and
+/// optional parameters, identified by the struct fields, which can be set simultaneously.
 ///
 /// Except for some additional enforcement of required fields, e.g. [`PitStopFilters::season`], and
 /// a smaller supported subset of parameters, this type is meant to function similarly to

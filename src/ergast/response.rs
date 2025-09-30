@@ -19,10 +19,12 @@ use crate::{
 
 pub const GRID_PIT_LANE: u32 = 0;
 
-/// [`Response`] represents a full JSON response from the Ergast API. It contains metadata about the
-/// API and the response, and a single [`Table`] of data, holding a request-dependent variant. Note
-/// that, while [`Response`] can be deserialized from a full JSON response, it actually represents
-/// the underlying `"MRData"` object, which is flattened in this struct to improve ergonomics.
+/// Represents a full JSON response from the Ergast API.
+///
+/// It contains metadata about the API and the response, and a single [`Table`] of data holding a
+/// request-dependent variant. Note that, while [`Response`] can be deserialized from a full JSON
+/// response, it actually represents the underlying `"MRData"` object, which is flattened in this
+/// struct to improve ergonomics.
 #[derive(PartialEq, Clone, Debug)]
 pub struct Response {
     pub xmlns: String,
@@ -401,11 +403,13 @@ impl Pagination {
     }
 }
 
-/// [`Table`] represents all the possible different lists of data that may be returned in a
-/// [`Response`] from the Ergast API, e.g. [`Table::Seasons`] corresponds to the `"SeasonTable"`
-/// property key in the JSON response, containing a list of [`Season`]s which corresponds to the
-/// `"Seasons"` property key. One and only of these tables may be returned in a given response,
-/// depending on the requested [`Resource`], which is represented by this enum's different variants.
+/// Represents all the possible different lists of data that may be returned in a
+/// [`Response`] from the Ergast API.
+///
+/// For example, [`Table::Seasons`] corresponds to the `"SeasonTable"` property key in the JSON
+/// response, containing a list of [`Season`]s which corresponds to the `"Seasons"` property key.
+/// One and only of these tables may be returned in a given response, depending on the requested
+/// [`Resource`], which is represented by this enum's different variants.
 ///
 /// The variants and inner fields may be matched and accessed via the usual pattern matching, or
 /// via accessor functions provided by [`enum-as-inner`](https://crates.io/crates/enum-as-inner).
@@ -483,8 +487,10 @@ pub enum Table {
 }
 
 /// Inner type of a [`Payload`] variant for a [`SessionResult`] type, and of a [`Table`] variant
-/// for a [`TableList`] type, e.g. the inner type of the [`Payload::RaceResults`] variant is
-/// [`Vec<RaceResult>`], and the inner type of the [`Table::Seasons`] variant is [`Vec<Season>`].
+/// for a [`TableList`] type.
+///
+/// For example, the inner type of the [`Payload::RaceResults`] variant is [`Vec<RaceResult>`], and
+/// the inner type of the [`Table::Seasons`] variant is [`Vec<Season>`].
 type Inner<T> = Vec<T>;
 
 /// The [`TableList`] trait allows the generic handling of all [`Table`] list inner types,
@@ -774,10 +780,12 @@ impl Race<Schedule> {
 }
 
 /// [`Payload`] represents all the possible different data elements that be me returned as part of
-/// a [`Race`] in a [`Response`] from the Ergast API, e.g. [`Payload::SprintResults`] corresponds
-/// to the `"SprintResults"` property key in the JSON response, which is a list of [`SprintResult`].
-/// One and only one of these payloads may be returned in a given response, depending on the
-/// requested [`Resource`], which is represented by the different variants of this enum.
+/// a [`Race`] in a [`Response`] from the Ergast API.
+///
+/// For example, [`Payload::SprintResults`] corresponds to the `"SprintResults"` property key in the
+/// JSON response, which is a list of [`SprintResult`]. One and only one of these payloads may be
+/// returned in a given response, depending on the requested [`Resource`], which is represented by
+/// the different variants of this enum.
 ///
 /// The variants and inner values may be matched and accessed via the usual pattern matching, or via
 /// accessor functions provided by  [`enum-as-inner`](https://crates.io/crates/enum-as-inner).
@@ -943,9 +951,10 @@ impl SessionResult for QualifyingResult {
     }
 }
 
-/// Type that represents points awarded, e.g. for a sprint/race finish, fastest lap, etc. These are
-/// represented as floating point numbers because some events may award fractional points, e.g. the
-/// 2021 Belgian Grand Prix only awarded half points, meaning P1, P3, and P10 received `x.5` points.
+/// Represents points awarded, e.g. for a sprint/race finish, fastest lap, etc.
+///
+/// These are represented as floating point because some events may award fractional points, e.g.
+/// the 2021 Belgian GP only awarded half points, meaning P1, P3, and P10 received `x.5` points.
 pub type Points = f32;
 
 #[serde_as]
