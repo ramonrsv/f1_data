@@ -183,12 +183,12 @@ pub enum QualifyingTime {
 
 impl QualifyingTime {
     /// Returns `true` if the driver set a lap time in a qualifying session.
-    pub fn has_time(&self) -> bool {
+    pub const fn has_time(&self) -> bool {
         matches!(self, Self::Time(_))
     }
 
     /// Returns `true` if the driver took part in a qualifying session but did not set a lap time.
-    pub fn no_time_set(&self) -> bool {
+    pub const fn no_time_set(&self) -> bool {
         matches!(self, Self::NoTimeSet)
     }
 
@@ -231,7 +231,7 @@ pub struct RaceTime {
 
 impl RaceTime {
     /// Construct a [`RaceTime`] for the leader/P1, i.e. with a zero delta to the leader's time.
-    pub fn lead(total: Duration) -> Self {
+    pub const fn lead(total: Duration) -> Self {
         Self {
             total,
             delta: Duration::ZERO,
@@ -251,12 +251,12 @@ impl RaceTime {
     }
 
     /// Get the total race duration for a driver, as [`Duration`].
-    pub fn total(&self) -> &Duration {
+    pub const fn total(&self) -> &Duration {
         &self.total
     }
 
     /// Get the delta to the leader/P1's race duration, as [`Duration`]. It's zero for the leader.
-    pub fn delta(&self) -> &Duration {
+    pub const fn delta(&self) -> &Duration {
         &self.delta
     }
 }

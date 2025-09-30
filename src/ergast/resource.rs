@@ -402,13 +402,13 @@ impl Filters {
 
     /// Returns a [`Filters`] object with all fields set to `None`, i.e. requesting no filtering.
     /// This method is identical to [`Filters::none`]; both are provided to maximize readability.
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self::none()
     }
 
     /// Returns a [`Filters`] object with all fields set to `None`, i.e. requesting no filtering.
     /// This method is identical to [`Filters::new`]; both are provided to maximize readability.
-    pub fn none() -> Self {
+    pub const fn none() -> Self {
         Self {
             season: None,
             round: None,
@@ -580,7 +580,7 @@ pub struct LapTimeFilters {
 impl LapTimeFilters {
     /// Returns a [`LapTimeFilters`] object with the required fields set as per the arguments, and
     /// the rest of the fields set to `None`, i.e. requesting no filtering on those parameters.
-    pub fn new(season: SeasonID, round: RoundID) -> Self {
+    pub const fn new(season: SeasonID, round: RoundID) -> Self {
         Self {
             season,
             round,
@@ -670,7 +670,7 @@ pub struct PitStopFilters {
 impl PitStopFilters {
     /// Returns a [`PitStopFilters`] object with the required fields set as per the arguments, and
     /// the rest of the fields set to `None`, i.e. requesting no filtering on those parameters.
-    pub fn new(season: SeasonID, round: RoundID) -> Self {
+    pub const fn new(season: SeasonID, round: RoundID) -> Self {
         Self {
             season,
             round,
@@ -796,17 +796,17 @@ impl Page {
     }
 
     /// Access the limit of this [`Page`].
-    pub fn limit(&self) -> u32 {
+    pub const fn limit(&self) -> u32 {
         self.limit
     }
 
     /// Access the offset of this [`Page`].
-    pub fn offset(&self) -> u32 {
+    pub const fn offset(&self) -> u32 {
         self.offset
     }
 
     /// Return the next [`Page`] in the sequence, with the same limit, by incrementing the offset.
-    pub fn next(&self) -> Self {
+    pub const fn next(&self) -> Self {
         Self {
             offset: self.offset + self.limit,
             ..*self

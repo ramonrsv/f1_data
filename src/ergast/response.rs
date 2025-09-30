@@ -383,15 +383,15 @@ pub struct Pagination {
 }
 
 impl Pagination {
-    pub fn is_last_page(&self) -> bool {
+    pub const fn is_last_page(&self) -> bool {
         (self.offset + self.limit) >= self.total
     }
 
-    pub fn is_single_page(&self) -> bool {
+    pub const fn is_single_page(&self) -> bool {
         (self.offset == 0) && self.is_last_page()
     }
 
-    pub fn next_page(&self) -> Option<Self> {
+    pub const fn next_page(&self) -> Option<Self> {
         if self.is_last_page() {
             None
         } else {
@@ -769,7 +769,7 @@ pub struct Schedule {
 
 impl Race<Schedule> {
     /// Returns a reference to the field [`Race::payload`], a [`Schedule`].
-    pub fn schedule(&self) -> &Schedule {
+    pub const fn schedule(&self) -> &Schedule {
         &self.payload
     }
 
@@ -931,7 +931,7 @@ impl Race<Vec<QualifyingResult>> {
 
 impl Race<QualifyingResult> {
     /// Returns a reference to the field [`Race::payload`], a single [`QualifyingResult`].
-    pub fn qualifying_result(&self) -> &QualifyingResult {
+    pub const fn qualifying_result(&self) -> &QualifyingResult {
         &self.payload
     }
 
@@ -997,7 +997,7 @@ impl Race<Vec<SprintResult>> {
 
 impl Race<SprintResult> {
     /// Returns a reference to the field [`Race::payload`], a single [`SprintResult`].
-    pub fn sprint_result(&self) -> &SprintResult {
+    pub const fn sprint_result(&self) -> &SprintResult {
         &self.payload
     }
 
@@ -1069,7 +1069,7 @@ impl Race<Vec<RaceResult>> {
 
 impl Race<RaceResult> {
     /// Returns a reference to the field [`Race::payload`], a single [`RaceResult`].
-    pub fn race_result(&self) -> &RaceResult {
+    pub const fn race_result(&self) -> &RaceResult {
         &self.payload
     }
 
@@ -1259,7 +1259,7 @@ pub enum SpeedUnits {
 /// Check that there is exactly one element `T` in a slice `&[T]`, and return a
 /// <code>[Result<&\[T\]>]</code> containing the slice if so, [`Error::NotFound`] if it contained no
 /// elements, or [`Error::TooMany`] if it contained more than one.
-pub(crate) fn verify_has_one_element<T>(sequence: &[T]) -> Result<&[T]> {
+pub(crate) const fn verify_has_one_element<T>(sequence: &[T]) -> Result<&[T]> {
     match sequence.len() {
         0 => Err(Error::NotFound),
         1 => Ok(sequence),

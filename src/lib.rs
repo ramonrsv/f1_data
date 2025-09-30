@@ -66,7 +66,6 @@
     clippy::return_self_not_must_use,
 
     // nursery, opt-out
-    clippy::missing_const_for_fn,
 )]
 //
 // These lints are temporarily allowed while fixes for associated violations are being worked on.

@@ -50,7 +50,7 @@ pub struct RaceID {
 
 impl RaceID {
     /// Create a new [`RaceID`] from a season and round.
-    pub fn from(season: SeasonID, round: RoundID) -> Self {
+    pub const fn from(season: SeasonID, round: RoundID) -> Self {
         Self { season, round }
     }
 }
