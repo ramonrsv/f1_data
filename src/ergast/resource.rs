@@ -326,6 +326,7 @@ trait FiltersFormatter {
 /// assert_eq!(filters.round, Some(1));
 /// assert!(filters.driver_id.is_none() /* ... */);
 /// ```
+#[must_use]
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct Filters {
     /// Restrict responses to a given championship season, identified by the year it took place in,
@@ -560,6 +561,7 @@ impl Default for Filters {
 /// assert_eq!(filters.lap, Some(1));
 /// /* ... */
 /// ```
+#[must_use]
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct LapTimeFilters {
     /// Indicates a specific championship season, identified by the year it took place in.
@@ -645,6 +647,7 @@ impl LapTimeFilters {
 /// assert_eq!(filters.pit_stop, Some(1));
 /// /* ... */
 /// ```
+#[must_use]
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct PitStopFilters {
     /// Indicates a specific championship season, identified by the year it took place in.
@@ -806,6 +809,7 @@ impl Page {
     }
 
     /// Return the next [`Page`] in the sequence, with the same limit, by incrementing the offset.
+    #[must_use]
     pub const fn next(&self) -> Self {
         Self {
             offset: self.offset + self.limit,
