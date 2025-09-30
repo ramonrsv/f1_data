@@ -425,7 +425,7 @@ impl Filters {
         }
     }
 
-    /// Field-update method for the `season` field.
+    /// Field-update method for the [`season`][field@Filters::season] field.
     pub fn season(self, season: SeasonID) -> Self {
         Self {
             season: Some(season),
@@ -433,7 +433,7 @@ impl Filters {
         }
     }
 
-    /// Field-update method for the `round` field.
+    /// Field-update method for the [`round`][field@Filters::round] field.
     pub fn round(self, round: RoundID) -> Self {
         Self {
             round: Some(round),
@@ -441,7 +441,7 @@ impl Filters {
         }
     }
 
-    /// Field-update method for the `driver_id` field.
+    /// Field-update method for the [`driver_id`][field@Filters::driver_id] field.
     pub fn driver_id(self, driver_id: DriverID) -> Self {
         Self {
             driver_id: Some(driver_id),
@@ -449,7 +449,7 @@ impl Filters {
         }
     }
 
-    /// Field-update method for the `constructor_id` field.
+    /// Field-update method for the [`constructor_id`][field@Filters::constructor_id] field.
     pub fn constructor_id(self, constructor_id: ConstructorID) -> Self {
         Self {
             constructor_id: Some(constructor_id),
@@ -457,7 +457,7 @@ impl Filters {
         }
     }
 
-    /// Field-update method for the `circuit_id` field.
+    /// Field-update method for the [`circuit_id`][field@Filters::circuit_id] field.
     pub fn circuit_id(self, circuit_id: CircuitID) -> Self {
         Self {
             circuit_id: Some(circuit_id),
@@ -465,7 +465,7 @@ impl Filters {
         }
     }
 
-    /// Field-update method for the `qualifying_pos` field.
+    /// Field-update method for the [`qualifying_pos`][field@Filters::qualifying_pos] field.
     pub fn qualifying_pos(self, qualifying_pos: u32) -> Self {
         Self {
             qualifying_pos: Some(qualifying_pos),
@@ -473,7 +473,7 @@ impl Filters {
         }
     }
 
-    /// Field-update method for the `grid_pos` field.
+    /// Field-update method for the [`grid_pos`][field@Filters::grid_pos] field.
     pub fn grid_pos(self, grid_pos: u32) -> Self {
         Self {
             grid_pos: Some(grid_pos),
@@ -481,7 +481,7 @@ impl Filters {
         }
     }
 
-    /// Field-update method for the `sprint_pos` field.
+    /// Field-update method for the [`sprint_pos`][field@Filters::sprint_pos] field.
     pub fn sprint_pos(self, sprint_pos: u32) -> Self {
         Self {
             sprint_pos: Some(sprint_pos),
@@ -489,7 +489,7 @@ impl Filters {
         }
     }
 
-    /// Field-update method for the `finish_pos` field.
+    /// Field-update method for the [`finish_pos`][field@Filters::finish_pos] field.
     pub fn finish_pos(self, finish_pos: u32) -> Self {
         Self {
             finish_pos: Some(finish_pos),
@@ -497,7 +497,7 @@ impl Filters {
         }
     }
 
-    /// Field-update method for the `fastest_lap_rank` field.
+    /// Field-update method for the [`fastest_lap_rank`][field@Filters::fastest_lap_rank] field.
     pub fn fastest_lap_rank(self, fastest_lap_rank: u32) -> Self {
         Self {
             fastest_lap_rank: Some(fastest_lap_rank),
@@ -505,7 +505,7 @@ impl Filters {
         }
     }
 
-    /// Field-update method for the `finishing_status` field.
+    /// Field-update method for the [`finishing_status`][field@Filters::finishing_status] field.
     pub fn finishing_status(self, finishing_status: StatusID) -> Self {
         Self {
             finishing_status: Some(finishing_status),
@@ -575,7 +575,7 @@ pub struct LapTimeFilters {
     /// Restrict responses to data for a single lap, identified by an index, starting from `1`.
     pub lap: Option<u32>,
 
-    /// Restrict responses to data for a single driver's race laps, identified by a unique ID.
+    /// Restrict responses to data for a single driver's race laps, identified by a [`DriverID`].
     pub driver_id: Option<DriverID>,
 }
 
@@ -591,12 +591,12 @@ impl LapTimeFilters {
         }
     }
 
-    /// Field-update method for the `lap` field.
+    /// Field-update method for the [`lap`][field@LapTimeFilters::lap] field.
     pub fn lap(self, lap: u32) -> Self {
         Self { lap: Some(lap), ..self }
     }
 
-    /// Field-update method for the `driver_id` field.
+    /// Field-update method for the [`driver_id`][field@LapTimeFilters::driver_id] field.
     pub fn driver_id(self, driver_id: DriverID) -> Self {
         Self {
             driver_id: Some(driver_id),
@@ -662,7 +662,7 @@ pub struct PitStopFilters {
     /// starting from `1`. The response will be empty if no pit stops took place in that lap.
     pub lap: Option<u32>,
 
-    /// Restrict responses to pit stops for a single driver's car, identified by a unique ID.
+    /// Restrict responses to pit stops for a single driver's car, identified by a [`DriverID`].
     pub driver_id: Option<DriverID>,
 
     /// Restrict responses to specific pit stops, identified by an index, starting from `1`. The
@@ -672,7 +672,7 @@ pub struct PitStopFilters {
 
 impl PitStopFilters {
     /// Returns a [`PitStopFilters`] object with the required fields set as per the arguments, and
-    /// the rest of the fields set to `None`, i.e. requesting no filtering on those parameters.
+    /// the rest of the fields set to [`None`], i.e. requesting no filtering on those parameters.
     pub const fn new(season: SeasonID, round: RoundID) -> Self {
         Self {
             season,
@@ -683,12 +683,12 @@ impl PitStopFilters {
         }
     }
 
-    /// Field-update method for the `lap` field.
+    /// Field-update method for the [`lap`][field@PitStopFilters::lap] field.
     pub fn lap(self, lap: u32) -> Self {
         Self { lap: Some(lap), ..self }
     }
 
-    /// Field-update method for the `driver_id` field.
+    /// Field-update method for the [`driver_id`][field@PitStopFilters::driver_id] field.
     pub fn driver_id(self, driver_id: DriverID) -> Self {
         Self {
             driver_id: Some(driver_id),
@@ -696,7 +696,7 @@ impl PitStopFilters {
         }
     }
 
-    /// Field-update method for the `pit_stop` field.
+    /// Field-update method for the [`pit_stop`][field@PitStopFilters::pit_stop] field.
     pub fn pit_stop(self, pit_stop: u32) -> Self {
         Self {
             pit_stop: Some(pit_stop),
