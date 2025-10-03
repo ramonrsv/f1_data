@@ -54,10 +54,11 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// use f1_data::ergast::{get::get_response_max_limit, resource::{Filters, Resource}};
-    /// use f1_data::ergast::response::Season;
-    ///
-    /// let resp = get_response_max_limit(&Resource::SeasonList(Filters::none())).unwrap();
+    /// # use f1_data::ergast::{get::JolpicaF1, resource::{Filters, Resource}};
+    /// # use f1_data::ergast::response::Season;
+    /// # let jolpica = JolpicaF1::default();
+    /// #
+    /// let resp = jolpica.get_response_max_limit(&Resource::SeasonList(Filters::none())).unwrap();
     ///
     /// let seasons = resp.into_table_list::<Season>().unwrap();
     /// assert!(seasons.len() >= 74);
@@ -90,10 +91,11 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// use f1_data::ergast::{get::get_response, resource::{Filters, Resource}};
-    /// use f1_data::ergast::response::Season;
-    ///
-    /// let resp = get_response(&Resource::SeasonList(Filters::new().season(2023))).unwrap();
+    /// # use f1_data::ergast::{get::JolpicaF1, resource::{Filters, Resource}};
+    /// # use f1_data::ergast::response::Season;
+    /// # let jolpica = JolpicaF1::default();
+    /// #
+    /// let resp = jolpica.get_response(&Resource::SeasonList(Filters::new().season(2023))).unwrap();
     /// let season = resp.into_table_list_single_element::<Season>().unwrap();
     /// assert_eq!(season.season, 2023);
     /// assert_eq!(
@@ -124,10 +126,11 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// use f1_data::ergast::{get::get_response_max_limit, resource::{Filters, Resource}};
-    /// use f1_data::ergast::response::Season;
-    ///
-    /// let resp = get_response_max_limit(&Resource::SeasonList(Filters::none())).unwrap();
+    /// # use f1_data::ergast::{get::JolpicaF1, resource::{Filters, Resource}};
+    /// # use f1_data::ergast::response::Season;
+    /// # let jolpica = JolpicaF1::default();
+    /// #
+    /// let resp = jolpica.get_response_max_limit(&Resource::SeasonList(Filters::none())).unwrap();
     ///
     /// assert!(resp.as_seasons().unwrap().len() >= 74);
     /// assert_eq!(resp.as_seasons().unwrap()[0].season, 1950);
@@ -161,10 +164,11 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// use f1_data::ergast::{get::get_response, resource::{Filters, Resource}};
-    /// use f1_data::ergast::response::Season;
-    ///
-    /// let resp = get_response(&Resource::SeasonList(Filters::new().season(2023))).unwrap();
+    /// # use f1_data::ergast::{get::JolpicaF1, resource::{Filters, Resource}};
+    /// # use f1_data::ergast::response::Season;
+    /// # let jolpica = JolpicaF1::default();
+    /// #
+    /// let resp = jolpica.get_response(&Resource::SeasonList(Filters::new().season(2023))).unwrap();
     /// assert_eq!(resp.as_season().unwrap().season, 2023);
     /// assert_eq!(
     ///     resp.as_season().unwrap().url.as_str(),
@@ -418,8 +422,8 @@ impl Pagination {
 ///
 /// ```
 /// # use url::Url;
-/// use f1_data::ergast::response::{Season, Table};
-///
+/// # use f1_data::ergast::response::{Season, Table};
+/// #
 /// let table = Table::Seasons {
 ///     seasons: vec![Season {
 ///         season: 2022,
@@ -794,8 +798,8 @@ impl Race<Schedule> {
 ///
 /// ```
 /// # use url::Url;
-/// use f1_data::ergast::response::{Payload, SprintResult};
-///
+/// # use f1_data::ergast::response::{Payload, SprintResult};
+/// #
 /// let payload = Payload::Laps(vec![]);
 ///
 /// let Payload::Laps(laps) = &payload else { panic!("Expected Laps variant"); };

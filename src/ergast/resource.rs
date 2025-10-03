@@ -159,10 +159,6 @@ pub enum Resource {
 }
 
 impl Resource {
-    /// The base URL at which requests will be made from the Ergast API.
-    // @todo This should probably be configurable, e.g. to support mirrors, caches, etc.
-    pub const ERGAST_BASE_URL: &'static str = "https://api.jolpi.ca/ergast/f1";
-
     /// Produces a URL with which to request the given [`Resource`] from the Ergast API, including
     /// any filters that may have been requested.
     ///
@@ -170,9 +166,9 @@ impl Resource {
     ///
     /// ```
     /// # use url::Url;
-    /// use f1_data::id::DriverID;
-    /// use f1_data::ergast::resource::{Filters, Resource};
-    ///
+    /// # use f1_data::id::DriverID;
+    /// # use f1_data::ergast::resource::{Filters, Resource};
+    /// #
     /// let request = Resource::DriverInfo(Filters {
     ///     driver_id: Some(DriverID::from("leclerc")),
     ///     ..Filters::none()
@@ -220,7 +216,7 @@ impl Resource {
 
         Url::parse(&format!(
             "{}{}.json",
-            Self::ERGAST_BASE_URL,
+            crate::ergast::JOLPICA_API_BASE_URL,
             filters
                 .iter()
                 .filter(|(key, val)| !val.is_empty() || key == &resource_key)
@@ -240,9 +236,9 @@ impl Resource {
     ///
     /// ```
     /// # use url::Url;
-    /// use f1_data::id::DriverID;
-    /// use f1_data::ergast::resource::{Filters, Page, Resource};
-    ///
+    /// # use f1_data::id::DriverID;
+    /// # use f1_data::ergast::resource::{Filters, Page, Resource};
+    /// #
     /// let request = Resource::DriverInfo(Filters {
     ///     driver_id: Some(DriverID::from("leclerc")),
     ///     ..Filters::none()
@@ -532,9 +528,9 @@ impl Default for Filters {
 /// # Examples
 ///
 /// ```
-/// use f1_data::id::DriverID;
-/// use f1_data::ergast::resource::LapTimeFilters;
-///
+/// # use f1_data::id::DriverID;
+/// # use f1_data::ergast::resource::LapTimeFilters;
+/// #
 /// let filters = LapTimeFilters {
 ///     season: 2023,
 ///     round: 4,
@@ -617,9 +613,9 @@ impl LapTimeFilters {
 /// # Examples
 ///
 /// ```
-/// use f1_data::id::DriverID;
-/// use f1_data::ergast::resource::PitStopFilters;
-///
+/// # use f1_data::id::DriverID;
+/// # use f1_data::ergast::resource::PitStopFilters;
+/// #
 /// let filters = PitStopFilters {
 ///     season: 2023,
 ///     round: 4,
@@ -839,11 +835,11 @@ mod tests {
 
     #[test]
     fn resource_ergast_base_url() {
-        assert_eq!(Resource::ERGAST_BASE_URL, "https://api.jolpi.ca/ergast/f1")
+        assert_eq!(crate::ergast::JOLPICA_API_BASE_URL, "https://api.jolpi.ca/ergast/f1")
     }
 
     fn url(tail: &str) -> Url {
-        Url::parse(&format!("{}{}", Resource::ERGAST_BASE_URL, tail)).unwrap()
+        Url::parse(&format!("{}{}", crate::ergast::JOLPICA_API_BASE_URL, tail)).unwrap()
     }
 
     #[test]

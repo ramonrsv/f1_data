@@ -31,8 +31,8 @@ pub type RoundID = u32;
 /// # Examples
 ///
 /// ```
-/// use f1_data::id::RaceID;
-///
+/// # use f1_data::id::RaceID;
+/// #
 /// let race_id = RaceID::from(2023, 1);
 /// assert_eq!(race_id.season, 2023);
 /// assert_eq!(race_id.round, 1);

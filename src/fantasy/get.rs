@@ -9,8 +9,8 @@ use crate::error::Error;
 /// # Examples
 ///
 /// ```
-/// use f1_data::fantasy::get::get_season_prices;
-///
+/// # use f1_data::fantasy::get::get_season_prices;
+/// #
 /// let season_prices = get_season_prices(2023).unwrap();
 /// assert!(season_prices.rounds.len() >= 13);
 ///

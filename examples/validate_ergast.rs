@@ -1,14 +1,12 @@
+use std::sync::LazyLock;
+
 use anyhow::{Result, anyhow};
 use colored::Colorize;
 use log::{debug, error, info, trace};
 
 use f1_data::{
     ergast::{
-        get::{
-            get_circuits, get_constructors, get_driver_laps, get_drivers, get_lap_timings, get_pit_stops,
-            get_race_schedules, get_seasons, get_session_result, get_session_results, get_session_results_for_event,
-            get_statuses,
-        },
+        get::JolpicaF1,
         resource::{Filters, PitStopFilters},
         response::{self, QualifyingResult, RaceResult, SprintResult},
     },
@@ -16,6 +14,8 @@ use f1_data::{
     error::Result as ErgastResult,
     id::{RaceID, RoundID, SeasonID},
 };
+
+static JOLPICA: LazyLock<JolpicaF1> = LazyLock::new(|| JolpicaF1::default());
 
 fn section_header(name: &str) {
     info!("===== {} =====", name);
@@ -69,7 +69,7 @@ fn retry_http<T>(f: impl Fn() -> ErgastResult<T>) -> ErgastResult<T> {
 fn validate_seasons(_: Configurations) -> Result<()> {
     section_header("seasons");
 
-    let seasons = retry_http(|| get_seasons(Filters::none()))?;
+    let seasons = retry_http(|| JOLPICA.get_seasons(Filters::none()))?;
     count("season", seasons.len());
 
     table_header("|     | year |     url");
@@ -83,7 +83,7 @@ fn validate_seasons(_: Configurations) -> Result<()> {
 fn validate_drivers(_: Configurations) -> Result<()> {
     section_header("drivers");
 
-    let drivers = retry_http(|| get_drivers(Filters::none()))?;
+    let drivers = retry_http(|| JOLPICA.get_drivers(Filters::none()))?;
     count("driver", drivers.len());
 
     table_header("|     |     driver_id      |     given_name family_name");
@@ -97,7 +97,7 @@ fn validate_drivers(_: Configurations) -> Result<()> {
 fn validate_constructors(_: Configurations) -> Result<()> {
     section_header("constructors");
 
-    let constructors = retry_http(|| get_constructors(Filters::none()))?;
+    let constructors = retry_http(|| JOLPICA.get_constructors(Filters::none()))?;
     count("constructor", constructors.len());
 
     table_header("|     |   constructor_id   |     name");
@@ -111,7 +111,7 @@ fn validate_constructors(_: Configurations) -> Result<()> {
 fn validate_circuits(_: Configurations) -> Result<()> {
     section_header("circuits");
 
-    let circuits = retry_http(|| get_circuits(Filters::none()))?;
+    let circuits = retry_http(|| JOLPICA.get_circuits(Filters::none()))?;
     count("circuit", circuits.len());
 
     table_header("|     |     circuit_id     |     name");
@@ -125,7 +125,7 @@ fn validate_circuits(_: Configurations) -> Result<()> {
 fn validate_statuses(_: Configurations) -> Result<()> {
     section_header("statuses");
 
-    let statuses = retry_http(|| get_statuses(Filters::none()))?;
+    let statuses = retry_http(|| JOLPICA.get_statuses(Filters::none()))?;
     count("status", statuses.len());
 
     table_header("|     |  id  | count |     status");
@@ -139,12 +139,12 @@ fn validate_statuses(_: Configurations) -> Result<()> {
 fn validate_race_schedules(_: Configurations) -> Result<()> {
     section_header("race schedules");
 
-    let seasons = retry_http(|| get_seasons(Filters::none()))?;
+    let seasons = retry_http(|| JOLPICA.get_seasons(Filters::none()))?;
 
     for season in seasons {
         section_sub_header(&format!("season: {}", season.season));
 
-        let races = retry_http(|| get_race_schedules(Filters::new().season(season.season)))?;
+        let races = retry_http(|| JOLPICA.get_race_schedules(Filters::new().season(season.season)))?;
         count("race", races.len());
 
         table_header("|    | round |    date    |     name");
@@ -238,13 +238,13 @@ where
 
     let round_filters = Filters::new().season(season).round(round);
 
-    let pos_count = retry_http(|| get_drivers(round_filters.clone()))
+    let pos_count = retry_http(|| JOLPICA.get_drivers(round_filters.clone()))
         .unwrap()
         .iter()
         .count();
 
     for pos in 1..(pos_count as u32 + 1) {
-        let race = retry_http(|| get_session_result::<T>(T::add_pos_filter(round_filters.clone(), pos)));
+        let race = retry_http(|| JOLPICA.get_session_result::<T>(T::add_pos_filter(round_filters.clone(), pos)));
 
         if let Ok(race) = race {
             trace!("P{pos}: {}", race.payload.driver_id());
@@ -264,14 +264,14 @@ where
 {
     section_sub_header(&format!("granular - {}", season));
 
-    let races = retry_http(|| get_race_schedules(Filters::new().season(season))).unwrap();
+    let races = retry_http(|| JOLPICA.get_race_schedules(Filters::new().season(season))).unwrap();
 
     for race in races {
         section_sub_header(&format!("round: {}", race.round));
 
         let round_filters = Filters::new().season(race.season).round(race.round);
 
-        let race_res = retry_http(|| get_session_results_for_event::<T>(round_filters.clone()));
+        let race_res = retry_http(|| JOLPICA.get_session_results_for_event::<T>(round_filters.clone()));
 
         if let Ok(race_res) = race_res {
             count("result", race_res.payload.len());
@@ -301,12 +301,12 @@ where
 
     section_header(T::name());
 
-    let seasons = retry_http(|| get_seasons(Filters::none()))?;
+    let seasons = retry_http(|| JOLPICA.get_seasons(Filters::none()))?;
 
     for season in seasons {
         section_sub_header(&format!("season: {}", season.season));
 
-        let races = retry_http(|| get_session_results::<T>(Filters::new().season(season.season)));
+        let races = retry_http(|| JOLPICA.get_session_results::<T>(Filters::new().season(season.season)));
 
         if let Ok(races) = races {
             count("race", races.len());
@@ -351,7 +351,7 @@ fn validate_driver_laps(configs: Configurations) -> Result<()> {
 
     section_header("driver laps");
 
-    let seasons = retry_http(|| get_seasons(Filters::none()))?;
+    let seasons = retry_http(|| JOLPICA.get_seasons(Filters::none()))?;
 
     'season_loop: for season in seasons {
         // We know that Resource::LapTimes are not available prior to 1996, so skip those seasons.
@@ -362,14 +362,14 @@ fn validate_driver_laps(configs: Configurations) -> Result<()> {
 
         section_sub_header(&format!("season: {}", season.season));
 
-        let races = retry_http(|| get_race_schedules(Filters::new().season(season.season)))?;
+        let races = retry_http(|| JOLPICA.get_race_schedules(Filters::new().season(season.season)))?;
         count("race", races.len());
 
         for (race_idx, race) in races.iter().enumerate() {
             let round_filters = Filters::new().season(race.season).round(race.round);
             let race_id = RaceID::from(race.season, race.round);
 
-            let drivers = retry_http(|| get_drivers(round_filters.clone())).unwrap();
+            let drivers = retry_http(|| JOLPICA.get_drivers(round_filters.clone())).unwrap();
 
             section_div_line();
             debug!("[{race_idx:2}] round {:2}, driver count: {:2}", race.round, drivers.len());
@@ -378,7 +378,7 @@ fn validate_driver_laps(configs: Configurations) -> Result<()> {
             let mut max_lap_count = 0;
 
             'driver_loop: for (driver_idx, driver) in drivers.iter().enumerate() {
-                let laps = retry_http(|| get_driver_laps(race_id, &driver.driver_id));
+                let laps = retry_http(|| JOLPICA.get_driver_laps(race_id, &driver.driver_id));
 
                 let laps = if let Ok(laps) = laps {
                     some_laps_found = true;
@@ -429,7 +429,7 @@ fn validate_lap_timings(configs: Configurations) -> Result<()> {
 
     section_header("lap timings");
 
-    let seasons = retry_http(|| get_seasons(Filters::none())).unwrap();
+    let seasons = retry_http(|| JOLPICA.get_seasons(Filters::none())).unwrap();
 
     'season_loop: for season in seasons {
         // We know that Resource::LapTimes are not available prior to 1996, so skip those seasons.
@@ -440,7 +440,7 @@ fn validate_lap_timings(configs: Configurations) -> Result<()> {
 
         section_sub_header(&format!("season: {}", season.season));
 
-        let races = retry_http(|| get_race_schedules(Filters::new().season(season.season))).unwrap();
+        let races = retry_http(|| JOLPICA.get_race_schedules(Filters::new().season(season.season))).unwrap();
         count("race", races.len());
 
         for (race_idx, race) in races.iter().enumerate() {
@@ -450,7 +450,7 @@ fn validate_lap_timings(configs: Configurations) -> Result<()> {
             debug!("[{race_idx:2}] round {:2}", race.round);
 
             'lap_loop: for lap in 1..1000 {
-                let lap_timings = retry_http(|| get_lap_timings(race_id, lap));
+                let lap_timings = retry_http(|| JOLPICA.get_lap_timings(race_id, lap));
 
                 let lap_timings = if let Ok(lap_timings) = lap_timings {
                     lap_timings
@@ -494,7 +494,7 @@ fn validate_pit_stops(_: Configurations) -> Result<()> {
 
     section_header("pit stops");
 
-    let seasons = retry_http(|| get_seasons(Filters::none())).unwrap();
+    let seasons = retry_http(|| JOLPICA.get_seasons(Filters::none())).unwrap();
 
     'season_loop: for season in seasons {
         // We know that Resource::LapTimes are not available prior to 2011, so skip those seasons.
@@ -505,14 +505,14 @@ fn validate_pit_stops(_: Configurations) -> Result<()> {
 
         section_sub_header(&format!("season: {}", season.season));
 
-        let races = retry_http(|| get_race_schedules(Filters::new().season(season.season))).unwrap();
+        let races = retry_http(|| JOLPICA.get_race_schedules(Filters::new().season(season.season))).unwrap();
         count("race", races.len());
 
         'race_loop: for (race_idx, race) in races.iter().enumerate() {
             section_div_line();
             debug!("[{race_idx:2}] round {:2}", race.round);
 
-            let pit_stops = retry_http(|| get_pit_stops(PitStopFilters::new(race.season, race.round)));
+            let pit_stops = retry_http(|| JOLPICA.get_pit_stops(PitStopFilters::new(race.season, race.round)));
 
             let pit_stops = if let Ok(pit_stops) = pit_stops {
                 pit_stops

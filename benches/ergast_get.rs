@@ -10,7 +10,7 @@ use url::Url;
 
 use f1_data::{
     ergast::{
-        get::get_race_results,
+        get::JolpicaF1,
         resource::{Filters, Page, Resource},
         response::{Race, RaceResult, Response},
     },
@@ -23,9 +23,11 @@ static URL: LazyLock<Url> = LazyLock::new(|| RESOURCE.to_url_with(Page::with_max
 
 static FILENAME: &str = "benches/assets/response_2022_race_results.json";
 
+static JOLPICA: LazyLock<JolpicaF1> = LazyLock::new(|| JolpicaF1::default());
+
 /// Benchmark a full call to [`get_race_results`], including network overhead, post-processing, etc.
 fn bench_get_race_results(c: &mut Criterion) {
-    c.bench_function("get_race_results", |b| b.iter(|| get_race_results(FILTERS.clone()).unwrap()));
+    c.bench_function("get_race_results", |b| b.iter(|| JOLPICA.get_race_results(FILTERS.clone()).unwrap()));
 }
 
 /// Benchmark different ways to process a [`ureq::Response`] into an [`ergast::Response`].
