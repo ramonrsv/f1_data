@@ -1,15 +1,14 @@
-//! To run this example, use `RUST_LOG=validate_ergast=<level> cargo run --example validate_ergast`
+//! To run this example, use `RUST_LOG=validate_jolpica=<level> cargo run --example validate_jolpica`
 //! where `<level>` is one of `error` (the default), `warn`, `info`, `debug`, or `trace`.
 //! See the [`env_logger`](https://docs.rs/env_logger/latest/env_logger/) crate for details.
 use std::sync::LazyLock;
 
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
 use colored::Colorize;
 use log::{debug, error, info, trace};
 
 use f1_data::{
-    error::Error as ErgastError,
-    error::Result as ErgastResult,
+    error::{Error, Result},
     id::{RaceID, RoundID, SeasonID},
     jolpica::{
         get::JolpicaF1,
@@ -42,11 +41,11 @@ fn count(name: &str, count: usize) {
     debug!("{name} count: {count}");
 }
 
-fn log_error<T>(result: ErgastResult<T>) {
+fn log_error<T>(result: Result<T>) {
     let msg = match result.err().unwrap() {
-        ErgastError::Http(_) => "HTTP error".into(),
-        ErgastError::Io(e) => e.to_string(),
-        ErgastError::Parse(e) => e.to_string(),
+        Error::Http(_) => "HTTP error".into(),
+        Error::Io(e) => e.to_string(),
+        Error::Parse(e) => e.to_string(),
         e => e.to_string(),
     };
 
@@ -54,11 +53,11 @@ fn log_error<T>(result: ErgastResult<T>) {
 }
 
 /// Call the provided function, retrying on HTTP errors, and forwarding anything else.
-fn retry_http<T>(f: impl Fn() -> ErgastResult<T>) -> ErgastResult<T> {
+fn retry_http<T>(f: impl Fn() -> Result<T>) -> Result<T> {
     for retry_idx in 1..5 {
         match f() {
             Ok(value) => return Ok(value),
-            Err(ErgastError::Http(_)) => {
+            Err(Error::Http(_)) => {
                 debug!("HTTP error, retrying {retry_idx}");
                 debug!("Sleeping for 10 seconds");
                 std::thread::sleep(std::time::Duration::from_secs(10));
@@ -69,7 +68,7 @@ fn retry_http<T>(f: impl Fn() -> ErgastResult<T>) -> ErgastResult<T> {
     panic!("Retried 4 times on HTTP errors, giving up");
 }
 
-fn validate_seasons(_: Configurations) -> Result<()> {
+fn validate_seasons(_: Configurations) -> anyhow::Result<()> {
     section_header("seasons");
 
     let seasons = retry_http(|| JOLPICA.get_seasons(Filters::none()))?;
@@ -83,7 +82,7 @@ fn validate_seasons(_: Configurations) -> Result<()> {
     Ok(())
 }
 
-fn validate_drivers(_: Configurations) -> Result<()> {
+fn validate_drivers(_: Configurations) -> anyhow::Result<()> {
     section_header("drivers");
 
     let drivers = retry_http(|| JOLPICA.get_drivers(Filters::none()))?;
@@ -97,7 +96,7 @@ fn validate_drivers(_: Configurations) -> Result<()> {
     Ok(())
 }
 
-fn validate_constructors(_: Configurations) -> Result<()> {
+fn validate_constructors(_: Configurations) -> anyhow::Result<()> {
     section_header("constructors");
 
     let constructors = retry_http(|| JOLPICA.get_constructors(Filters::none()))?;
@@ -111,7 +110,7 @@ fn validate_constructors(_: Configurations) -> Result<()> {
     Ok(())
 }
 
-fn validate_circuits(_: Configurations) -> Result<()> {
+fn validate_circuits(_: Configurations) -> anyhow::Result<()> {
     section_header("circuits");
 
     let circuits = retry_http(|| JOLPICA.get_circuits(Filters::none()))?;
@@ -125,7 +124,7 @@ fn validate_circuits(_: Configurations) -> Result<()> {
     Ok(())
 }
 
-fn validate_statuses(_: Configurations) -> Result<()> {
+fn validate_statuses(_: Configurations) -> anyhow::Result<()> {
     section_header("statuses");
 
     let statuses = retry_http(|| JOLPICA.get_statuses(Filters::none()))?;
@@ -139,7 +138,7 @@ fn validate_statuses(_: Configurations) -> Result<()> {
     Ok(())
 }
 
-fn validate_race_schedules(_: Configurations) -> Result<()> {
+fn validate_race_schedules(_: Configurations) -> anyhow::Result<()> {
     section_header("race schedules");
 
     let seasons = retry_http(|| JOLPICA.get_seasons(Filters::none()))?;
@@ -254,7 +253,7 @@ where
         }
         // We ignore NotFound errors because the .qualifying_pos/sprint_pos/finish_pos filters do
         // not work for non-fishing positions, i.e. those where position_text is not a number.
-        else if !matches!(race, Err(ErgastError::NotFound)) {
+        else if !matches!(race, Err(Error::NotFound)) {
             error!("P{pos} failed");
             log_error(race);
         }
@@ -296,7 +295,7 @@ fn is_known_no_number(season: SeasonID, round: RoundID, position: u32) -> bool {
         .any(|(s, r, positions)| season == *s && round == *r && positions.contains(&position))
 }
 
-fn validate_session_results<T>(configs: Configurations) -> Result<()>
+fn validate_session_results<T>(configs: Configurations) -> anyhow::Result<()>
 where
     T: response::SessionResult + SessionResult,
 {
@@ -349,7 +348,7 @@ where
     status
 }
 
-fn validate_driver_laps(configs: Configurations) -> Result<()> {
+fn validate_driver_laps(configs: Configurations) -> anyhow::Result<()> {
     let mut status = Ok(());
 
     section_header("driver laps");
@@ -390,7 +389,7 @@ fn validate_driver_laps(configs: Configurations) -> Result<()> {
                 }
                 // We ignore NotFound errors because those are valid for seasons prior to 1996,
                 // where Resource::LapTimes were not available; an overall message is still logged.
-                else if let Err(ErgastError::NotFound) = laps {
+                else if let Err(Error::NotFound) = laps {
                     continue 'driver_loop;
                 } else {
                     let msg =
@@ -427,7 +426,7 @@ fn validate_driver_laps(configs: Configurations) -> Result<()> {
     status
 }
 
-fn validate_lap_timings(configs: Configurations) -> Result<()> {
+fn validate_lap_timings(configs: Configurations) -> anyhow::Result<()> {
     let mut status = Ok(());
 
     section_header("lap timings");
@@ -459,7 +458,7 @@ fn validate_lap_timings(configs: Configurations) -> Result<()> {
                     lap_timings
                 }
                 // Stop loop once we find the first lap for which there are no lap timings.
-                else if let Err(ErgastError::NotFound) = lap_timings {
+                else if let Err(Error::NotFound) = lap_timings {
                     if lap == 1 {
                         debug!(">> No lap timings found");
                     }
@@ -492,7 +491,7 @@ fn validate_lap_timings(configs: Configurations) -> Result<()> {
     status
 }
 
-fn validate_pit_stops(_: Configurations) -> Result<()> {
+fn validate_pit_stops(_: Configurations) -> anyhow::Result<()> {
     let mut status = Ok(());
 
     section_header("pit stops");
@@ -521,7 +520,7 @@ fn validate_pit_stops(_: Configurations) -> Result<()> {
                 pit_stops
             }
             // Stop loop once we find the first lap for which there are no lap timings.
-            else if let Err(ErgastError::NotFound) = pit_stops {
+            else if let Err(Error::NotFound) = pit_stops {
                 debug!(">> No pit stops found");
                 continue 'race_loop;
             } else {
@@ -565,10 +564,10 @@ struct Configurations {
     pub granular_validation_on_error: Toggle,
 }
 
-fn main() -> Result<()> {
+fn main() -> anyhow::Result<()> {
     env_logger::builder().format_timestamp(None).init();
 
-    const VALIDATORS: &[fn(Configurations) -> Result<()>] = &[
+    const VALIDATORS: &[fn(Configurations) -> anyhow::Result<()>] = &[
         validate_seasons,
         validate_drivers,
         validate_constructors,

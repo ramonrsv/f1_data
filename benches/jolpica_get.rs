@@ -30,7 +30,8 @@ fn bench_get_race_results(c: &mut Criterion) {
     c.bench_function("get_race_results", |b| b.iter(|| JOLPICA.get_race_results(FILTERS.clone()).unwrap()));
 }
 
-/// Benchmark different ways to process a [`ureq::Response`] into an [`ergast::Response`].
+/// Benchmark different ways to process a [`ureq::Response`] into an [`Response`].
+///
 /// Note that the different functions include the network overhead, since a [`ureq::Response`]
 /// keeps the socket open and the body isn't read until one of [`ureq::Response::into_json()`],
 /// [`ureq::Response::into_string()`], or [`ureq::Response::into_reader()`] is called.
@@ -83,7 +84,7 @@ fn bench_read_json_from_file_vs_http(c: &mut Criterion) {
     });
 }
 
-/// Benchmark deserializing a JSON response, in string form, into an [`ergast::Response`].
+/// Benchmark deserializing a JSON response, in string form, into an [`Response`].
 fn bench_deserialize_response(c: &mut Criterion) {
     let content = fs::read_to_string(get_file_path()).unwrap();
 
@@ -108,7 +109,7 @@ fn verify_is_single_page(response: Response) -> Result<Response> {
     }
 }
 
-/// Benchmark processing an [`ergast::Response`]...
+/// Benchmark processing a [`Response`]...
 fn bench_process_response(c: &mut Criterion) {
     let content = fs::read_to_string(get_file_path()).unwrap();
     let response = serde_json::from_str::<Response>(&content).unwrap();

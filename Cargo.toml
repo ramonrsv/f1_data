@@ -45,12 +45,12 @@ pretty_assertions = "1.4"
 more-asserts = "0.3"
 
 [[bench]]
-name = "ergast_resource"
+name = "jolpica_resource"
 harness = false
 
 [[bench]]
-name = "ergast_get"
+name = "jolpica_get"
 harness = false
 
 [[example]]
-name = "validate_ergast"
+name = "validate_jolpica"
