@@ -1,7 +1,6 @@
 # TODO
 
 - [ ] Look into replacing **Note:** with [^note]:
-- [ ] Create ergast::api module to hold jolpica-f1 API base URL, rate limit, max request size, etc.
 - [ ] Add support to ergast::JolpicaF1 to automatically make and merge multiple GET requests for
       multi-page responses, likely supporting a maximum number of allowed auto-requests, etc.
 - [ ] Add support to ergast::JolpicaF1 to use jolpica-f1 database dumps as a source. May also need

@@ -216,7 +216,7 @@ impl Resource {
 
         Url::parse(&format!(
             "{}{}.json",
-            crate::ergast::JOLPICA_API_BASE_URL,
+            crate::ergast::api::JOLPICA_API_BASE_URL,
             filters
                 .iter()
                 .filter(|(key, val)| !val.is_empty() || key == &resource_key)
@@ -835,11 +835,11 @@ mod tests {
 
     #[test]
     fn resource_ergast_base_url() {
-        assert_eq!(crate::ergast::JOLPICA_API_BASE_URL, "https://api.jolpi.ca/ergast/f1")
+        assert_eq!(crate::ergast::api::JOLPICA_API_BASE_URL, "https://api.jolpi.ca/ergast/f1")
     }
 
     fn url(tail: &str) -> Url {
-        Url::parse(&format!("{}{}", crate::ergast::JOLPICA_API_BASE_URL, tail)).unwrap()
+        Url::parse(&format!("{}{}", crate::ergast::api::JOLPICA_API_BASE_URL, tail)).unwrap()
     }
 
     #[test]

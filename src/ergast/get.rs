@@ -21,7 +21,7 @@ use crate::ergast::response::{Lap, Pagination, Payload, Table};
 /// Formula 1 data.
 ///
 /// This type fundamentally acts as a wrapper around GET requests to the jolpica-f1 API endpoints at
-/// [`JOLPICA_API_BASE_URL`][crate::ergast::JOLPICA_API_BASE_URL], but also provides additional
+/// [`JOLPICA_API_BASE_URL`][crate::ergast::api::JOLPICA_API_BASE_URL], but also provides additional
 /// functionality like caching, rate limiting, as well as alternate sources, e.g. [jolpica-f1
 /// database dumps](https://github.com/jolpica/jolpica-f1/blob/main/docs/dumps.md).
 ///
