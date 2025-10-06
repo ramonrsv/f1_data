@@ -1,2 +1,9 @@
 # These crates have duplicate versions purely from dependencies themselves
-allowed-duplicate-crates = ["hashbrown", "indexmap", "schemars", "webpki-roots"]
+allowed-duplicate-crates = [
+    "hashbrown",
+    "indexmap",
+    "schemars",
+    "webpki-roots",
+    "getrandom",
+    "wasi",
+]

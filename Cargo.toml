@@ -30,6 +30,7 @@ url = { version = "2.5", features = ["serde"] }
 time = { version = "0.3", features = ["serde-human-readable", "macros"] }
 regex = "1.11"
 enum-as-inner = "0.6"
+governor = "0.10"
 
 [dev-dependencies]
 const_format = "0.2"
@@ -41,6 +42,7 @@ anyhow = "1.0"
 colored = "3.0"
 pretty_assertions = "1.4"
 more-asserts = "0.3"
+nonzero_ext = "0.3"
 
 [[bench]]
 name = "ergast_resource"

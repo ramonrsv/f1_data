@@ -92,6 +92,7 @@ mod _lint {
 pub mod ergast;
 pub mod error;
 pub mod id;
+pub mod rate_limiter;
 
 #[cfg(feature = "fantasy")]
 pub mod fantasy;
