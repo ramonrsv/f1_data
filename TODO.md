@@ -10,3 +10,5 @@
 - [ ] Look into the full jolpica-f1 database schema
       https://dbdocs.io/jolpica/jolpica-f1?view=relationships, there may be a lot more there than is
       supported by the API
+- [ ] Add support for jolpica-f1 [driver](https://api.jolpi.ca/ergast/f1/2025/driverstandings/) and
+      [constructor](https://api.jolpi.ca/ergast/f1/2025/constructorstandings/) standings
