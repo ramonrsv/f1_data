@@ -9,12 +9,12 @@ use std::sync::LazyLock;
 use url::Url;
 
 use f1_data::{
-    ergast::{
+    error::{Error, Result},
+    jolpica::{
         get::JolpicaF1,
         resource::{Filters, Page, Resource},
         response::{Race, RaceResult, Response},
     },
-    error::{Error, Result},
 };
 
 static FILTERS: LazyLock<Filters> = LazyLock::new(|| Filters::new().season(2022));

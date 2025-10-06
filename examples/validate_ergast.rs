@@ -5,14 +5,14 @@ use colored::Colorize;
 use log::{debug, error, info, trace};
 
 use f1_data::{
-    ergast::{
+    error::Error as ErgastError,
+    error::Result as ErgastResult,
+    id::{RaceID, RoundID, SeasonID},
+    jolpica::{
         get::JolpicaF1,
         resource::{Filters, PitStopFilters},
         response::{self, QualifyingResult, RaceResult, SprintResult},
     },
-    error::Error as ErgastError,
-    error::Result as ErgastResult,
-    id::{RaceID, RoundID, SeasonID},
 };
 
 static JOLPICA: LazyLock<JolpicaF1> = LazyLock::new(|| JolpicaF1::default());

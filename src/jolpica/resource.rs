@@ -1,12 +1,12 @@
 use url::Url;
 
 use crate::{
-    ergast::response::Pagination,
     id::{CircuitID, ConstructorID, DriverID, RoundID, SeasonID, StatusID},
+    jolpica::response::Pagination,
 };
 
 #[cfg(doc)]
-use crate::ergast::response::{
+use crate::jolpica::response::{
     Circuit, Constructor, Driver, QualifyingResult, Race, RaceResult, Response, Season, SprintResult, Status,
 };
 
@@ -167,7 +167,7 @@ impl Resource {
     /// ```
     /// # use url::Url;
     /// # use f1_data::id::DriverID;
-    /// # use f1_data::ergast::resource::{Filters, Resource};
+    /// # use f1_data::jolpica::resource::{Filters, Resource};
     /// #
     /// let request = Resource::DriverInfo(Filters {
     ///     driver_id: Some(DriverID::from("leclerc")),
@@ -216,7 +216,7 @@ impl Resource {
 
         Url::parse(&format!(
             "{}{}.json",
-            crate::ergast::api::JOLPICA_API_BASE_URL,
+            crate::jolpica::api::JOLPICA_API_BASE_URL,
             filters
                 .iter()
                 .filter(|(key, val)| !val.is_empty() || key == &resource_key)
@@ -237,7 +237,7 @@ impl Resource {
     /// ```
     /// # use url::Url;
     /// # use f1_data::id::DriverID;
-    /// # use f1_data::ergast::resource::{Filters, Page, Resource};
+    /// # use f1_data::jolpica::resource::{Filters, Page, Resource};
     /// #
     /// let request = Resource::DriverInfo(Filters {
     ///     driver_id: Some(DriverID::from("leclerc")),
@@ -273,7 +273,7 @@ trait FiltersFormatter {
 ///
 /// Although most field combinations are valid, this interface makes no(few) efforts to verify or
 /// enforce the validity of constructed combinations. Error checking is left up to the Ergast API
-/// and error handling should be done at the API call site, e.g. via the [`crate::ergast::get`]
+/// and error handling should be done at the API call site, e.g. via the [`crate::jolpica::get`]
 /// module. [`Filters`] objects can be constructed in multiple ways, which are demonstrated in the
 /// examples and listed below:
 ///
@@ -286,7 +286,7 @@ trait FiltersFormatter {
 ///
 /// ```
 /// use f1_data::id::{CircuitID, ConstructorID, DriverID, StatusID};
-/// use f1_data::ergast::resource::Filters;
+/// use f1_data::jolpica::resource::Filters;
 ///
 /// let filters = Filters {
 ///     season: Some(2023),
@@ -395,7 +395,7 @@ pub struct Filters {
 impl Filters {
     /// Value that can be set in [`Filters::grid_pos`] field, or updated with field-update method,
     /// to indicate a driver that started the race from the pit lane.
-    pub const GRID_PIT_LANE: u32 = crate::ergast::response::GRID_PIT_LANE;
+    pub const GRID_PIT_LANE: u32 = crate::jolpica::response::GRID_PIT_LANE;
 
     /// Returns a [`Filters`] object with all fields set to `None`, i.e. requesting no filtering.
     /// This method is identical to [`Filters::none`]; both are provided to maximize readability.
@@ -529,7 +529,7 @@ impl Default for Filters {
 ///
 /// ```
 /// # use f1_data::id::DriverID;
-/// # use f1_data::ergast::resource::LapTimeFilters;
+/// # use f1_data::jolpica::resource::LapTimeFilters;
 /// #
 /// let filters = LapTimeFilters {
 ///     season: 2023,
@@ -614,7 +614,7 @@ impl LapTimeFilters {
 ///
 /// ```
 /// # use f1_data::id::DriverID;
-/// # use f1_data::ergast::resource::PitStopFilters;
+/// # use f1_data::jolpica::resource::PitStopFilters;
 /// #
 /// let filters = PitStopFilters {
 ///     season: 2023,
@@ -835,11 +835,11 @@ mod tests {
 
     #[test]
     fn resource_ergast_base_url() {
-        assert_eq!(crate::ergast::api::JOLPICA_API_BASE_URL, "https://api.jolpi.ca/ergast/f1")
+        assert_eq!(crate::jolpica::api::JOLPICA_API_BASE_URL, "https://api.jolpi.ca/ergast/f1")
     }
 
     fn url(tail: &str) -> Url {
-        Url::parse(&format!("{}{}", crate::ergast::api::JOLPICA_API_BASE_URL, tail)).unwrap()
+        Url::parse(&format!("{}{}", crate::jolpica::api::JOLPICA_API_BASE_URL, tail)).unwrap()
     }
 
     #[test]

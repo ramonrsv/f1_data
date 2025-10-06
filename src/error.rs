@@ -4,10 +4,10 @@ use ureq;
 #[cfg(feature = "fantasy")]
 use serde_yaml;
 
-use crate::ergast::response::{Payload, Table};
+use crate::jolpica::response::{Payload, Table};
 
 #[cfg(doc)]
-use crate::ergast::{resource::Resource, response};
+use crate::jolpica::{resource::Resource, response};
 
 /// An error that may occur while processing a [`Resource`] HTTP request from the Ergast API, via
 /// the provided family of `get_*` methods.

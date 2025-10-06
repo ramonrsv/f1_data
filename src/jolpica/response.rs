@@ -6,15 +6,15 @@ use serde_with::{DisplayFromStr, serde_as};
 use url::Url;
 
 use crate::{
-    ergast::{
+    error::{Error, Result},
+    id::{CircuitID, ConstructorID, DriverID, RoundID, SeasonID, StatusID},
+    jolpica::{
         resource::{Filters, Resource},
         time::{
             Date, DateTime, Duration, QualifyingTime, RaceTime, Time, deserialize_duration, deserialize_optional_time,
             deserialize_time,
         },
     },
-    error::{Error, Result},
-    id::{CircuitID, ConstructorID, DriverID, RoundID, SeasonID, StatusID},
 };
 
 pub const GRID_PIT_LANE: u32 = 0;
@@ -54,8 +54,8 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::ergast::{get::JolpicaF1, resource::{Filters, Resource}};
-    /// # use f1_data::ergast::response::Season;
+    /// # use f1_data::jolpica::{get::JolpicaF1, resource::{Filters, Resource}};
+    /// # use f1_data::jolpica::response::Season;
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// let resp = jolpica.get_response_max_limit(&Resource::SeasonList(Filters::none())).unwrap();
@@ -91,8 +91,8 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::ergast::{get::JolpicaF1, resource::{Filters, Resource}};
-    /// # use f1_data::ergast::response::Season;
+    /// # use f1_data::jolpica::{get::JolpicaF1, resource::{Filters, Resource}};
+    /// # use f1_data::jolpica::response::Season;
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// let resp = jolpica.get_response(&Resource::SeasonList(Filters::new().season(2023))).unwrap();
@@ -126,8 +126,8 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::ergast::{get::JolpicaF1, resource::{Filters, Resource}};
-    /// # use f1_data::ergast::response::Season;
+    /// # use f1_data::jolpica::{get::JolpicaF1, resource::{Filters, Resource}};
+    /// # use f1_data::jolpica::response::Season;
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// let resp = jolpica.get_response_max_limit(&Resource::SeasonList(Filters::none())).unwrap();
@@ -164,8 +164,8 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::ergast::{get::JolpicaF1, resource::{Filters, Resource}};
-    /// # use f1_data::ergast::response::Season;
+    /// # use f1_data::jolpica::{get::JolpicaF1, resource::{Filters, Resource}};
+    /// # use f1_data::jolpica::response::Season;
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// let resp = jolpica.get_response(&Resource::SeasonList(Filters::new().season(2023))).unwrap();
@@ -422,7 +422,7 @@ impl Pagination {
 ///
 /// ```
 /// # use url::Url;
-/// # use f1_data::ergast::response::{Season, Table};
+/// # use f1_data::jolpica::response::{Season, Table};
 /// #
 /// let table = Table::Seasons {
 ///     seasons: vec![Season {
@@ -798,7 +798,7 @@ impl Race<Schedule> {
 ///
 /// ```
 /// # use url::Url;
-/// # use f1_data::ergast::response::{Payload, SprintResult};
+/// # use f1_data::jolpica::response::{Payload, SprintResult};
 /// #
 /// let payload = Payload::Laps(vec![]);
 ///
@@ -1314,7 +1314,7 @@ mod tests {
     use std::sync::LazyLock;
 
     use super::*;
-    use crate::ergast::tests::assets::*;
+    use crate::jolpica::tests::assets::*;
 
     #[test]
     fn season_table() {

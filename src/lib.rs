@@ -89,9 +89,9 @@ mod _lint {
     use log as _;
 }
 
-pub mod ergast;
 pub mod error;
 pub mod id;
+pub mod jolpica;
 pub mod rate_limiter;
 
 #[cfg(feature = "fantasy")]

@@ -4,9 +4,9 @@ use const_format::formatcp;
 use std::sync::LazyLock;
 use url::Url;
 
-use crate::ergast::response::*;
+use crate::jolpica::response::*;
 
-use crate::ergast::time::{
+use crate::jolpica::time::{
     Date, DateTime, QualifyingTime, RaceTime, duration_m_s_ms, duration_millis, duration_s_ms,
     macros::{date, time},
 };

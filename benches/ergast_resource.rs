@@ -4,7 +4,7 @@ use criterion::{criterion_group, criterion_main};
 
 use std::sync::LazyLock;
 
-use f1_data::ergast::resource::{Filters, Resource};
+use f1_data::jolpica::resource::{Filters, Resource};
 
 static FILTERS_NONE: LazyLock<Filters> = LazyLock::new(|| Filters::none());
 

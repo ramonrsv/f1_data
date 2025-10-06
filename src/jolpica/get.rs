@@ -2,7 +2,9 @@ use serde_json;
 use ureq;
 
 use crate::{
-    ergast::{
+    error::{Error, Result},
+    id::{CircuitID, ConstructorID, DriverID, RaceID, SeasonID},
+    jolpica::{
         api::JOLPICA_API_RATE_LIMIT,
         resource::{Filters, LapTimeFilters, Page, PitStopFilters, Resource},
         response::verify_has_one_element_and_extract,
@@ -11,19 +13,17 @@ use crate::{
             Season, SessionResult, SprintResult, Status, TableList, Timing,
         },
     },
-    error::{Error, Result},
-    id::{CircuitID, ConstructorID, DriverID, RaceID, SeasonID},
     rate_limiter::{Quota, RateLimiter},
 };
 
 #[cfg(doc)]
-use crate::ergast::response::{Lap, Pagination, Payload, Table};
+use crate::jolpica::response::{Lap, Pagination, Payload, Table};
 
 /// A client for accessing the [jolpica-f1](https://github.com/jolpica/jolpica-f1) API for querying
 /// Formula 1 data.
 ///
 /// This type fundamentally acts as a wrapper around GET requests to the jolpica-f1 API endpoints at
-/// [`JOLPICA_API_BASE_URL`][crate::ergast::api::JOLPICA_API_BASE_URL], but also provides additional
+/// [`JOLPICA_API_BASE_URL`][crate::jolpica::api::JOLPICA_API_BASE_URL], but also provides additional
 /// functionality like caching, rate limiting, as well as alternate sources, e.g. [jolpica-f1
 /// database dumps](https://github.com/jolpica/jolpica-f1/blob/main/docs/dumps.md).
 ///
@@ -64,7 +64,7 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::ergast::{get::JolpicaF1, resource::{Filters, Page, Resource}};
+    /// # use f1_data::jolpica::{get::JolpicaF1, resource::{Filters, Page, Resource}};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// let resp = jolpica.get_response_page(
@@ -114,7 +114,7 @@ impl JolpicaF1 {
     ///
     /// ```no_run
     /// # use f1_data::id::DriverID;
-    /// # use f1_data::ergast::{get::JolpicaF1, resource::{Filters, Resource}};
+    /// # use f1_data::jolpica::{get::JolpicaF1, resource::{Filters, Resource}};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// let resp = jolpica.get_response(&Resource::DriverInfo(Filters {
@@ -150,7 +150,7 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::ergast::{get::JolpicaF1, resource::{Filters, Resource}};
+    /// # use f1_data::jolpica::{get::JolpicaF1, resource::{Filters, Resource}};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// let resp = jolpica.get_response_max_limit(&Resource::SeasonList(Filters::none())).unwrap();
@@ -181,7 +181,7 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::ergast::{get::JolpicaF1, resource::Filters};
+    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// let seasons = jolpica.get_seasons(Filters::none()).unwrap();
@@ -212,7 +212,7 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::{ergast::get::JolpicaF1, ergast::response::Season, error::Error};
+    /// # use f1_data::{jolpica::get::JolpicaF1, jolpica::response::Season, error::Error};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// assert_eq!(jolpica.get_table_list_single_element::<Season>(1950).unwrap().season, 1950);
@@ -235,7 +235,7 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::ergast::{get::JolpicaF1, resource::Filters};
+    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// let seasons = jolpica.get_seasons(Filters::none()).unwrap();
@@ -256,7 +256,7 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::{error::Error, ergast::get::JolpicaF1};
+    /// # use f1_data::{error::Error, jolpica::get::JolpicaF1};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// assert_eq!(jolpica.get_season(1950).unwrap().season, 1950);
@@ -278,7 +278,7 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::ergast::{get::JolpicaF1, resource::Filters};
+    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// let drivers = jolpica.get_drivers(Filters::new().season(2022)).unwrap();
@@ -306,7 +306,7 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::{error::Error, id::DriverID, ergast::get::JolpicaF1};
+    /// # use f1_data::{error::Error, id::DriverID, jolpica::get::JolpicaF1};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// assert_eq!(jolpica.get_driver(DriverID::from("alonso")).unwrap().given_name, "Fernando".to_string());
@@ -328,7 +328,7 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::ergast::{get::JolpicaF1, resource::Filters};
+    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// let constructors = jolpica.get_constructors(Filters::new().season(2022)).unwrap();
@@ -356,7 +356,7 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::{ergast::get::JolpicaF1, error::Error, id::ConstructorID};
+    /// # use f1_data::{jolpica::get::JolpicaF1, error::Error, id::ConstructorID};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// assert_eq!(jolpica.get_constructor(ConstructorID::from("ferrari")).unwrap().name, "Ferrari".to_string());
@@ -378,7 +378,7 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::ergast::{get::JolpicaF1, resource::Filters};
+    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// let circuits = jolpica.get_circuits(Filters::new().season(2022)).unwrap();
@@ -406,7 +406,7 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::{ergast::get::JolpicaF1, error::Error, id::CircuitID};
+    /// # use f1_data::{jolpica::get::JolpicaF1, error::Error, id::CircuitID};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// assert_eq!(
@@ -440,7 +440,7 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::ergast::{get::JolpicaF1, resource::Filters, time::macros::{date, time}};
+    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters, time::macros::{date, time}};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// let races = jolpica.get_race_schedules(Filters::new().season(2022)).unwrap();
@@ -474,7 +474,7 @@ impl JolpicaF1 {
     ///
     /// ```no_run
     /// # use f1_data::id::RaceID;
-    /// # use f1_data::ergast::{get::JolpicaF1, resource::Filters, time::macros::{date, time}};
+    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters, time::macros::{date, time}};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// let race = jolpica.get_race_schedule(RaceID::from(2022, 1)).unwrap();
@@ -525,7 +525,7 @@ impl JolpicaF1 {
     ///
     /// ```no_run
     /// # use f1_data::id::ConstructorID;
-    /// # use f1_data::ergast::{
+    /// # use f1_data::jolpica::{
     /// #     get::JolpicaF1,
     /// #     resource::Filters,
     /// #     response::{Points, RaceResult, SprintResult},
@@ -589,7 +589,7 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::ergast::{get::JolpicaF1, resource::Filters, response::RaceResult};
+    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters, response::RaceResult};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// let race = jolpica.get_session_results_for_event::<RaceResult>(Filters::new().season(2021).round(22)).unwrap();
@@ -637,7 +637,7 @@ impl JolpicaF1 {
     ///
     /// ```no_run
     /// # use f1_data::id::DriverID;
-    /// # use f1_data::ergast::{
+    /// # use f1_data::jolpica::{
     /// #     get::JolpicaF1,
     /// #     resource::Filters,
     /// #     response::QualifyingResult
@@ -689,7 +689,7 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::ergast::{get::JolpicaF1, resource::Filters, response::SprintResult};
+    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters, response::SprintResult};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// let race = jolpica.get_session_result::<SprintResult>(
@@ -779,7 +779,7 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::ergast::{get::JolpicaF1, resource::Filters};
+    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// let statuses = jolpica.get_statuses(Filters::none()).unwrap();
@@ -813,7 +813,7 @@ impl JolpicaF1 {
     ///
     /// ```no_run
     /// # use f1_data::id::{DriverID, RaceID};
-    /// # use f1_data::ergast::{get::JolpicaF1, time::duration_m_s_ms};
+    /// # use f1_data::jolpica::{get::JolpicaF1, time::duration_m_s_ms};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// let laps = jolpica.get_driver_laps(RaceID::from(2023, 4), &DriverID::from("leclerc")).unwrap();
@@ -847,7 +847,7 @@ impl JolpicaF1 {
     ///
     /// ```no_run
     /// # use f1_data::id::{DriverID, RaceID};
-    /// # use f1_data::ergast::{get::JolpicaF1, time::duration_m_s_ms};
+    /// # use f1_data::jolpica::{get::JolpicaF1, time::duration_m_s_ms};
     /// # let jolpica = JolpicaF1::default();
     /// #
     /// let timings = jolpica.get_lap_timings(RaceID::from(2023, 4), 1).unwrap();
@@ -881,7 +881,7 @@ impl JolpicaF1 {
     ///
     /// ```no_run
     /// # use f1_data::id::DriverID;
-    /// # use f1_data::ergast::{
+    /// # use f1_data::jolpica::{
     /// #     get::JolpicaF1,
     /// #     resource::PitStopFilters,
     /// #     time::{duration_m_s_ms, macros::time},
@@ -943,15 +943,15 @@ mod tests {
     use std::sync::LazyLock;
 
     use crate::{
-        ergast::{
+        id::{RoundID, SeasonID},
+        jolpica::{
             resource::{Filters, LapTimeFilters, PitStopFilters, Resource},
             response::*,
         },
-        id::{RoundID, SeasonID},
     };
 
     use super::*;
-    use crate::ergast::tests::assets::*;
+    use crate::jolpica::tests::assets::*;
 
     /// Default maximum number of attempts to retry on HTTP errors, for [`retry_on_http_error`].
     const DEFAULT_HTTP_RETRY_MAX_ATTEMPT_COUNT: usize = 3;
