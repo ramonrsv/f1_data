@@ -6,8 +6,11 @@ use crate::{
 };
 
 #[cfg(doc)]
-use crate::jolpica::response::{
-    Circuit, Constructor, Driver, QualifyingResult, Race, RaceResult, Response, Season, SprintResult, Status,
+use crate::jolpica::{
+    self,
+    response::{
+        Circuit, Constructor, Driver, QualifyingResult, Race, RaceResult, Response, Season, SprintResult, Status,
+    },
 };
 
 /// Each variant of the [`Resource`] enumeration represents a given resource that can be requested
@@ -273,7 +276,7 @@ trait FiltersFormatter {
 ///
 /// Although most field combinations are valid, this interface makes no(few) efforts to verify or
 /// enforce the validity of constructed combinations. Error checking is left up to the jolpica-f1
-/// API and error handling should be done at the API call site, e.g. via the [`crate::jolpica::get`]
+/// API and error handling should be done at the API call site, e.g. via the [`jolpica::agent`]
 /// module. [`Filters`] objects can be constructed in multiple ways, which are demonstrated in the
 /// examples and listed below:
 ///

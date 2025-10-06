@@ -11,13 +11,13 @@ use f1_data::{
     error::{Error, Result},
     id::{RaceID, RoundID, SeasonID},
     jolpica::{
-        get::JolpicaF1,
+        agent::Agent,
         resource::{Filters, PitStopFilters},
         response::{self, QualifyingResult, RaceResult, SprintResult},
     },
 };
 
-static JOLPICA: LazyLock<JolpicaF1> = LazyLock::new(|| JolpicaF1::default());
+static JOLPICA: LazyLock<Agent> = LazyLock::new(|| Agent::default());
 
 fn section_header(name: &str) {
     info!("===== {} =====", name);

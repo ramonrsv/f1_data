@@ -54,9 +54,9 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::jolpica::{get::JolpicaF1, resource::{Filters, Resource}};
+    /// # use f1_data::jolpica::{agent::Agent, resource::{Filters, Resource}};
     /// # use f1_data::jolpica::response::Season;
-    /// # let jolpica = JolpicaF1::default();
+    /// # let jolpica = Agent::default();
     /// #
     /// let resp = jolpica.get_response_max_limit(&Resource::SeasonList(Filters::none())).unwrap();
     ///
@@ -91,9 +91,9 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::jolpica::{get::JolpicaF1, resource::{Filters, Resource}};
+    /// # use f1_data::jolpica::{agent::Agent, resource::{Filters, Resource}};
     /// # use f1_data::jolpica::response::Season;
-    /// # let jolpica = JolpicaF1::default();
+    /// # let jolpica = Agent::default();
     /// #
     /// let resp = jolpica.get_response(&Resource::SeasonList(Filters::new().season(2023))).unwrap();
     /// let season = resp.into_table_list_single_element::<Season>().unwrap();
@@ -126,9 +126,9 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::jolpica::{get::JolpicaF1, resource::{Filters, Resource}};
+    /// # use f1_data::jolpica::{agent::Agent, resource::{Filters, Resource}};
     /// # use f1_data::jolpica::response::Season;
-    /// # let jolpica = JolpicaF1::default();
+    /// # let jolpica = Agent::default();
     /// #
     /// let resp = jolpica.get_response_max_limit(&Resource::SeasonList(Filters::none())).unwrap();
     ///
@@ -164,9 +164,9 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::jolpica::{get::JolpicaF1, resource::{Filters, Resource}};
+    /// # use f1_data::jolpica::{agent::Agent, resource::{Filters, Resource}};
     /// # use f1_data::jolpica::response::Season;
-    /// # let jolpica = JolpicaF1::default();
+    /// # let jolpica = Agent::default();
     /// #
     /// let resp = jolpica.get_response(&Resource::SeasonList(Filters::new().season(2023))).unwrap();
     /// assert_eq!(resp.as_season().unwrap().season, 2023);

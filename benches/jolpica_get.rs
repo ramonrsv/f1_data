@@ -11,7 +11,7 @@ use url::Url;
 use f1_data::{
     error::{Error, Result},
     jolpica::{
-        get::JolpicaF1,
+        agent::Agent,
         resource::{Filters, Page, Resource},
         response::{Race, RaceResult, Response},
     },
@@ -23,7 +23,7 @@ static URL: LazyLock<Url> = LazyLock::new(|| RESOURCE.to_url_with(Page::with_max
 
 static FILENAME: &str = "benches/assets/response_2022_race_results.json";
 
-static JOLPICA: LazyLock<JolpicaF1> = LazyLock::new(|| JolpicaF1::default());
+static JOLPICA: LazyLock<Agent> = LazyLock::new(|| Agent::default());
 
 /// Benchmark a full call to [`get_race_results`], including network overhead, post-processing, etc.
 fn bench_get_race_results(c: &mut Criterion) {

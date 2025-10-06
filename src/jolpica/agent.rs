@@ -19,7 +19,7 @@ use crate::{
 #[cfg(doc)]
 use crate::jolpica::response::{Lap, Pagination, Payload, Table};
 
-/// A client for accessing the [jolpica-f1](https://github.com/jolpica/jolpica-f1) API for querying
+/// An agent for accessing the [jolpica-f1](https://github.com/jolpica/jolpica-f1) API for querying
 /// Formula 1 data.
 ///
 /// This type fundamentally acts as a wrapper around GET requests to the jolpica-f1 API endpoints
@@ -31,12 +31,12 @@ use crate::jolpica::response::{Lap, Pagination, Payload, Table};
 /// [Ergast API](https://github.com/jolpica/jolpica-f1/blob/main/docs/ergast_differences.md).
 #[allow(missing_copy_implementations)]
 #[derive(Debug)]
-pub struct JolpicaF1 {
+pub struct Agent {
     rate_limiter: RateLimiter,
 }
 
-impl Default for JolpicaF1 {
-    /// Creates a new `JolpicaF1` client with default settings.
+impl Default for Agent {
+    /// Creates a new `Agent` with default settings.
     fn default() -> Self {
         Self {
             rate_limiter: RateLimiter::new(
@@ -47,7 +47,7 @@ impl Default for JolpicaF1 {
     }
 }
 
-impl JolpicaF1 {
+impl Agent {
     /// Performs a GET request to the jolpica-f1 API for a specific page of the specified
     /// [`Resource`].
     ///
@@ -65,8 +65,8 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::jolpica::{get::JolpicaF1, resource::{Filters, Page, Resource}};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::jolpica::{agent::Agent, resource::{Filters, Page, Resource}};
+    /// # let jolpica = Agent::default();
     /// #
     /// let resp = jolpica.get_response_page(
     ///     &Resource::SeasonList(Filters::none()), Page::with_limit(50)).unwrap();
@@ -115,8 +115,8 @@ impl JolpicaF1 {
     ///
     /// ```no_run
     /// # use f1_data::id::DriverID;
-    /// # use f1_data::jolpica::{get::JolpicaF1, resource::{Filters, Resource}};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::jolpica::{agent::Agent, resource::{Filters, Resource}};
+    /// # let jolpica = Agent::default();
     /// #
     /// let resp = jolpica.get_response(&Resource::DriverInfo(Filters {
     ///     driver_id: Some(DriverID::from("leclerc")),
@@ -151,8 +151,8 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::jolpica::{get::JolpicaF1, resource::{Filters, Resource}};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::jolpica::{agent::Agent, resource::{Filters, Resource}};
+    /// # let jolpica = Agent::default();
     /// #
     /// let resp = jolpica.get_response_max_limit(&Resource::SeasonList(Filters::none())).unwrap();
     ///
@@ -182,8 +182,8 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::jolpica::{agent::Agent, resource::Filters};
+    /// # let jolpica = Agent::default();
     /// #
     /// let seasons = jolpica.get_seasons(Filters::none()).unwrap();
     /// assert!(!seasons.is_empty());
@@ -214,8 +214,8 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::{jolpica::get::JolpicaF1, jolpica::response::Season, error::Error};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::{jolpica::agent::Agent, jolpica::response::Season, error::Error};
+    /// # let jolpica = Agent::default();
     /// #
     /// assert_eq!(jolpica.get_table_list_single_element::<Season>(1950).unwrap().season, 1950);
     /// assert!(matches!(jolpica.get_table_list_single_element::<Season>(1940), Err(Error::NotFound)));
@@ -237,8 +237,8 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::jolpica::{agent::Agent, resource::Filters};
+    /// # let jolpica = Agent::default();
     /// #
     /// let seasons = jolpica.get_seasons(Filters::none()).unwrap();
     /// assert!(!seasons.is_empty());
@@ -258,8 +258,8 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::{error::Error, jolpica::get::JolpicaF1};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::{error::Error, jolpica::agent::Agent};
+    /// # let jolpica = Agent::default();
     /// #
     /// assert_eq!(jolpica.get_season(1950).unwrap().season, 1950);
     /// assert!(matches!(jolpica.get_season(1940), Err(Error::NotFound)));
@@ -280,8 +280,8 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::jolpica::{agent::Agent, resource::Filters};
+    /// # let jolpica = Agent::default();
     /// #
     /// let drivers = jolpica.get_drivers(Filters::new().season(2022)).unwrap();
     /// assert!(!drivers.is_empty());
@@ -308,8 +308,8 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::{error::Error, id::DriverID, jolpica::get::JolpicaF1};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::{error::Error, id::DriverID, jolpica::agent::Agent};
+    /// # let jolpica = Agent::default();
     /// #
     /// assert_eq!(jolpica.get_driver(DriverID::from("alonso")).unwrap().given_name, "Fernando".to_string());
     /// assert!(matches!(jolpica.get_driver(DriverID::from("unknown")), Err(Error::NotFound)));
@@ -330,8 +330,8 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::jolpica::{agent::Agent, resource::Filters};
+    /// # let jolpica = Agent::default();
     /// #
     /// let constructors = jolpica.get_constructors(Filters::new().season(2022)).unwrap();
     /// assert!(!constructors.is_empty());
@@ -358,8 +358,8 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::{jolpica::get::JolpicaF1, error::Error, id::ConstructorID};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::{jolpica::agent::Agent, error::Error, id::ConstructorID};
+    /// # let jolpica = Agent::default();
     /// #
     /// assert_eq!(jolpica.get_constructor(ConstructorID::from("ferrari")).unwrap().name, "Ferrari".to_string());
     /// assert!(matches!(jolpica.get_constructor(ConstructorID::from("unknown")), Err(Error::NotFound)));
@@ -380,8 +380,8 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::jolpica::{agent::Agent, resource::Filters};
+    /// # let jolpica = Agent::default();
     /// #
     /// let circuits = jolpica.get_circuits(Filters::new().season(2022)).unwrap();
     /// assert!(!circuits.is_empty());
@@ -408,8 +408,8 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::{jolpica::get::JolpicaF1, error::Error, id::CircuitID};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::{jolpica::agent::Agent, error::Error, id::CircuitID};
+    /// # let jolpica = Agent::default();
     /// #
     /// assert_eq!(
     ///     jolpica.get_circuit(CircuitID::from("spa")).unwrap().circuit_name,
@@ -442,8 +442,8 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters, time::macros::{date, time}};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::jolpica::{agent::Agent, resource::Filters, time::macros::{date, time}};
+    /// # let jolpica = Agent::default();
     /// #
     /// let races = jolpica.get_race_schedules(Filters::new().season(2022)).unwrap();
     /// assert_eq!(races.len(), 22);
@@ -476,8 +476,8 @@ impl JolpicaF1 {
     ///
     /// ```no_run
     /// # use f1_data::id::RaceID;
-    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters, time::macros::{date, time}};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::jolpica::{agent::Agent, resource::Filters, time::macros::{date, time}};
+    /// # let jolpica = Agent::default();
     /// #
     /// let race = jolpica.get_race_schedule(RaceID::from(2022, 1)).unwrap();
     ///
@@ -528,11 +528,11 @@ impl JolpicaF1 {
     /// ```no_run
     /// # use f1_data::id::ConstructorID;
     /// # use f1_data::jolpica::{
-    /// #     get::JolpicaF1,
+    /// #     agent::Agent,
     /// #     resource::Filters,
     /// #     response::{Points, RaceResult, SprintResult},
     /// # };
-    /// # let jolpica = JolpicaF1::default();
+    /// # let jolpica = Agent::default();
     /// #
     /// let race_points = jolpica.get_session_results::<RaceResult>(
     ///     Filters::new()
@@ -591,8 +591,8 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters, response::RaceResult};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::jolpica::{agent::Agent, resource::Filters, response::RaceResult};
+    /// # let jolpica = Agent::default();
     /// #
     /// let race = jolpica.get_session_results_for_event::<RaceResult>(Filters::new().season(2021).round(22)).unwrap();
     ///
@@ -640,11 +640,11 @@ impl JolpicaF1 {
     /// ```no_run
     /// # use f1_data::id::DriverID;
     /// # use f1_data::jolpica::{
-    /// #     get::JolpicaF1,
+    /// #     agent::Agent,
     /// #     resource::Filters,
     /// #     response::QualifyingResult
     /// # };
-    /// # let jolpica = JolpicaF1::default();
+    /// # let jolpica = Agent::default();
     /// #
     /// let seb_poles: u32 = jolpica.get_session_result_for_events::<QualifyingResult>(
     ///     Filters::new().driver_id(DriverID::from("vettel")).qualifying_pos(1),
@@ -691,8 +691,8 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters, response::SprintResult};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::jolpica::{agent::Agent, resource::Filters, response::SprintResult};
+    /// # let jolpica = Agent::default();
     /// #
     /// let race = jolpica.get_session_result::<SprintResult>(
     ///     Filters::new().season(2021).round(10).sprint_pos(1)).unwrap();
@@ -781,8 +781,8 @@ impl JolpicaF1 {
     /// # Examples
     ///
     /// ```no_run
-    /// # use f1_data::jolpica::{get::JolpicaF1, resource::Filters};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::jolpica::{agent::Agent, resource::Filters};
+    /// # let jolpica = Agent::default();
     /// #
     /// let statuses = jolpica.get_statuses(Filters::none()).unwrap();
     /// assert!(!statuses.is_empty());
@@ -815,8 +815,8 @@ impl JolpicaF1 {
     ///
     /// ```no_run
     /// # use f1_data::id::{DriverID, RaceID};
-    /// # use f1_data::jolpica::{get::JolpicaF1, time::duration_m_s_ms};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::jolpica::{agent::Agent, time::duration_m_s_ms};
+    /// # let jolpica = Agent::default();
     /// #
     /// let laps = jolpica.get_driver_laps(RaceID::from(2023, 4), &DriverID::from("leclerc")).unwrap();
     /// assert_eq!(laps.len(), 51);
@@ -849,8 +849,8 @@ impl JolpicaF1 {
     ///
     /// ```no_run
     /// # use f1_data::id::{DriverID, RaceID};
-    /// # use f1_data::jolpica::{get::JolpicaF1, time::duration_m_s_ms};
-    /// # let jolpica = JolpicaF1::default();
+    /// # use f1_data::jolpica::{agent::Agent, time::duration_m_s_ms};
+    /// # let jolpica = Agent::default();
     /// #
     /// let timings = jolpica.get_lap_timings(RaceID::from(2023, 4), 1).unwrap();
     /// assert_eq!(timings.len(), 20);
@@ -884,11 +884,11 @@ impl JolpicaF1 {
     /// ```no_run
     /// # use f1_data::id::DriverID;
     /// # use f1_data::jolpica::{
-    /// #     get::JolpicaF1,
+    /// #     agent::Agent,
     /// #     resource::PitStopFilters,
     /// #     time::{duration_m_s_ms, macros::time},
     /// #     response::PitStop};
-    /// # let jolpica = JolpicaF1::default();
+    /// # let jolpica = Agent::default();
     /// #
     /// let pit_stops = jolpica.get_pit_stops(PitStopFilters::new(2023, 4)).unwrap();
     /// assert_eq!(pit_stops.len(), 23);
@@ -1080,8 +1080,8 @@ mod tests {
         assert!(matches!(retry_http(|| get()), Err(Error::TooMany)));
     }
 
-    /// Shared instance of [`JolpicaF1`] for use in tests, to share a rate limiter, cache, etc.
-    static JOLPICA: LazyLock<JolpicaF1> = LazyLock::new(|| JolpicaF1::default());
+    /// Shared instance of [`Agent`] for use in tests, to share a rate limiter, cache, etc.
+    static JOLPICA: LazyLock<Agent> = LazyLock::new(|| Agent::default());
 
     // Resource::SeasonList
     // --------------------
@@ -1907,7 +1907,7 @@ mod tests {
     #[ignore]
     fn rate_limiting() {
         // Separate instance to avoid rate limiting interference
-        let jolpica = JolpicaF1::default();
+        let jolpica = Agent::default();
 
         // Requests take about ~300ms each without rate limiting
         // 500 requests per hour = 1 request every 7.2 seconds
