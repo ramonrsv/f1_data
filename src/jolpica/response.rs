@@ -19,7 +19,7 @@ use crate::{
 
 pub const GRID_PIT_LANE: u32 = 0;
 
-/// Represents a full JSON response from the Ergast API.
+/// Represents a full JSON response from the jolpica-f1 API.
 ///
 /// It contains metadata about the API and the response, and a single [`Table`] of data holding a
 /// request-dependent variant. Note that, while [`Response`] can be deserialized from a full JSON
@@ -407,8 +407,8 @@ impl Pagination {
     }
 }
 
-/// Represents all the possible different lists of data that may be returned in a
-/// [`Response`] from the Ergast API.
+/// Represents all the possible different lists of data that may be returned in a [`Response`] from
+/// the jolpica-f1 API.
 ///
 /// For example, [`Table::Seasons`] corresponds to the `"SeasonTable"` property key in the JSON
 /// response, containing a list of [`Season`]s which corresponds to the `"Seasons"` property key.
@@ -439,7 +439,7 @@ impl Pagination {
 #[derive(Deserialize, EnumAsInner, PartialEq, Clone, Debug)]
 pub enum Table {
     /// Contains a list of [`Season`]s, and corresponds to the `"SeasonTable"` property key in the
-    /// JSON response from the Ergast API.
+    /// JSON response from the jolpica-f1 API.
     #[serde(rename = "SeasonTable")]
     Seasons {
         /// List of [`Season`]s, corresponding to the `"Seasons"` property key in the JSON response.
@@ -447,7 +447,7 @@ pub enum Table {
         seasons: Vec<Season>,
     },
     /// Contains a list of [`Driver`]s, and corresponds to the `"DriverTable"` property key in the
-    /// JSON response from the Ergast API.
+    /// JSON response from the jolpica-f1 API.
     #[serde(rename = "DriverTable")]
     Drivers {
         /// List of [`Driver`]s, corresponding to the `"Drivers"` property key in the JSON response.
@@ -455,7 +455,7 @@ pub enum Table {
         drivers: Vec<Driver>,
     },
     /// Contains a list of [`Constructor`]s, and corresponds to the `"ConstructorTable"` property
-    /// key in the JSON response from the Ergast API.
+    /// key in the JSON response from the jolpica-f1 API.
     #[serde(rename = "ConstructorTable")]
     Constructors {
         /// List of [`Constructor`]s, corresponding to the `"Constructors"` property key in the JSON
@@ -464,7 +464,7 @@ pub enum Table {
         constructors: Vec<Constructor>,
     },
     /// Contains a list of [`Circuit`]s, and corresponds to the `"CircuitTable"` property key in the
-    /// JSON response from the Ergast API.
+    /// JSON response from the jolpica-f1 API.
     #[serde(rename = "CircuitTable")]
     Circuits {
         /// List of [`Circuit`]s, corresponding to the `"Circuits"` property key in the JSON
@@ -473,7 +473,7 @@ pub enum Table {
         circuits: Vec<Circuit>,
     },
     /// Contains a list of [`Race`]s, and corresponds to the `"RaceTable"` property key in the
-    /// JSON response from the Ergast API.
+    /// JSON response from the jolpica-f1 API.
     #[serde(rename = "RaceTable")]
     Races {
         /// List of [`Race`]s, corresponding to the `"Races"` property key in the JSON response.
@@ -481,7 +481,7 @@ pub enum Table {
         races: Vec<Race>,
     },
     /// Contains a list of [`Status`]es, and corresponds to the `"StatusTable"` property key in the
-    /// JSON response from the Ergast API.
+    /// JSON response from the jolpica-f1 API.
     #[serde(rename = "StatusTable")]
     Status {
         /// List of [`Status`]es, corresponding to the `"Status"` property key in the JSON response.
@@ -682,8 +682,8 @@ impl TableList for Status {
 }
 
 /// This generic struct represents a race weekend event, corresponding to the list element type
-/// under the `"RaceTable.Races"` property key in the JSON response from the Ergast API. The generic
-/// type parameter `T` represents the type of payload that may be returned, depending on the
+/// under the `"RaceTable.Races"` property key in the JSON response from the jolpica-f1 API. The
+/// generic type parameter `T` represents the type of payload that may be returned, depending on the
 /// requested [`Resource`]. The default <code>T = [Payload]</code> accepts all possible payload
 /// types, but the `T` parameter may be specified during postprocessing to restrict the payload
 /// type, e.g. by `get_*` API functions that know the expected payload variant.
@@ -784,7 +784,7 @@ impl Race<Schedule> {
 }
 
 /// [`Payload`] represents all the possible different data elements that be me returned as part of
-/// a [`Race`] in a [`Response`] from the Ergast API.
+/// a [`Race`] in a [`Response`] from the jolpica-f1 API.
 ///
 /// For example, [`Payload::SprintResults`] corresponds to the `"SprintResults"` property key in the
 /// JSON response, which is a list of [`SprintResult`]. One and only one of these payloads may be
@@ -810,32 +810,32 @@ impl Race<Schedule> {
 #[derive(EnumAsInner, PartialEq, Clone, Debug)]
 pub enum Payload {
     /// Contains a list of [`QualifyingResult`]s, and corresponds to the `"QualifyingResults"`
-    /// property key in the JSON response from the Ergast API.
+    /// property key in the JSON response from the jolpica-f1 API.
     QualifyingResults(Vec<QualifyingResult>),
 
     /// Contains a list of [`SprintResult`]s, and corresponds to the `"SprintResults"` property key
-    /// in the JSON response from the Ergast API.
+    /// in the JSON response from the jolpica-f1 API.
     SprintResults(Vec<SprintResult>),
 
     /// Contains a list of [`RaceResult`]s, and corresponds to the `"Results"` property key in the
-    /// JSON response from the Ergast API.
+    /// JSON response from the jolpica-f1 API.
     RaceResults(Vec<RaceResult>),
 
     /// Contains a list of [`Lap`]s, and corresponds to the `"Laps"` property key in the JSON
-    /// response from the Ergast API.
+    /// response from the jolpica-f1 API.
     Laps(Vec<Lap>),
 
     /// Contains a list of [`PitStop`]s, and corresponds to the `"PitStops"` property key in the
-    /// JSON response from the Ergast API.
+    /// JSON response from the jolpica-f1 API.
     PitStops(Vec<PitStop>),
 
     /// Contains a [`Schedule`] object, and corresponds to the absence of a tag property key in the
-    /// JSON response from the Ergast API. That is, all the elements of a schedule are flattened
+    /// JSON response from the jolpica-f1 API. That is, all the elements of a schedule are flattened
     /// directly into the [`Race`] object in JSON.
     ///
     /// **Note:** Because of the untagged nature of this variant, and because all of the fields of
     /// [`Schedule`] are optional, it no payload is returned this variant will be the one being set.
-    /// This is also a valid response from the Ergast API, e.g. for races prior to 2022, where
+    /// This is also a valid response from the jolpica-f1 API, e.g. for races prior to 2022, where
     /// scheduling information was limited to the date/time of the Grand Prix (race), which is
     /// already included in the [`Race`] object, as it does not depend on the `Resource` request.
     Schedule(Schedule),

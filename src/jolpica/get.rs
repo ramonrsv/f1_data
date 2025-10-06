@@ -22,10 +22,10 @@ use crate::jolpica::response::{Lap, Pagination, Payload, Table};
 /// A client for accessing the [jolpica-f1](https://github.com/jolpica/jolpica-f1) API for querying
 /// Formula 1 data.
 ///
-/// This type fundamentally acts as a wrapper around GET requests to the jolpica-f1 API endpoints at
-/// [`JOLPICA_API_BASE_URL`][crate::jolpica::api::JOLPICA_API_BASE_URL], but also provides additional
-/// functionality like caching, rate limiting, as well as alternate sources, e.g. [jolpica-f1
-/// database dumps](https://github.com/jolpica/jolpica-f1/blob/main/docs/dumps.md).
+/// This type fundamentally acts as a wrapper around GET requests to the jolpica-f1 API endpoints
+/// at [`JOLPICA_API_BASE_URL`][crate::jolpica::api::JOLPICA_API_BASE_URL], but also provides
+/// additional functionality like caching, rate limiting, as well as alternate sources, e.g.
+/// [jolpica-f1 database dumps](https://github.com/jolpica/jolpica-f1/blob/main/docs/dumps.md).
 ///
 /// The jolpica-f1 API is a drop-in replacement for the now defunct
 /// [Ergast API](https://github.com/jolpica/jolpica-f1/blob/main/docs/ergast_differences.md).
@@ -48,11 +48,12 @@ impl Default for JolpicaF1 {
 }
 
 impl JolpicaF1 {
-    /// Performs a GET request to the Ergast API for a specific page of the specified [`Resource`].
+    /// Performs a GET request to the jolpica-f1 API for a specific page of the specified
+    /// [`Resource`].
     ///
-    /// Performs a GET request to the Ergast API for a specific page of the specified [`Resource`],
-    /// and returns an [`Response`] with a single page, parsed from the JSON response, of a possibly
-    /// multi-page response. [`Response::pagination`] can be used to check for
+    /// Performs a GET request to the jolpica-f1 API for a specific page of the specified
+    /// [`Resource`], and returns an [`Response`] with a single page, parsed from the JSON response,
+    /// of a possibly multi-page response. [`Response::pagination`] can be used to check for
     /// [`Pagination::is_last_page`] and get [`Pagination::next_page`] to request the following page
     /// of the response, via another call to this method.
     ///
@@ -97,7 +98,7 @@ impl JolpicaF1 {
             .and_then(|reader| serde_json::from_reader(reader).map_err(Into::into))
     }
 
-    /// Performs a GET request to the Ergast API for a single page of specified [`Resource`] and
+    /// Performs a GET request to the jolpica-f1 API for a single page of specified [`Resource`] and
     /// returns a single-page [`Response`], parsed from the JSON response.
     ///
     /// This method performs no additional processing, it returns the top-level [`Response`] type
@@ -130,7 +131,7 @@ impl JolpicaF1 {
             .and_then(verify_is_single_page)
     }
 
-    /// Performs a GET request to the Ergast API for the specified [`Resource`] and returns a
+    /// Performs a GET request to the jolpica-f1 API for the specified [`Resource`] and returns a
     /// maximum size single-page [`Response`], parsed from the JSON response.
     ///
     /// This method is similar to [`get_response`][Self::get_response] but allows for larger
@@ -165,7 +166,7 @@ impl JolpicaF1 {
             .and_then(verify_is_single_page)
     }
 
-    /// Performs a GET request to the Ergast API for the [`Resource`] associated with the
+    /// Performs a GET request to the jolpica-f1 API for the [`Resource`] associated with the
     /// [`TableList`], with the argument [`Filters`], and returns the resulting inner list from
     /// [`Response::table`].
     ///
@@ -193,8 +194,9 @@ impl JolpicaF1 {
         self.get_response_max_limit(&T::to_resource(filters))?.into_table_list()
     }
 
-    /// Performs a GET request to the Ergast API for a single element of the [`Resource`] associated
-    /// with the [`TableList`], filtered by an `ID` value of its associated [`TableList::ID`] type.
+    /// Performs a GET request to the jolpica-f1 API for a single element of the [`Resource`]
+    /// associated with the [`TableList`], filtered by an `ID` value of its associated
+    /// [`TableList::ID`] type.
     ///
     /// It returns the resulting inner single element from the [`Response::table`] list.
     ///
@@ -223,7 +225,7 @@ impl JolpicaF1 {
             .into_table_list_single_element()
     }
 
-    /// Performs a GET request to the Ergast API for [`Resource::SeasonList`], with the argument
+    /// Performs a GET request to the jolpica-f1 API for [`Resource::SeasonList`], with the argument
     /// [`Filters`], and returns the resulting inner [`Season`]s from [`Table`] in
     /// [`Response::table`].
     ///
@@ -246,7 +248,7 @@ impl JolpicaF1 {
         self.get_table_list::<Season>(filters)
     }
 
-    /// Performs a GET request to the Ergast API for a single [`Season`], identified by a
+    /// Performs a GET request to the jolpica-f1 API for a single [`Season`], identified by a
     /// [`SeasonID`], from [`Resource::SeasonList`].
     ///
     /// # Errors
@@ -266,7 +268,7 @@ impl JolpicaF1 {
         self.get_table_list_single_element::<Season>(season)
     }
 
-    /// Performs a GET request to the Ergast API for [`Resource::DriverInfo`], with the argument
+    /// Performs a GET request to the jolpica-f1 API for [`Resource::DriverInfo`], with the argument
     /// [`Filters`], and returns the resulting inner [`Driver`]s from [`Table`] in
     /// [`Response::table`].
     ///
@@ -296,7 +298,7 @@ impl JolpicaF1 {
         self.get_table_list::<Driver>(filters)
     }
 
-    /// Performs a GET request to the Ergast API for a single [`Driver`], identified by a
+    /// Performs a GET request to the jolpica-f1 API for a single [`Driver`], identified by a
     /// [`DriverID`], from [`Resource::DriverInfo`].
     ///
     /// # Errors
@@ -316,7 +318,7 @@ impl JolpicaF1 {
         self.get_table_list_single_element::<Driver>(driver_id)
     }
 
-    /// Performs a GET request to the Ergast API for [`Resource::ConstructorInfo`], with the
+    /// Performs a GET request to the jolpica-f1 API for [`Resource::ConstructorInfo`], with the
     /// argument [`Filters`], and returns the resulting [`Constructor`]s from [`Table`] in
     /// [`Response::table`].
     ///
@@ -346,7 +348,7 @@ impl JolpicaF1 {
         self.get_table_list::<Constructor>(filters)
     }
 
-    /// Performs a GET request to the Ergast API for a single [`Constructor`], identified by a
+    /// Performs a GET request to the jolpica-f1 API for a single [`Constructor`], identified by a
     /// [`ConstructorID`], from [`Resource::ConstructorInfo`].
     ///
     /// #Errors
@@ -366,8 +368,8 @@ impl JolpicaF1 {
         self.get_table_list_single_element::<Constructor>(constructor_id)
     }
 
-    /// Performs a GET request to the Ergast API for [`Resource::CircuitInfo`], with the argument
-    /// [`Filters`], and returns the resulting inner [`Circuit`]s from [`Table`] in
+    /// Performs a GET request to the jolpica-f1 API for [`Resource::CircuitInfo`], with the
+    /// argument [`Filters`], and returns the resulting inner [`Circuit`]s from [`Table`] in
     /// [`Response::table`].
     ///
     /// # Errors
@@ -396,7 +398,7 @@ impl JolpicaF1 {
         self.get_table_list::<Circuit>(filters)
     }
 
-    /// Performs a GET request to the Ergast API for a single [`Circuit`], identified by a
+    /// Performs a GET request to the jolpica-f1 API for a single [`Circuit`], identified by a
     /// [`CircuitID`] from [`Resource::CircuitInfo`].
     ///
     /// # Errors
@@ -420,7 +422,7 @@ impl JolpicaF1 {
             .and_then(verify_has_one_element_and_extract)
     }
 
-    /// Performs a GET request to the Ergast API for [`Resource::RaceSchedule`], with the
+    /// Performs a GET request to the jolpica-f1 API for [`Resource::RaceSchedule`], with the
     /// [`Filters`], and returns a sequence of [`Race<Schedule>`]s processed from the inner
     /// [`Race`]s from [`Table`].
     ///
@@ -458,7 +460,7 @@ impl JolpicaF1 {
             .into_race_schedules()
     }
 
-    /// Performs a GET request to the Ergast API for a single [`Race<Schedule>`] from
+    /// Performs a GET request to the jolpica-f1 API for a single [`Race<Schedule>`] from
     /// [`Resource::RaceSchedule`], identified by a [`RaceID`], a combination of a [`Race::season`]
     /// and [`Race::round`].
     ///
@@ -496,14 +498,14 @@ impl JolpicaF1 {
             .and_then(verify_has_one_element_and_extract)
     }
 
-    /// Performs a GET request to the Ergast API for the [`Resource`] corresponding to the requested
-    /// [`SessionResult`], with the argument [`Filters`]
+    /// Performs a GET request to the jolpica-f1 API for the [`Resource`] corresponding to the
+    /// requested [`SessionResult`], with the argument [`Filters`].
     ///
     /// It returns a sequence of [`Race`]s, each with a sequence of [`SessionResult`]s, processed
     /// from the inner [`Race`]s from the [`Table`] in [`Response::table`].
     ///
     /// For example, [`get_session_results::<RaceResult>`][Self::get_session_results] will perform a
-    /// GET request to the Ergast API for [`Resource::RaceResults`], and return a sequence of
+    /// GET request to the jolpica-f1 API for [`Resource::RaceResults`], and return a sequence of
     /// [`Race<Vec<RaceResult>>`], where the [`Payload`] variant [`Payload::RaceResults`] has
     /// already been extracted and processed into [`Race<Vec<RaceResult>>`], obviating the need to
     /// perform error checking and extraction of the expected variants.
@@ -559,16 +561,16 @@ impl JolpicaF1 {
             .into_session_results()
     }
 
-    /// Performs a GET request to the Ergast API for the [`Resource`] corresponding to the requested
-    /// [`SessionResult`], with the argument [`Filters`].
+    /// Performs a GET request to the jolpica-f1 API for the [`Resource`] corresponding to the
+    /// requested [`SessionResult`], with the argument [`Filters`].
     ///
     /// It returns a sequence of [`SessionResult`]s for a single [`Race`], processed from the inner
     /// [`Race`]s from the [`Table`] in [`Response::table`].
     ///
     /// For example,
     /// [`get_session_results_for_event::<RaceResult>`][Self::get_session_results_for_event] will
-    /// perform a GET request to the Ergast API for [`Resource::RaceResults`], and return a single
-    /// [`Race<Vec<RaceResult>>`], where the [`Payload`] variant [`Payload::RaceResults`] has
+    /// perform a GET request to the jolpica-f1 API for [`Resource::RaceResults`], and return a
+    /// single [`Race<Vec<RaceResult>>`], where the [`Payload`] variant [`Payload::RaceResults`] has
     /// already been extracted and processed into [`Race<Vec<RaceResult>>`], obviating the need to
     /// perform error checking and extraction of the expected variants.
     ///
@@ -605,18 +607,18 @@ impl JolpicaF1 {
             .and_then(verify_has_one_element_and_extract)
     }
 
-    /// Performs a GET request to the Ergast API for the [`Resource`] corresponding to the requested
-    /// [`SessionResult`], with the argument [`Filters`].
+    /// Performs a GET request to the jolpica-f1 API for the [`Resource`] corresponding to the
+    /// requested [`SessionResult`], with the argument [`Filters`].
     ///
     /// It returns a sequence of [`Race`]s with a single [`SessionResult`] each, processed from the
     /// inner [`Race`]s from the [`Table`] in [`Response::table`].
     ///
     /// For example,
     /// [`get_session_result_for_events::<RaceResult>`][Self::get_session_result_for_events] will
-    /// perform a GET request to the Ergast API for [`Resource::RaceResults`], and return a sequence
-    /// of [`Race<RaceResult>`], where the [`Payload`] variant [`Payload::RaceResults`] has already
-    /// been extracted and processed into [`Race<RaceResult>`], ensuring that each [`Race`] holds
-    /// one and only one [`SessionResult`], obviating the need to perform error checking and
+    /// perform a GET request to the jolpica-f1 API for [`Resource::RaceResults`], and return a
+    /// sequence of [`Race<RaceResult>`], where the [`Payload`] variant [`Payload::RaceResults`] has
+    /// already been extracted and processed into [`Race<RaceResult>`], ensuring that each [`Race`]
+    /// holds one and only one [`SessionResult`], obviating the need to perform error checking and
     /// extraction of the expected variants.
     ///
     /// This function returns a sequence of [`Race`]s containing a single [`SessionResult`] each,
@@ -659,14 +661,14 @@ impl JolpicaF1 {
             .into_session_result_for_events()
     }
 
-    /// Performs a GET request to the Ergast API for the [`Resource`] corresponding to the requested
-    /// [`SessionResult`], with the argument [`Filters`].
+    /// Performs a GET request to the jolpica-f1 API for the [`Resource`] corresponding to the
+    /// requested [`SessionResult`], with the argument [`Filters`].
     ///
     /// It returns a single [`Race`] with a single [`SessionResult`], processed from the inner
     /// [`Race`]s from the [`Table`] in [`Response::table`].
     ///
     /// For example, [`get_session_result::<RaceResult>`][Self::get_session_result] will perform a
-    /// GET request to the Ergast API for [`Resource::RaceResults`], and return a single
+    /// GET request to the jolpica-f1 API for [`Resource::RaceResults`], and return a single
     /// [`Race<RaceResult>`], where the [`Payload`] variant [`Payload::RaceResults`] has already
     /// been extracted and processed into [`Race<RaceResult>`], ensuring that one and only one
     /// [`Race`] is found, holding one and only one [`SessionResult`], obviating the need to perform
@@ -768,7 +770,7 @@ impl JolpicaF1 {
         self.get_session_result::<RaceResult>(filters)
     }
 
-    /// Performs a GET request to the Ergast API for [`Resource::FinishingStatus`], with the
+    /// Performs a GET request to the jolpica-f1 API for [`Resource::FinishingStatus`], with the
     /// argument [`Filters`], and return the resulting inner [`Status`]s from [`Table`] in
     /// [`Response::table`].
     ///
@@ -798,7 +800,7 @@ impl JolpicaF1 {
             .into_statuses()
     }
 
-    /// Performs a GET request to the Ergast API for [`Resource::LapTimes`] from a specified
+    /// Performs a GET request to the jolpica-f1 API for [`Resource::LapTimes`] from a specified
     /// [`RaceID`] and for a specified single [`DriverID`].
     ///
     /// It returns a list of [`DriverLap`]s, which is a flattened combination of [`Lap`]s and
@@ -834,7 +836,7 @@ impl JolpicaF1 {
         .into_driver_laps(driver_id)
     }
 
-    /// Performs a GET request to the Ergast API for [`Resource::LapTimes`] from a specified
+    /// Performs a GET request to the jolpica-f1 API for [`Resource::LapTimes`] from a specified
     /// [`RaceID`] and for a specified single lap, returning a list of [`Timing`]s from the
     /// requested [`Lap`].
     ///
@@ -866,7 +868,7 @@ impl JolpicaF1 {
         .into_lap_timings()
     }
 
-    /// Performs a GET request to the Ergast API for [`Resource::PitStops`], with the passed
+    /// Performs a GET request to the jolpica-f1 API for [`Resource::PitStops`], with the passed
     /// argument [`PitStopFilters`].
     ///
     /// It returns the resulting inner [`PitStop`]s from [`Race::payload`] in the expected single
@@ -1591,7 +1593,7 @@ mod tests {
 
         // @todo Cannot use all available race results because, counterintuitively, non-finishing
         // race results cannot be filtered by .finish_pos, even though .position would be set.
-        // See [`Resource::RaceResults`], and try reaching out to Ergast maintainers about it.
+        // See [`Resource::RaceResults`], and try reaching out to jolpica-f1 maintainers about it.
 
         assert_each_get_eq_expected(
             |result| {

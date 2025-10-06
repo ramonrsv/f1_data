@@ -11,7 +11,7 @@ use crate::jolpica::response::{
 };
 
 /// Each variant of the [`Resource`] enumeration represents a given resource that can be requested
-/// from the Ergast API, and it contains any options or filters that can be applied to the request.
+/// from the jolpica-f1 API, and it contains any options/filters that can be applied to the request.
 // @todo Add examples once the `get_*` API has been settled
 #[derive(Clone, Debug)]
 pub enum Resource {
@@ -159,8 +159,8 @@ pub enum Resource {
 }
 
 impl Resource {
-    /// Produces a URL with which to request the given [`Resource`] from the Ergast API, including
-    /// any filters that may have been requested.
+    /// Produces a URL with which to request the given [`Resource`] from the jolpica-f1 API,
+    /// including any filters that may have been requested.
     ///
     /// # Examples
     ///
@@ -230,7 +230,7 @@ impl Resource {
     }
 
     /// Produce a URL with which to request a specific [`Page`] of a given [`Resource`] from the
-    /// Ergast API, including any filters that may have been requested.
+    /// jolpica-f1 API, including any filters that may have been requested.
     ///
     /// # Examples
     ///
@@ -268,12 +268,12 @@ trait FiltersFormatter {
     fn to_formatted_pairs(&self) -> Vec<(&'static str, String)>;
 }
 
-/// Can be used to filter a given [`Resource`] from the Ergast API by a number of parameters,
+/// Can be used to filter a given [`Resource`] from the jolpica-f1 API by a number of parameters,
 /// identified by the struct fields, all of which are optional and can be set simultaneously.
 ///
 /// Although most field combinations are valid, this interface makes no(few) efforts to verify or
-/// enforce the validity of constructed combinations. Error checking is left up to the Ergast API
-/// and error handling should be done at the API call site, e.g. via the [`crate::jolpica::get`]
+/// enforce the validity of constructed combinations. Error checking is left up to the jolpica-f1
+/// API and error handling should be done at the API call site, e.g. via the [`crate::jolpica::get`]
 /// module. [`Filters`] objects can be constructed in multiple ways, which are demonstrated in the
 /// examples and listed below:
 ///
@@ -516,7 +516,7 @@ impl Default for Filters {
     }
 }
 
-/// Can be used to filter [`Resource::LapTimes`] from the Ergast API by a number of required and
+/// Can be used to filter [`Resource::LapTimes`] from the jolpica-f1 API by a number of required and
 /// optional parameters, identified by the struct fields, which can be set simultaneously.
 ///
 /// Except for some additional enforcement of required fields, e.g. [`LapTimeFilters::season`], and
@@ -565,7 +565,8 @@ pub struct LapTimeFilters {
     pub season: SeasonID,
 
     /// Indicates a specific race in a season, identified by the round index, starting from `1`.
-    /// This is a required field, along with [`LapTimeFilters::season`], to uniquely identify a race.
+    /// This is a required field, along with [`LapTimeFilters::season`], to uniquely identify a
+    /// race.
     pub round: RoundID,
 
     /// Restrict responses to data for a single lap, identified by an index, starting from `1`.
@@ -601,7 +602,7 @@ impl LapTimeFilters {
     }
 }
 
-/// Can be used to filter [`Resource::PitStops`] from the Ergast API by a number of required and
+/// Can be used to filter [`Resource::PitStops`] from the jolpica-f1 API by a number of required and
 /// optional parameters, identified by the struct fields, which can be set simultaneously.
 ///
 /// Except for some additional enforcement of required fields, e.g. [`PitStopFilters::season`], and
@@ -651,7 +652,8 @@ pub struct PitStopFilters {
     pub season: SeasonID,
 
     /// Indicates a specific race in a season, identified by the round index, starting from `1`.
-    /// This is a required field, along with [`PitStopFilters::season`], to uniquely identify a race.
+    /// This is a required field, along with [`PitStopFilters::season`], to uniquely identify a
+    /// race.
     pub round: RoundID,
 
     /// Restrict responses to pit stops that took place on a specific lap, identified by an index,
@@ -751,7 +753,7 @@ impl FiltersFormatter for PitStopFilters {
     }
 }
 
-/// Identifies a specific pagination page for a given [`Resource`] from the Ergast API.
+/// Identifies a specific pagination page for a given [`Resource`] from the jolpica-f1 API.
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct Page {
     limit: u32,
@@ -760,16 +762,16 @@ pub struct Page {
 
 impl Page {
     /// Default limit for a page, i.e. the number of items per page. This value is meant to match
-    /// the default limit of the Ergast API, but that is not required for operation correctness.
+    /// the default limit of the jolpica-f1 API, but that is not required for operation correctness.
     pub const DEFAULT_LIMIT: u32 = 30;
 
     /// Default offset for a page, i.e. the number of items to skip before the first item.
     pub const DEFAULT_OFFSET: u32 = 0;
 
-    /// Maximum limit for a page. This value is meant to match the maximum limit of the Ergast API,
-    /// but that is not required for operation correctness. Note, however, that [`Page`]'s interface
-    /// will enforce with maximum, e.g. [`Page::with_limit`] will panic if a value greater than this
-    /// is passed. The actual limit returned in a [`Response`] may be lower than this maximum.
+    /// Maximum limit for a page. This value is meant to match the maximum limit of the jolpica-f1
+    /// API, but that is not required for operation correctness. Note, however, that [`Page`]'s
+    /// interface will enforce with maximum, e.g. [`Page::with_limit`] will panic if a value greater
+    /// than this is passed. The actual limit returned in a [`Response`] may be lower than this max.
     pub const MAX_LIMIT: u32 = 100;
 
     /// Create an instance of [`Page`] with the given limit and offset.
@@ -834,7 +836,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn resource_ergast_base_url() {
+    fn resource_jolpica_base_url() {
         assert_eq!(crate::jolpica::api::JOLPICA_API_BASE_URL, "https://api.jolpi.ca/ergast/f1")
     }
 

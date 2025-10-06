@@ -4,8 +4,8 @@ use serde_with::{DisplayFromStr, serde_as};
 use std::sync::LazyLock;
 
 /// These aliases represent the underlying time/date/duration/etc. types used within the crate to
-/// represent such values from the Ergast API, sometimes as direct aliases, e.g. for a [`Date`], or
-/// used to compose more complex types, e.g. [`DateTime`], [`QualifyingTime`], [`RaceTime`], etc.
+/// represent such values from the jolpica-f1 API, sometimes as direct aliases, e.g. for a [`Date`],
+/// or used to compose more complex types, e.g. [`DateTime`], [`QualifyingTime`], [`RaceTime`], etc.
 // @todo Enable features to use different underlying libraries, e.g. [`time`], `chrono`, etc.
 use time as underlying;
 
@@ -74,8 +74,8 @@ fn parse_subsecond_into_milli(subsec_str: &str) -> i64 {
 /// Parses a [`Time`] from a string in the format `HH:MM:SS`, e.g. `11:00:00`.
 ///
 /// An optional suffix `Z` is also allowed, e.g. `11:00:00Z`. This format represents times of day in
-/// the Ergast API, e.g. the start time of an event, the time of the day at which a pit stop took
-/// place, etc.
+/// the jolpica-f1 API, e.g. the start time of an event, the time of the day at which a pit stop
+/// took place, etc.
 fn parse_time(raw_str: &str) -> Result<Time, underlying::error::Parse> {
     const TIME_FORMAT_DESCRIPTION: &[underlying::format_description::FormatItem<'static>] =
         underlying::macros::format_description!("[hour]:[minute]:[second]");
@@ -87,7 +87,7 @@ fn parse_time(raw_str: &str) -> Result<Time, underlying::error::Parse> {
 
 /// Parses a [`Duration`] from a string in the format `H:MM:SS.SSS`, e.g. `"2:05:05.152"`.
 ///
-/// This format represents durations the Ergast API, i.e. the duration of a single lap or race.
+/// This format represents durations the jolpica-f1 API, i.e. the duration of a single lap or race.
 /// Note that the parsing is very permissive, allowing the `[hour]` and `[minute]` components to be
 /// omitted, and allowing all other components to have fewer than the maximum number of digits.
 fn parse_duration(raw_str: &str) -> Result<Duration, String> {
@@ -116,6 +116,7 @@ fn parse_duration(raw_str: &str) -> Result<Duration, String> {
 /// Some example valid times are `+0.4`, `+1.882`, `+21.217`, `+89.241`, `+103.796`, `+1:14.240`.
 /// These formats represent delta times in the Ergast API, i.e. the difference between lap times.
 // @todo There is no consistent format for delta times in the Ergast API. Should that be fixed?
+// @todo Investigate whether this problem is also present in the new replacement jolpica-f1 API.
 fn parse_delta(raw_str: &str) -> Result<Duration, String> {
     const FORMAT_REGEX_STR: &str = r"^\+(?:(\d{1,2}):)?(\d{1,3})\.(\d{1,3})$";
     static RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(FORMAT_REGEX_STR).unwrap());
@@ -158,8 +159,9 @@ where
 }
 
 #[derive(Deserialize, PartialEq, Eq, Clone, Copy, Debug)]
-/// Represents a date and optional time in the Ergast API, e.g. the date and start time of an event.
-/// This is similar to, say [`time::PrimitiveDateTime`], but the time may not always be present.
+/// Represents a date and optional time in the jolpica-f1 API, e.g. the date and start time of an
+/// event. This is similar to, say [`time::PrimitiveDateTime`], but the time may not always be
+/// present.
 pub struct DateTime {
     /// The date component of the date-time.
     pub date: Date,

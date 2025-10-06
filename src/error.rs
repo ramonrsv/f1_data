@@ -9,8 +9,8 @@ use crate::jolpica::response::{Payload, Table};
 #[cfg(doc)]
 use crate::jolpica::{resource::Resource, response};
 
-/// An error that may occur while processing a [`Resource`] HTTP request from the Ergast API, via
-/// the provided family of `get_*` methods.
+/// An error that may occur while processing a [`Resource`] HTTP request from the jolpica-f1 API,
+/// via the provided family of `get_*` methods.
 ///
 /// These may be underlying HTTP errors, represented by [`Error::Http`], errors parsing the JSON
 /// response, represented by [`Error::Parse`], or errors due to unmet restrictions imposed on the
