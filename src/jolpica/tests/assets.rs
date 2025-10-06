@@ -11,8 +11,8 @@ use crate::jolpica::time::{
     macros::{date, time},
 };
 
-// http://ergast.com/mrd/methods/seasons/
-// --------------------------------------
+// https://api.jolpi.ca/ergast/f1/seasons/
+// ---------------------------------------
 
 pub(crate) const SEASON_1950_STR: &str = r#"{
     "season": "1950",
@@ -99,8 +99,8 @@ pub(crate) static SEASON_TABLE: LazyLock<Table> = LazyLock::new(|| Table::Season
     ],
 });
 
-// http://ergast.com/mrd/methods/drivers/
-// --------------------------------------
+// https://api.jolpi.ca/ergast/f1/drivers/
+// ---------------------------------------
 
 // Optional fields are missing: ["permanentNumber", "code"]
 pub(crate) const DRIVER_HAILWOOD_STR: &str = r#"{
@@ -471,8 +471,8 @@ pub(crate) static DRIVER_TABLE: LazyLock<Table> = LazyLock::new(|| Table::Driver
     ],
 });
 
-// http://ergast.com/mrd/methods/constructors/
-// -------------------------------------------
+// https://api.jolpi.ca/ergast/f1/constructors/
+// --------------------------------------------
 
 pub(crate) const CONSTRUCTOR_LOLA_STR: &str = r#"{
     "constructorId": "lola",
@@ -615,8 +615,8 @@ pub(crate) static CONSTRUCTOR_TABLE: LazyLock<Table> = LazyLock::new(|| Table::C
     ],
 });
 
-// http://ergast.com/mrd/methods/circuits/
-// ---------------------------------------
+// https://api.jolpi.ca/ergast/f1/circuits/
+// ----------------------------------------
 
 pub(crate) const CIRCUIT_GEORGE_STR: &str = r#"{
     "circuitId": "george",
@@ -1019,8 +1019,8 @@ pub(crate) const RACE_2023_12: LazyLock<Race> = LazyLock::new(|| Race {
     ..RACE_NONE.clone()
 });
 
-// http://ergast.com/mrd/methods/schedule/
-// ---------------------------------------
+// https://api.jolpi.ca/ergast/f1/schedule/
+// ----------------------------------------
 
 // Has "date" only
 pub(crate) const RACE_1950_1_SCHEDULE_STR: &str = formatcp!(
@@ -1385,8 +1385,8 @@ pub(crate) static RACE_TABLE_SCHEDULE: LazyLock<Table> = LazyLock::new(|| Table:
     ],
 });
 
-// http://ergast.com/mrd/methods/qualifying/
-// -----------------------------------------
+// https://api.jolpi.ca/ergast/f1/qualifying/
+// ------------------------------------------
 
 pub(crate) const QUALIFYING_RESULT_2003_4_P1_STR: &str = formatcp!(
     r#"{{
@@ -1781,8 +1781,8 @@ pub(crate) static RACE_TIMES_2023_4: LazyLock<Vec<RaceTime>> = LazyLock::new(|| 
     ]
 });
 
-// http://ergast.com/mrd/methods/sprint/
-// -------------------------------------
+// https://api.jolpi.ca/ergast/f1/sprint/
+// --------------------------------------
 
 pub(crate) const SPRINT_RESULT_2023_4_P1_STR: &str = formatcp!(
     r#"{{
@@ -1885,8 +1885,8 @@ pub(crate) static RACE_2023_4_SPRINT_RESULTS: LazyLock<Race> = LazyLock::new(|| 
     ..RACE_2023_4.clone()
 });
 
-// http://ergast.com/mrd/methods/results/
-// --------------------------------------
+// https://api.jolpi.ca/ergast/f1/results/
+// ---------------------------------------
 
 pub(crate) const RACE_RESULT_1963_10_P23_STR: &str = formatcp!(
     r#"{{
@@ -2340,8 +2340,8 @@ pub(crate) static RACE_2023_4_RACE_RESULTS: LazyLock<Race> = LazyLock::new(|| Ra
     ..RACE_2023_4.clone()
 });
 
-// http://ergast.com/mrd/methods/status/
-// -------------------------------------
+// https://api.jolpi.ca/ergast/f1/status/
+// --------------------------------------
 
 pub(crate) const STATUS_2022_FINISHED_STR: &str = formatcp!(
     r#"{{
@@ -2420,8 +2420,8 @@ pub(crate) static STATUS_TABLE_2022: LazyLock<Table> = LazyLock::new(|| Table::S
     ],
 });
 
-// http://ergast.com/mrd/methods/laps/
-// -----------------------------------
+// https://api.jolpi.ca/ergast/f1/laps/
+// ------------------------------------
 
 pub(crate) const TIMING_2023_4_L1_P1_STR: &str = formatcp!(
     r#"{{
@@ -2524,8 +2524,8 @@ pub(crate) static RACE_2023_4_LAPS: LazyLock<Race> = LazyLock::new(|| Race {
     ..RACE_2023_4.clone()
 });
 
-// http://ergast.com/mrd/methods/pitstops/
-// ---------------------------------------
+// https://api.jolpi.ca/ergast/f1/pitstops/
+// ----------------------------------------
 
 pub(crate) const PIT_STOP_2023_4_L10_MAX_STR: &str = formatcp!(
     r#"{{

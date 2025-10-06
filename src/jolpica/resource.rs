@@ -20,7 +20,7 @@ pub enum Resource {
     /// `2023` for the _2023 Formula One World Championship_. The season year can be used to filter
     /// requests for other resources, via [`Filters::season`].
     ///
-    /// Directly maps to <http://ergast.com/mrd/methods/seasons/>
+    /// Directly maps to <https://api.jolpi.ca/ergast/f1/seasons/>
     SeasonList(Filters),
 
     /// Get a list of drivers within the series, and information about them. Each driver listed in
@@ -33,7 +33,7 @@ pub enum Resource {
     /// _Jos Verstappen_, respectively. As such, that convention should not be relied on; only
     /// values returned by the API are guaranteed to be valid.
     ///
-    /// Directly maps to <http://ergast.com/mrd/methods/drivers/>
+    /// Directly maps to <https://api.jolpi.ca/ergast/f1/drivers/>
     DriverInfo(Filters),
 
     #[allow(clippy::doc_markdown)] // False positive, complains about "_McLaren_".
@@ -42,7 +42,7 @@ pub enum Resource {
     /// [`Constructor::constructor_id`], e.g. `"mclaren"` for _McLaren_. These unique IDs can be
     /// used to filter requests for other resources, via [`Filters::constructor_id`].
     ///
-    /// Directly maps to <http://ergast.com/mrd/methods/constructors/>
+    /// Directly maps to <https://api.jolpi.ca/ergast/f1/constructors/>
     ConstructorInfo(Filters),
 
     /// Get a list of circuits within the series, and information about them. Each circuit listed in
@@ -50,7 +50,7 @@ pub enum Resource {
     /// for _Circuit de Spa-Francorchamps_. These unique IDs can be used to filter requests for
     /// other resources, via [`Filters::circuit_id`].
     ///
-    /// Directly maps to <http://ergast.com/mrd/methods/circuits/>
+    /// Directly maps to <https://api.jolpi.ca/ergast/f1/circuits/>
     CircuitInfo(Filters),
 
     /// Get a schedule of races within the series, and information about them. Each race can be
@@ -60,7 +60,7 @@ pub enum Resource {
     ///
     /// **Note:** Schedule details before 2022 are limited to the date/time of the Grand Prix.
     ///
-    /// Directly maps to <http://ergast.com/mrd/methods/schedule/>
+    /// Directly maps to <https://api.jolpi.ca/ergast/f1/schedule/>
     RaceSchedule(Filters),
 
     /// Get a list of qualifying results. The qualifying position, returned in
@@ -74,7 +74,7 @@ pub enum Resource {
     /// positions are recorded in [`SprintResult::grid`] and [`RaceResult::grid`] for sprints and
     /// races, respectively.
     ///
-    /// Directly maps to <http://ergast.com/mrd/methods/qualifying/>
+    /// Directly maps to <https://api.jolpi.ca/ergast/f1/qualifying/>
     QualifyingResults(Filters),
 
     /// Get a list of sprint event results. Various of the returned value can be used to filter
@@ -125,7 +125,7 @@ pub enum Resource {
     /// [`RaceResult::position`], is only valid for results where the driver finished the race,
     /// i.e. where [`RaceResult::position_text`] is a numeric value.
     ///
-    /// Directly maps to <http://ergast.com/mrd/methods/results/>
+    /// Directly maps to <https://api.jolpi.ca/ergast/f1/results/>
     RaceResults(Filters),
 
     /// Get a list of finishing status codes supported by the API, as well as a count of the
@@ -134,21 +134,21 @@ pub enum Resource {
     /// identified by a numeric ID, returned in [`Status::status_id`]. This unique ID can be used to
     /// filter requests for other resources, via [`Filters::finishing_status`].
     ///
-    /// Directly maps to <http://ergast.com/mrd/methods/status/>
+    /// Directly maps to <https://api.jolpi.ca/ergast/f1/status/>
     FinishingStatus(Filters),
 
     /// Get lap timing data for a given race.
     ///
     /// **Note:** Lap time data is available from the 1996 season onwards.
     ///
-    /// Directly maps to <http://ergast.com/mrd/methods/laps/>
+    /// Directly maps to <https://api.jolpi.ca/ergast/f1/laps/>
     LapTimes(LapTimeFilters),
 
     /// Get pit stops data for a given race.
     ///
     /// **Note:** Pit stop data is available from the 2011 season onwards.
     ///
-    /// Directly maps to <http://ergast.com/mrd/methods/pitstops/>
+    /// Directly maps to <https://api.jolpi.ca/ergast/f1/pitstops/>
     PitStops(PitStopFilters),
 
     // These resources are not yet supported.
