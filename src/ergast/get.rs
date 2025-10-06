@@ -3,6 +3,7 @@ use ureq;
 
 use crate::{
     ergast::{
+        api::JOLPICA_API_RATE_LIMIT,
         resource::{Filters, LapTimeFilters, Page, PitStopFilters, Resource},
         response::verify_has_one_element_and_extract,
         response::{
@@ -12,6 +13,7 @@ use crate::{
     },
     error::{Error, Result},
     id::{CircuitID, ConstructorID, DriverID, RaceID, SeasonID},
+    rate_limiter::{Quota, RateLimiter},
 };
 
 #[cfg(doc)]
@@ -29,12 +31,19 @@ use crate::ergast::response::{Lap, Pagination, Payload, Table};
 /// [Ergast API](https://github.com/jolpica/jolpica-f1/blob/main/docs/ergast_differences.md).
 #[allow(missing_copy_implementations)]
 #[derive(Debug)]
-pub struct JolpicaF1 {}
+pub struct JolpicaF1 {
+    rate_limiter: RateLimiter,
+}
 
 impl Default for JolpicaF1 {
     /// Creates a new `JolpicaF1` client with default settings.
     fn default() -> Self {
-        Self {}
+        Self {
+            rate_limiter: RateLimiter::new(
+                Quota::per_hour(JOLPICA_API_RATE_LIMIT.sustained_limit_per_hour)
+                    .allow_burst(JOLPICA_API_RATE_LIMIT.burst_limit_per_sec),
+            ),
+        }
     }
 }
 
@@ -79,6 +88,8 @@ impl JolpicaF1 {
     /// assert!(resp.pagination.is_last_page());
     /// ```
     pub fn get_response_page(&self, resource: &Resource, page: Page) -> Result<Response> {
+        self.rate_limiter.wait_until_ready();
+
         ureq::request_url("GET", &resource.to_url_with(page))
             .call()
             .map_err(Into::into)
@@ -925,8 +936,9 @@ fn verify_is_single_page(response: Response) -> Result<Response> {
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
+    use std::time::{Duration, Instant};
 
-    use more_asserts::assert_ge;
+    use more_asserts::{assert_ge, assert_lt};
     use pretty_assertions::assert_eq;
     use std::sync::LazyLock;
 
@@ -945,7 +957,7 @@ mod tests {
     const DEFAULT_HTTP_RETRY_MAX_ATTEMPT_COUNT: usize = 3;
 
     /// Default sleep duration between attempts to retry on HTTP errors, for [`retry_on_http_error`]
-    const DEFAULT_HTTP_RETRY_SLEEP: std::time::Duration = std::time::Duration::from_secs(5);
+    const DEFAULT_HTTP_RETRY_SLEEP: Duration = Duration::from_secs(5);
 
     /// Forward to [`retry_on_http_error`] with default retry parameters.
     fn retry_http<T>(f: impl Fn() -> Result<T>) -> Result<T> {
@@ -1884,5 +1896,37 @@ mod tests {
 
         let seasons = resp.table.as_seasons().unwrap();
         assert_eq!(seasons.last().unwrap().season, 1950 + current_offset + (seasons.len() as u32) - 1);
+    }
+
+    // Rate limiting
+    // -------------
+
+    #[test]
+    #[ignore]
+    fn rate_limiting() {
+        // Separate instance to avoid rate limiting interference
+        let jolpica = JolpicaF1::default();
+
+        // Requests take about ~300ms each without rate limiting
+        // 500 requests per hour = 1 request every 7.2 seconds
+
+        let start = Instant::now();
+        for _ in 0..4 {
+            let _unused = jolpica.get_season(2024).unwrap();
+        }
+        let elapsed = start.elapsed();
+
+        // First four requests should not wait, ~600ms per request to allow for network latency
+        assert_lt!(elapsed, Duration::from_millis(2400));
+
+        // Clear any accumulation from previous requests' latency
+        let _unused = jolpica.get_season(2024).unwrap();
+
+        let start = Instant::now();
+        let _unused = jolpica.get_season(2024).unwrap();
+        let elapsed = start.elapsed();
+
+        // Subsequent requests should wait, at least ~7s each
+        assert_ge!(elapsed, Duration::from_secs(6));
     }
 }
