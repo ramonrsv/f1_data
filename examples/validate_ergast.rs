@@ -1,3 +1,6 @@
+//! To run this example, use `RUST_LOG=validate_ergast=<level> cargo run --example validate_ergast`
+//! where `<level>` is one of `error` (the default), `warn`, `info`, `debug`, or `trace`.
+//! See the [`env_logger`](https://docs.rs/env_logger/latest/env_logger/) crate for details.
 use std::sync::LazyLock;
 
 use anyhow::{Result, anyhow};
