@@ -12,3 +12,5 @@
       supported by the API
 - [ ] Add support for jolpica-f1 [driver](https://api.jolpi.ca/ergast/f1/2025/driverstandings/) and
       [constructor](https://api.jolpi.ca/ergast/f1/2025/constructorstandings/) standings
+- [ ] Use [github-action-benchmark](https://github.com/benchmark-action/github-action-benchmark) to
+      track benchmark results in CI.
