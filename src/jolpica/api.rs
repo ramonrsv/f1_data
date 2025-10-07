@@ -1,9 +1,12 @@
 use nonzero_ext::nonzero;
 
+#[cfg(doc)]
+use crate::jolpica::{resource::Page, response::Response};
+
 /// Base URL of endpoints for the [jolpica-f1](https://github.com/jolpica/jolpica-f1) API
 pub const JOLPICA_API_BASE_URL: &str = "https://api.jolpi.ca/ergast/f1";
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct RateLimit {
     pub burst_limit_per_sec: std::num::NonZeroU32,
     pub sustained_limit_per_hour: std::num::NonZeroU32,
@@ -17,4 +20,26 @@ pub struct RateLimit {
 pub const JOLPICA_API_RATE_LIMIT: RateLimit = RateLimit {
     burst_limit_per_sec: nonzero!(4u32),
     sustained_limit_per_hour: nonzero!(500u32),
+};
+
+#[derive(Clone, Copy, Debug)]
+pub struct Pagination {
+    /// Default limit for a page, i.e. the number of items per page. This value is meant to match
+    /// the default limit of the jolpica-f1 API, but that is not required for operation correctness.
+    pub default_limit: u32,
+
+    /// Default offset for a page, i.e. the number of items to skip before the first item.
+    pub default_offset: u32,
+
+    /// Maximum limit for a page. This value is meant to match the maximum limit of the jolpica-f1
+    /// API, but that is not required for operation correctness. Note, however, that [`Page`]'s
+    /// interface will enforce this maximum, e.g. [`Page::with_limit`] will panic if a value greater
+    /// than this is passed. The actual limit returned in a [`Response`] may be lower than this max.
+    pub max_limit: u32,
+}
+
+pub const JOLPICA_API_PAGINATION: Pagination = Pagination {
+    default_limit: 30,
+    default_offset: 0,
+    max_limit: 100,
 };

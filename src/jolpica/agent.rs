@@ -16,7 +16,10 @@ use crate::{
 };
 
 #[cfg(doc)]
-use crate::jolpica::response::{Lap, Pagination, Payload, Table};
+use crate::jolpica::{
+    api::JOLPICA_API_PAGINATION,
+    response::{Lap, Pagination, Payload, Table},
+};
 
 /// An agent for accessing the [jolpica-f1](https://github.com/jolpica/jolpica-f1) API for querying
 /// Formula 1 data.
@@ -429,9 +432,10 @@ impl Agent {
     /// [`Race::season`], [`Race::round`], [`Race::race_name`], etc., so this function can be used
     /// to obtain general information about race weekend events, e.g. a list of rounds for a season.
     ///
-    /// **Note:** Since more than [`Page::MAX_LIMIT`] races have taken place in the history of F1,
-    /// calling this function without any filters will return [`Error::MultiPage`]. As such, it is
-    /// necessary to pass some filters, e.g. [`Filters::season`], [`Filters::driver_id`], etc.
+    /// **Note:** Since more than [`JOLPICA_API_PAGINATION.max_limit`] races have taken place in the
+    /// history of F1, calling this function without any filters will return [`Error::MultiPage`].
+    /// As such, it is necessary to pass some filters, e.g. [`Filters::season`],
+    /// [`Filters::driver_id`], etc.
     ///
     /// # Errors
     ///

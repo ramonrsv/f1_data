@@ -2,7 +2,7 @@ use url::Url;
 
 use crate::{
     id::{CircuitID, ConstructorID, DriverID, RoundID, SeasonID, StatusID},
-    jolpica::response::Pagination,
+    jolpica::{api::JOLPICA_API_PAGINATION, response::Pagination},
 };
 
 #[cfg(doc)]
@@ -798,39 +798,26 @@ pub struct Page {
 }
 
 impl Page {
-    /// Default limit for a page, i.e. the number of items per page. This value is meant to match
-    /// the default limit of the jolpica-f1 API, but that is not required for operation correctness.
-    pub const DEFAULT_LIMIT: u32 = 30;
-
-    /// Default offset for a page, i.e. the number of items to skip before the first item.
-    pub const DEFAULT_OFFSET: u32 = 0;
-
-    /// Maximum limit for a page. This value is meant to match the maximum limit of the jolpica-f1
-    /// API, but that is not required for operation correctness. Note, however, that [`Page`]'s
-    /// interface will enforce with maximum, e.g. [`Page::with_limit`] will panic if a value greater
-    /// than this is passed. The actual limit returned in a [`Response`] may be lower than this max.
-    pub const MAX_LIMIT: u32 = 100;
-
     /// Create an instance of [`Page`] with the given limit and offset.
     pub fn with(limit: u32, offset: u32) -> Self {
-        assert!(limit <= Self::MAX_LIMIT);
+        assert!(limit <= JOLPICA_API_PAGINATION.max_limit);
 
         Self { limit, offset }
     }
 
     /// Create an instance of [`Page`] with the given offset and the default limit.
     pub fn with_offset(offset: u32) -> Self {
-        Self::with(Self::DEFAULT_LIMIT, offset)
+        Self::with(JOLPICA_API_PAGINATION.default_limit, offset)
     }
 
     /// Create an instance of [`Page`] with the given limit and the default offset.
     pub fn with_limit(limit: u32) -> Self {
-        Self::with(limit, Self::DEFAULT_OFFSET)
+        Self::with(limit, JOLPICA_API_PAGINATION.default_offset)
     }
 
     /// Create an instance of [`Page`] with the maximum limit and default offset.
     pub fn with_max_limit() -> Self {
-        Self::with_limit(Self::MAX_LIMIT)
+        Self::with_limit(JOLPICA_API_PAGINATION.max_limit)
     }
 
     /// Access the limit of this [`Page`].
@@ -855,7 +842,7 @@ impl Page {
 
 impl Default for Page {
     fn default() -> Self {
-        Self::with(Self::DEFAULT_LIMIT, Self::DEFAULT_OFFSET)
+        Self::with(JOLPICA_API_PAGINATION.default_limit, JOLPICA_API_PAGINATION.default_offset)
     }
 }
 
@@ -1261,7 +1248,7 @@ mod tests {
         assert_eq!(
             Page::with_offset(5),
             Page {
-                limit: Page::DEFAULT_LIMIT,
+                limit: JOLPICA_API_PAGINATION.default_limit,
                 offset: 5
             }
         );
@@ -1269,16 +1256,16 @@ mod tests {
         assert_eq!(
             Page::with_max_limit(),
             Page {
-                limit: Page::MAX_LIMIT,
-                offset: Page::DEFAULT_OFFSET
+                limit: JOLPICA_API_PAGINATION.max_limit,
+                offset: JOLPICA_API_PAGINATION.default_offset
             }
         );
 
         assert_eq!(
             Page::default(),
             Page {
-                limit: Page::DEFAULT_LIMIT,
-                offset: Page::DEFAULT_OFFSET
+                limit: JOLPICA_API_PAGINATION.default_limit,
+                offset: JOLPICA_API_PAGINATION.default_offset
             }
         );
     }
