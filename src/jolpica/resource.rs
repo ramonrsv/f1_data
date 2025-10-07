@@ -162,7 +162,7 @@ pub enum Resource {
 }
 
 impl Resource {
-    /// Produces a URL with which to request the given [`Resource`] from the jolpica-f1 API,
+    /// Produces a URL with which to request a given [`Resource`] from the jolpica-f1 API,
     /// including any filters that may have been requested.
     ///
     /// # Examples
@@ -183,6 +183,77 @@ impl Resource {
     /// );
     /// ```
     pub fn to_url(&self) -> Url {
+        self.to_url_with_base_and_opt_page(crate::jolpica::api::JOLPICA_API_BASE_URL, None)
+    }
+
+    /// Produce a URL with which to request a specific [`Page`] of a given [`Resource`] from the
+    /// jolpica-f1 API, including any filters that may have been requested.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use url::Url;
+    /// # use f1_data::id::DriverID;
+    /// # use f1_data::jolpica::resource::{Filters, Page, Resource};
+    /// #
+    /// let request = Resource::DriverInfo(Filters {
+    ///     driver_id: Some(DriverID::from("leclerc")),
+    ///     ..Filters::none()
+    /// });
+    ///
+    /// assert_eq!(
+    ///     request.to_url_with(Page::with_limit(100)),
+    ///     Url::parse("https://api.jolpi.ca/ergast/f1/drivers/leclerc.json?limit=100&offset=0").unwrap()
+    /// );
+    /// ```
+    pub fn to_url_with(&self, page: Page) -> Url {
+        self.to_url_with_base_and_opt_page(crate::jolpica::api::JOLPICA_API_BASE_URL, Some(page))
+    }
+
+    /// Produces a URL with which to request, optionally a given [`Page`] of, a given [`Resource`]
+    /// from a specified base URL, including any filters that may have been requested.
+    ///
+    /// This method is primarily intended for internal use, as the core implementation that the
+    /// simpler [`to_url`][Self::to_url] and [`to_url_with`][Self::to_url_with] methods forward to.
+    /// It is provided here to cover any edge use cases, e.g. requesting from alternate servers.
+    ///
+    ///
+    pub fn to_url_with_base_and_opt_page(&self, base: &str, page: Option<Page>) -> Url {
+        let mut url = Url::parse(&format!("{}{}.json", base, self.to_endpoint())).unwrap();
+
+        if let Some(page) = page {
+            // re. the lint, this use case is by design, according to `Url`'s docs.
+            #[allow(unused_results)]
+            let _ = url
+                .query_pairs_mut()
+                .extend_pairs([("limit", page.limit.to_string()), ("offset", page.offset.to_string())]);
+        }
+
+        url
+    }
+
+    /// Produces the endpoint path to request the given [`Resource`] from the jolpica-f1 API,
+    /// including any filters that may have been requested.
+    ///
+    /// This method is primarily intended for internal use, as a building block used by all other
+    /// `to_url_*` methods, e.g. [`to_url`][Self::to_url] and [`to_url_with`][Self::to_url_with].
+    /// It is provided here to cover any edge use cases.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use f1_data::id::{ConstructorID, DriverID};
+    /// # use f1_data::jolpica::resource::{Filters, Resource};
+    /// #
+    /// let request = Resource::DriverInfo(Filters {
+    ///     driver_id: Some(DriverID::from("leclerc")),
+    ///     constructor_id: Some(ConstructorID::from("ferrari")),
+    ///     ..Filters::none()
+    /// });
+    ///
+    /// assert_eq!(request.to_endpoint(), "/constructors/ferrari/drivers/leclerc");
+    /// ```
+    pub fn to_endpoint(&self) -> String {
         type DynFF<'a> = &'a dyn FiltersFormatter;
 
         // re. the lints, I don't see a clean way to remove the cast without making the code worse
@@ -217,51 +288,14 @@ impl Resource {
 
         filters.push(resource);
 
-        Url::parse(&format!(
-            "{}{}.json",
-            crate::jolpica::api::JOLPICA_API_BASE_URL,
-            filters
-                .iter()
-                .filter(|(key, val)| !val.is_empty() || key == &resource_key)
-                .fold(String::new(), |mut acc, (key, val)| {
-                    acc.push_str(key);
-                    acc.push_str(val);
-                    acc
-                })
-        ))
-        .unwrap()
-    }
-
-    /// Produce a URL with which to request a specific [`Page`] of a given [`Resource`] from the
-    /// jolpica-f1 API, including any filters that may have been requested.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use url::Url;
-    /// # use f1_data::id::DriverID;
-    /// # use f1_data::jolpica::resource::{Filters, Page, Resource};
-    /// #
-    /// let request = Resource::DriverInfo(Filters {
-    ///     driver_id: Some(DriverID::from("leclerc")),
-    ///     ..Filters::none()
-    /// });
-    ///
-    /// assert_eq!(
-    ///     request.to_url_with(Page::with_limit(100)),
-    ///     Url::parse("https://api.jolpi.ca/ergast/f1/drivers/leclerc.json?limit=100&offset=0").unwrap()
-    /// );
-    /// ```
-    pub fn to_url_with(&self, page: Page) -> Url {
-        let mut url = self.to_url();
-
-        // re. the lint, this use case is by design, according to `Url`'s docs.
-        #[allow(unused_results)]
-        let _ = url
-            .query_pairs_mut()
-            .extend_pairs([("limit", page.limit.to_string()), ("offset", page.offset.to_string())]);
-
-        url
+        filters
+            .iter()
+            .filter(|(key, val)| !val.is_empty() || key == &resource_key)
+            .fold(String::new(), |mut acc, (key, val)| {
+                acc.push_str(key);
+                acc.push_str(val);
+                acc
+            })
     }
 }
 
@@ -1036,6 +1070,34 @@ mod tests {
             })
             .to_url(),
             url("/2023/4/laps/1/drivers/alonso/pitstops/1.json")
+        );
+    }
+
+    #[test]
+    fn resource_to_url_with_base_and_opt_page() {
+        assert_eq!(
+            Resource::DriverInfo(Filters::none()).to_url_with_base_and_opt_page("https://example.com/api", None),
+            Url::parse("https://example.com/api/drivers.json").unwrap()
+        );
+
+        assert_eq!(
+            Resource::DriverInfo(Filters::none())
+                .to_url_with_base_and_opt_page("https://example.com/api", Some(Page::with(10, 5))),
+            Url::parse("https://example.com/api/drivers.json?limit=10&offset=5").unwrap()
+        );
+    }
+
+    #[test]
+    fn resource_to_endpoint() {
+        assert_eq!(
+            Resource::DriverInfo(Filters {
+                constructor_id: Some("ferrari".into()),
+                circuit_id: Some("spa".into()),
+                qualifying_pos: Some(1),
+                ..Filters::none()
+            })
+            .to_endpoint(),
+            "/constructors/ferrari/circuits/spa/qualifying/1/drivers"
         );
     }
 
