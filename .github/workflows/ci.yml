@@ -1,19 +1,22 @@
-# This workflow will install Rust toolchain dependencies, build the workspace, run tests, build
-# docs, run clippy, run rustfmt, and run benchmarks. Non-ignored tests are run on every CI trigger.
+# This workflow will install Rust toolchain dependencies, build the workspace, run tests (including
+# ignored tests), build docs, run clippy, run rustfmt, run benchmarks, and generate code coverage
+# reports and upload them to Codecov. It runs on push and pull_requests, and on a nightly schedule.
 #
 # Ignored tests depend on network and jolpica-f1 API availability, which could produce problematic
 # spurious failures and exceed jolpica-f1 API rate limits if run on every CI trigger. However, get_*
-# unit tests have solutions to mitigate instability caused by HTTP errors, and there are few enough
-# tests that the jolpica-f1 API should not be greatly taxed. As such, the benefits of running these
-# on every CI trigger, which include faster feedback and greater ease of local testing, outweigh the
-# possible downsides, so ignored tests are run on every CI trigger as well.
+# unit tests have rate limiting and solutions to mitigate instability caused by HTTP errors, and
+# there are few enough tests that the jolpica-f1 API should not be greatly taxed. As such, the
+# benefits of running these on every CI trigger, which include faster feedback and greater ease of
+# local testing, outweigh the possible downsides, so ignored tests are run on every CI trigger.
 #
 # Benchmarks are built on every CI trigger, but they are only run on a nightly schedule to avoid
-# taxing the jolpica-f1 API, because they are very time consuming, and because running them on GitHub's
-# virtualized environment does not produce reliable results.
+# taxing the jolpica-f1 API, because they are very time consuming, and because running them on
+# GitHub's virtualized environment does not produce reliable results.
 #
-# @todo Executing benchmarks is currently disabled entirely due to jolpica-f1 API rate limiting.
-# Need to find a way to do useful benchmarks without violating jolpica-f1's rate limits and ToU.
+# Some variables can be used to control running the workflow locally with `act`. They can be passed
+# via `--var <VAR_NAME>=<value>`, and are ignored when running on GitHub Actions. Supported vars:
+#   - `SKIP_CODECOV=true` will skip the code coverage job, which uploads a report to Codecov.
+#   - `RUN_BENCH=true` will run the benchmarks, which are otherwise only run on a nightly schedule.
 name: CI
 
 on:
@@ -77,7 +80,7 @@ jobs:
 
   code_coverage:
     runs-on: ubuntu-latest
-    if: ${{ vars.SKIP_CODECOV != 'true' }}
+    if: vars.SKIP_CODECOV != 'true'
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@master
@@ -104,8 +107,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-      - name: Build bench
+      - name: Build benchmarks
         run: cargo bench --workspace --all-features --no-run
-      - name: Run bench
-        if: github.event_name == 'schedule' && false
+      - name: Run benchmarks
+        if: vars.RUN_BENCH == 'true' || github.event_name == 'schedule'
         run: cargo bench --workspace --all-features
