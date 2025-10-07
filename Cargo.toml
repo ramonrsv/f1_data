@@ -15,7 +15,7 @@ homepage = "https://github.com/ramonrsv/f1_data"
 repository = "https://github.com/ramonrsv/f1_data"
 license = "MIT OR Apache-2.0"
 keywords = ["data", "f1"]
-categories = ["api-bindigns"]
+categories = ["api-bindings"]
 
 [features]
 fantasy = ["dep:serde_yaml"]
