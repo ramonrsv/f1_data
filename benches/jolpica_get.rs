@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 use serde_json;
 use std::sync::LazyLock;
-use url::Url;
 
 use f1_data::{
     error::{Error, Result},
@@ -19,7 +18,7 @@ use f1_data::{
 
 static FILTERS: LazyLock<Filters> = LazyLock::new(|| Filters::new().season(2022));
 static RESOURCE: LazyLock<Resource> = LazyLock::new(|| Resource::RaceResults(FILTERS.clone()));
-static URL: LazyLock<Url> = LazyLock::new(|| RESOURCE.to_url_with(Page::with_max_limit()));
+static URL: LazyLock<String> = LazyLock::new(|| RESOURCE.to_url_with(Page::with_max_limit()).to_string());
 
 static FILENAME: &str = "benches/assets/response_2022_race_results.json";
 
@@ -33,8 +32,8 @@ fn bench_get_race_results(c: &mut Criterion) {
 /// Benchmark different ways to process a [`ureq::Response`] into an [`Response`].
 ///
 /// Note that the different functions include the network overhead, since a [`ureq::Response`]
-/// keeps the socket open and the body isn't read until one of [`ureq::Response::into_json()`],
-/// [`ureq::Response::into_string()`], or [`ureq::Response::into_reader()`] is called.
+/// keeps the socket open and the body isn't read until one of [`ureq::Body::read_json()`],
+/// [`ureq::Body::read_to_string()`], or [`ureq::Body::into_reader()`] is called.
 fn bench_process_ureq_response(c: &mut Criterion) {
     let mut group = c.benchmark_group("process_ureq_response");
 
@@ -42,24 +41,24 @@ fn bench_process_ureq_response(c: &mut Criterion) {
 
     group.bench_function("via_into_json", |b| {
         b.iter_batched(
-            || ureq::request_url("GET", &url).call().unwrap(),
-            |ureq_resp| ureq_resp.into_json::<Response>().unwrap(),
+            || ureq::get(&url).call().unwrap(),
+            |ureq_resp| ureq_resp.into_body().read_json::<Response>().unwrap(),
             BatchSize::SmallInput,
         )
     });
 
     group.bench_function("via_into_string", |b| {
         b.iter_batched(
-            || ureq::request_url("GET", &url).call().unwrap(),
-            |ureq_resp| serde_json::from_str::<Response>(&ureq_resp.into_string().unwrap()).unwrap(),
+            || ureq::get(&url).call().unwrap(),
+            |ureq_resp| serde_json::from_str::<Response>(&ureq_resp.into_body().read_to_string().unwrap()).unwrap(),
             BatchSize::SmallInput,
         )
     });
 
     group.bench_function("via_into_reader", |b| {
         b.iter_batched(
-            || ureq::request_url("GET", &url).call().unwrap(),
-            |ureq_resp| serde_json::from_reader::<_, Response>(ureq_resp.into_reader()).unwrap(),
+            || ureq::get(&url).call().unwrap(),
+            |ureq_resp| serde_json::from_reader::<_, Response>(ureq_resp.into_body().into_reader()).unwrap(),
             BatchSize::SmallInput,
         )
     });
@@ -80,7 +79,7 @@ fn bench_read_json_from_file_vs_http(c: &mut Criterion) {
     group.bench_function("from_file", |b| b.iter(|| fs::read_to_string(&file_path).unwrap()));
 
     group.bench_function("from_http", |b| {
-        b.iter(|| ureq::request_url("GET", &url).call().unwrap().into_string().unwrap())
+        b.iter(|| ureq::get(&url).call().unwrap().body_mut().read_to_string().unwrap())
     });
 }
 

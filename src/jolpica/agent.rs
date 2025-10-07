@@ -1,4 +1,3 @@
-use serde_json;
 use ureq;
 
 use crate::{
@@ -91,11 +90,11 @@ impl Agent {
     pub fn get_response_page(&self, resource: &Resource, page: Page) -> Result<Response> {
         self.rate_limiter.wait_until_ready();
 
-        ureq::request_url("GET", &resource.to_url_with(page))
-            .call()
+        ureq::get(resource.to_url_with(page).as_str())
+            .call()?
+            .into_body()
+            .read_json()
             .map_err(Into::into)
-            .map(ureq::Response::into_reader)
-            .and_then(|reader| serde_json::from_reader(reader).map_err(Into::into))
     }
 
     /// Performs a GET request to the jolpica-f1 API for a single page of specified [`Resource`] and

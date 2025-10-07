@@ -18,11 +18,11 @@ use crate::jolpica::{resource::Resource, response};
 /// multi-page response, represented by [`Error::MultiPage`].
 #[derive(Debug)]
 pub enum Error {
-    /// Underlying HTTP error, passing through the [`ureq::Error`] from [`ureq::Request::call`].
+    /// Underlying HTTP error, passing through [`ureq::Error`] from [`ureq::RequestBuilder::call`].
     Http(Box<ureq::Error>),
 
     /// Forwarded [`std::io::Error`] that may be returned by various underlying functions, e.g.
-    /// parsing from `ureq::Response::into_json`, or IO from [`ureq::Response::into_string`].
+    /// [`ureq::Body::read_json`], [`ureq::Body::read_to_string`], or [`std::fs::read_to_string`].
     Io(std::io::Error),
 
     /// Error parsing the JSON response into a serializable type from [`response`], passing through
