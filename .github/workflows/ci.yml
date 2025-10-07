@@ -13,10 +13,12 @@
 # taxing the jolpica-f1 API, because they are very time consuming, and because running them on
 # GitHub's virtualized environment does not produce reliable results.
 #
-# Some variables can be used to control running the workflow locally with `act`. They can be passed
-# via `--var <VAR_NAME>=<value>`, and are ignored when running on GitHub Actions. Supported vars:
-#   - `SKIP_CODECOV=true` will skip the code coverage job, which uploads a report to Codecov.
-#   - `RUN_BENCH=true` will run the benchmarks, which are otherwise only run on a nightly schedule.
+# Some jobs and/or steps are skipped when running locally with `act` - controlled via env.ACT and
+# vars.ACT, because they may take too long or may undesirably upload codecov or performance reports.
+# To force running these steps/jobs when running locally with `act`, several options are supported,
+# which can be configured via `--var <OPTION_NAME>=true`. The supported options are:
+#   - `FORCE_CODECOV=true` will run the code coverage job, which uploads a report to Codecov.
+#   - `FORCE_RUN_BENCH=true` will run the benchmarks, which may upload perf reports to GitHub.
 name: CI
 
 on:
@@ -80,7 +82,7 @@ jobs:
 
   code_coverage:
     runs-on: ubuntu-latest
-    if: vars.SKIP_CODECOV != 'true'
+    if: vars.ACT != 'true' || vars.FORCE_CODECOV == 'true'
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@master
@@ -110,5 +112,5 @@ jobs:
       - name: Build benchmarks
         run: cargo bench --workspace --all-features --no-run
       - name: Run benchmarks
-        if: vars.RUN_BENCH == 'true' || github.event_name == 'schedule'
+        if: (env.ACT != 'true' && github.event_name == 'schedule') || vars.FORCE_RUN_BENCH == 'true'
         run: cargo bench --workspace --all-features
