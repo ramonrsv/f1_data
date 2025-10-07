@@ -8,13 +8,10 @@ use std::time::Duration;
 use serde_json;
 use std::sync::LazyLock;
 
-use f1_data::{
-    error::{Error, Result},
-    jolpica::{
-        agent::Agent,
-        resource::{Filters, Page, Resource},
-        response::{Race, RaceResult, Response},
-    },
+use f1_data::jolpica::{
+    agent::Agent,
+    resource::{Filters, Page, Resource},
+    response::Response,
 };
 
 static FILTERS: LazyLock<Filters> = LazyLock::new(|| Filters::new().season(2022).round(1));
@@ -116,48 +113,6 @@ fn bench_read_json_from_file_vs_http(c: &mut Criterion) {
     });
 }
 
-/// Benchmark deserializing a JSON response, in string form, into a [`Response`].
-fn bench_deserialize_response(c: &mut Criterion) {
-    let content = fs::read_to_string(get_file_path()).unwrap();
-
-    c.bench_function("deserialize_response", |b| b.iter(|| serde_json::from_str::<Response>(&content).unwrap()));
-}
-
-fn process_response(response: Result<Response>) -> Result<Vec<Race<Vec<RaceResult>>>> {
-    response
-        .and_then(verify_is_single_page)?
-        .table
-        .into_races()?
-        .into_iter()
-        .map(|race| race.try_map(|payload| payload.into_race_results().map_err(|e| e.into())))
-        .collect()
-}
-
-fn verify_is_single_page(response: Response) -> Result<Response> {
-    if response.pagination.is_single_page() {
-        Ok(response)
-    } else {
-        Err(Error::MultiPage)
-    }
-}
-
-/// Benchmark processing a [`Response`]...
-fn bench_process_response(c: &mut Criterion) {
-    let content = fs::read_to_string(get_file_path()).unwrap();
-    let response = serde_json::from_str::<Response>(&content).unwrap();
-
-    c.bench_function("process_response", |b| {
-        b.iter_batched(|| Ok(response.clone()), |response| process_response(response).unwrap(), BatchSize::SmallInput)
-    });
-}
-
-criterion_group!(
-    benches,
-    bench_get_race_results,
-    bench_process_ureq_response,
-    bench_read_json_from_file_vs_http,
-    bench_deserialize_response,
-    bench_process_response
-);
+criterion_group!(benches, bench_get_race_results, bench_process_ureq_response, bench_read_json_from_file_vs_http);
 
 criterion_main!(benches);
