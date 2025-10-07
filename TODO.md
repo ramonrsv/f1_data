@@ -14,3 +14,4 @@
       [constructor](https://api.jolpi.ca/ergast/f1/2025/constructorstandings/) standings
 - [ ] Use [github-action-benchmark](https://github.com/benchmark-action/github-action-benchmark) to
       track benchmark results in CI.
+- [ ] Once auto-merging multi-page responses is supported, verify /examples/validate_jolpica
