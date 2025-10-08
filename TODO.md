@@ -16,3 +16,5 @@
       track benchmark results in CI.
 - [ ] Once auto-merging multi-page responses is supported, verify /examples/validate_jolpica
 - [ ] Add options to jolpica::Agent, e.g. base URL, auto-merging toggle, rate limiting, etc.
+- [ ] Look into using `newtype` idiom for ID types, and into implementing `From<>` for common
+      sources, e.g. `&str` and `u32`. Consider using https://docs.rs/derive_more/latest/derive_more/
