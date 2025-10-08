@@ -1,10 +1,9 @@
-use ureq;
-
 use crate::{
     error::{Error, Result},
     id::{CircuitID, ConstructorID, DriverID, RaceID, SeasonID},
     jolpica::{
-        api::JOLPICA_API_RATE_LIMIT,
+        api::{JOLPICA_API_BASE_URL, JOLPICA_API_RATE_LIMIT},
+        get,
         resource::{Filters, LapTimeFilters, Page, PitStopFilters, Resource},
         response::verify_has_one_element_and_extract,
         response::{
@@ -24,10 +23,10 @@ use crate::jolpica::{
 /// An agent for accessing the [jolpica-f1](https://github.com/jolpica/jolpica-f1) API for querying
 /// Formula 1 data.
 ///
-/// This type fundamentally acts as a wrapper around GET requests to the jolpica-f1 API endpoints
-/// at [`JOLPICA_API_BASE_URL`][crate::jolpica::api::JOLPICA_API_BASE_URL], but also provides
-/// additional functionality like caching, rate limiting, as well as alternate sources, e.g.
-/// [jolpica-f1 database dumps](https://github.com/jolpica/jolpica-f1/blob/main/docs/dumps.md).
+/// This type fundamentally acts as a wrapper around GET requests to the jolpica-f1 API endpoints at
+/// [`JOLPICA_API_BASE_URL`], but also provides additional functionality like caching, rate
+/// limiting, as well as alternate sources, e.g. [jolpica-f1 database
+/// dumps](https://github.com/jolpica/jolpica-f1/blob/main/docs/dumps.md).
 ///
 /// The jolpica-f1 API is a drop-in replacement for the now defunct
 /// [Ergast API](https://github.com/jolpica/jolpica-f1/blob/main/docs/ergast_differences.md).
@@ -38,7 +37,7 @@ pub struct Agent {
 }
 
 impl Default for Agent {
-    /// Creates a new `Agent` with default settings.
+    /// Creates a new [`Agent`] with default settings.
     fn default() -> Self {
         Self {
             rate_limiter: RateLimiter::new(
@@ -92,12 +91,7 @@ impl Agent {
     /// ```
     pub fn get_response_page(&self, resource: &Resource, page: Page) -> Result<Response> {
         self.rate_limiter.wait_until_ready();
-
-        ureq::get(resource.to_url_with(page).as_str())
-            .call()?
-            .into_body()
-            .read_json()
-            .map_err(Into::into)
+        get::get_response_page(JOLPICA_API_BASE_URL, resource, Some(page))
     }
 
     /// Performs a GET request to the jolpica-f1 API for a single page of specified [`Resource`] and
@@ -912,22 +906,6 @@ impl Agent {
     }
 }
 
-/// Call the provided function, retrying on HTTP errors, and forwarding anything else.
-/// `max_attempt_count` and `retry_sleep` are used to control the retry behaviour.
-pub fn retry_on_http_error<T>(
-    f: impl Fn() -> Result<T>,
-    max_attempt_count: usize,
-    retry_sleep: std::time::Duration,
-) -> Result<T> {
-    for _ in 0..=max_attempt_count {
-        match f() {
-            Err(Error::Http(_)) => std::thread::sleep(retry_sleep),
-            other => return other,
-        }
-    }
-    panic!("Retried {max_attempt_count} times on HTTP errors, giving up");
-}
-
 /// Convert a [`Response`] to [`Result<Response>`], enforcing that [`Response`] is single-page, via
 /// `response::Pagination::is_single_page`, and returning [`Error::MultiPage`] if it's not.
 fn verify_is_single_page(response: Response) -> Result<Response> {
@@ -956,18 +934,7 @@ mod tests {
     };
 
     use super::*;
-    use crate::jolpica::tests::assets::*;
-
-    /// Default maximum number of attempts to retry on HTTP errors, for [`retry_on_http_error`].
-    const DEFAULT_HTTP_RETRY_MAX_ATTEMPT_COUNT: usize = 3;
-
-    /// Default sleep duration between attempts to retry on HTTP errors, for [`retry_on_http_error`]
-    const DEFAULT_HTTP_RETRY_SLEEP: Duration = Duration::from_secs(5);
-
-    /// Forward to [`retry_on_http_error`] with default retry parameters.
-    fn retry_http<T>(f: impl Fn() -> Result<T>) -> Result<T> {
-        retry_on_http_error(f, DEFAULT_HTTP_RETRY_MAX_ATTEMPT_COUNT, DEFAULT_HTTP_RETRY_SLEEP)
-    }
+    use crate::jolpica::tests::{assets::*, util::retry_http};
 
     /// Represents a constraint on the length of a list, e.g. a minimum or exact length.
     enum LenConstraint {

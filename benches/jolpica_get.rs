@@ -24,6 +24,9 @@ static JOLPICA: LazyLock<Agent> = LazyLock::new(|| Agent::default());
 
 /// Duration to wait between GET calls to avoid exceeding the jolpica-f1 API rate limits.
 ///
+/// This is meant to to be used in crude rate limiting since [`Agent`]'s limiting is not available.
+/// It is a direct copy of `f1_data::jolpica::tests::util::RATE_LIMIT_DURATION`, which is private.
+///
 /// Waiting is done as part of the `setup` setup in [`criterion::Bencher::iter_batched`], so the
 /// time spent waiting is not measured as part of the benchmark, which is the desired behavior.
 static RATE_LIMIT_DURATION: Duration = Duration::from_secs(8);
