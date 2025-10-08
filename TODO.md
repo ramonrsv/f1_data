@@ -15,3 +15,4 @@
 - [ ] Use [github-action-benchmark](https://github.com/benchmark-action/github-action-benchmark) to
       track benchmark results in CI.
 - [ ] Once auto-merging multi-page responses is supported, verify /examples/validate_jolpica
+- [ ] Add options to jolpica::Agent, e.g. base URL, auto-merging toggle, rate limiting, etc.
