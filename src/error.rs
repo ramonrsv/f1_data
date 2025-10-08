@@ -19,7 +19,7 @@ use crate::jolpica::{resource::Resource, response};
 #[derive(Debug)]
 pub enum Error {
     /// Underlying HTTP error, passing through [`ureq::Error`] from [`ureq::RequestBuilder::call`].
-    Http(Box<ureq::Error>),
+    Http(ureq::Error),
 
     /// Forwarded [`std::io::Error`] that may be returned by various underlying functions, e.g.
     /// [`ureq::Body::read_json`], [`ureq::Body::read_to_string`], or [`std::fs::read_to_string`].
@@ -58,7 +58,7 @@ impl std::error::Error for Error {}
 
 impl From<ureq::Error> for Error {
     fn from(error: ureq::Error) -> Self {
-        Self::Http(Box::new(error))
+        Self::Http(error)
     }
 }
 
