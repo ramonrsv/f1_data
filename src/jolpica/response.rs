@@ -1,6 +1,7 @@
 use std::convert::Infallible;
 
 use enum_as_inner::EnumAsInner;
+use ordered_float::OrderedFloat;
 use serde::{Deserialize, Deserializer, de::DeserializeOwned};
 use serde_with::{DisplayFromStr, serde_as};
 use url::Url;
@@ -35,6 +36,28 @@ pub struct Response {
 }
 
 impl Response {
+    /// Returns a tuple with references to all the fields of this [`Response`] except for the
+    /// [`pagination`](Self::pagination) and [`table`](Self::table) fields, to allow comparing the
+    /// [`Response`]s' metadata for equality while ignoring pagination and table data.
+    //
+    // @todo If a new field is added to [`Response`], and this impl isn't updated accordingly, then
+    // comparisons will silently fail - unit tests won't catch it. I haven't figured out a way to
+    // solve this without adding generic parameters, inefficient cloning and discarding, etc.
+    pub const fn as_info(&self) -> (&String, &String, &Url) {
+        (&self.xmlns, &self.series, &self.url)
+    }
+
+    /// Returns a tuple with all the fields of this [`Response`] except for the
+    /// [`pagination`](Self::pagination) and [`table`](Self::table) fields, to allow comparing the
+    /// [`Response`]s' metadata for equality while ignoring pagination and table data. This method
+    /// is more inefficient than [`as_info()`](Self::as_info) as it clones all of the fields.
+    /// It should only be used when `as_info()`would be too inconvenient due to lifetime, etc.
+    //
+    // @todo See the comment in [`as_info()`](Self::as_info).
+    pub fn to_info(&self) -> (String, String, Url) {
+        (self.xmlns.clone(), self.series.clone(), self.url.clone())
+    }
+
     // TableLists
     // ----------
 
@@ -620,7 +643,7 @@ impl TableList for Constructor {
     }
 }
 
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, Hash, Eq, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Circuit {
     pub circuit_id: CircuitID,
@@ -688,7 +711,7 @@ impl TableList for Status {
 /// types, but the `T` parameter may be specified during postprocessing to restrict the payload
 /// type, e.g. by `get_*` API functions that know the expected payload variant.
 #[serde_as]
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, Eq, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Race<T = Payload> {
     #[serde_as(as = "DisplayFromStr")]
@@ -707,6 +730,34 @@ pub struct Race<T = Payload> {
 }
 
 impl<T> Race<T> {
+    /// Returns a tuple with references to all the fields of this [`Race`] except for the `payload`
+    /// field, to allow comparing [`Race`]s for equality while ignoring [`payload`](Self::payload).
+    //
+    // @todo If a new field is added to [`Race`], and this impl isn't updated accordingly, then
+    // comparisons will silently fail - unit tests won't catch it. I haven't figured out a way to
+    // solve this without a lot of inefficient cloning to discard payload and compare [`Race<Void>`]
+    pub const fn as_info(&self) -> (&SeasonID, &RoundID, &Url, &String, &Circuit, &Date, &Option<Time>) {
+        (&self.season, &self.round, &self.url, &self.race_name, &self.circuit, &self.date, &self.time)
+    }
+
+    /// Returns a tuple with all the fields of this [`Race`] except for the `payload` field, to
+    /// allow comparing [`Race`]s for equality while ignoring [`payload`](Self::payload). This
+    /// method is more inefficient than [`as_info()`](Self::as_info) as it clones all of the fields.
+    /// It should only be used when `as_info()`would be too inconvenient due to lifetime, etc.
+    //
+    // @todo See the comment in [`as_info()`](Self::as_info).
+    pub fn to_info(&self) -> (SeasonID, RoundID, Url, String, Circuit, Date, Option<Time>) {
+        (
+            self.season,
+            self.round,
+            self.url.clone(),
+            self.race_name.clone(),
+            self.circuit.clone(),
+            self.date,
+            self.time,
+        )
+    }
+
     /// Maps a [`Race<T>`] to a [`Result<Race<U>, E>`] by applying a type `T` -> `U` conversion
     /// function, which may fail with error `E`, to the payload, and keeping all the other fields.
     // @todo This implementation can be simplified if/once the type_chaining_struct_update feature
@@ -741,20 +792,6 @@ impl<T> Race<T> {
     pub fn from<U>(race: Race<U>, payload: T) -> Self {
         race.map(|_| payload)
     }
-}
-
-/// Compares two [`Race`]s for equality, ignoring the payload.
-// @todo If a new field is added to [`Race`], and this implementation isn't updated accordingly,
-// it will silently fail - unit tests won't catch it. I haven't figured out a way to solve this
-// problem without a lot of inefficient cloning to discard payload and compare [`Race<Void>`]s.
-pub fn eq_race_info<T, U>(lhs: &Race<T>, rhs: &Race<U>) -> bool {
-    (lhs.season == rhs.season)
-        && (lhs.round == rhs.round)
-        && (lhs.url == rhs.url)
-        && (lhs.race_name == rhs.race_name)
-        && (lhs.circuit == rhs.circuit)
-        && (lhs.date == rhs.date)
-        && (lhs.time == rhs.time)
 }
 
 #[derive(Deserialize, PartialEq, Eq, Clone, Copy, Debug)]
@@ -1214,12 +1251,12 @@ pub struct PitStop {
 }
 
 #[serde_as]
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, Hash, Eq, PartialEq, Clone, Debug)]
 pub struct Location {
     #[serde_as(as = "DisplayFromStr")]
-    pub lat: f64,
+    pub lat: OrderedFloat<f64>,
     #[serde_as(as = "DisplayFromStr")]
-    pub long: f64,
+    pub long: OrderedFloat<f64>,
     pub locality: String,
     pub country: String,
 }
@@ -1623,7 +1660,10 @@ mod tests {
         );
     }
 
-    fn verify_eq_race_info<T, U, V, F>(lhs: &Race<T>, mut rhs: Race<U>, mut field: F, new_val: V)
+    // Race::as_into() and .to_info()
+    // -----------------------------
+
+    fn verify_race_info_compare<T, U, V, F>(lhs: &Race<T>, mut rhs: Race<U>, mut field: F, new_val: V)
     where
         V: Clone + PartialEq + std::fmt::Debug,
         F: FnMut(&mut Race<U>) -> &mut V,
@@ -1631,30 +1671,53 @@ mod tests {
         let old_val = field(&mut rhs).clone();
         assert_ne!(old_val, new_val);
 
-        assert!(eq_race_info(lhs, &rhs));
+        assert_eq!(lhs.as_info(), rhs.as_info());
+        assert_eq!(lhs.to_info(), rhs.to_info());
         field(&mut rhs).clone_from(&new_val);
-        assert!(!eq_race_info(lhs, &rhs));
+        assert_ne!(lhs.as_info(), rhs.as_info());
+        assert_ne!(lhs.to_info(), rhs.to_info());
 
         field(&mut rhs).clone_from(&old_val);
-        assert!(eq_race_info(lhs, &rhs));
+        assert_eq!(lhs.as_info(), rhs.as_info());
+        assert_eq!(lhs.to_info(), rhs.to_info());
     }
 
     #[test]
-    fn race_eq_race_info() {
+    fn race_as_to_info() {
         let lhs = RACE_2023_4.clone();
 
-        assert!(eq_race_info(&lhs, &lhs));
-        assert!(eq_race_info(&lhs, &Race::from(lhs.clone(), true)));
+        assert_eq!(lhs.as_info(), lhs.as_info());
+        assert_eq!(lhs.as_info(), Race::from(lhs.clone(), true).as_info());
+        assert_eq!(lhs.to_info(), lhs.to_info());
+        assert_eq!(lhs.to_info(), Race::from(lhs.clone(), true).to_info());
 
         let rhs = lhs.clone();
 
-        verify_eq_race_info(&lhs, rhs.clone(), |r| &mut r.season, RACE_NONE.season);
-        verify_eq_race_info(&lhs, rhs.clone(), |r| &mut r.round, RACE_NONE.round);
-        verify_eq_race_info(&lhs, rhs.clone(), |r| &mut r.url, RACE_NONE.url.clone());
-        verify_eq_race_info(&lhs, rhs.clone(), |r| &mut r.race_name, RACE_NONE.race_name.clone());
-        verify_eq_race_info(&lhs, rhs.clone(), |r| &mut r.circuit, RACE_NONE.circuit.clone());
-        verify_eq_race_info(&lhs, rhs.clone(), |r| &mut r.date, RACE_NONE.date);
-        verify_eq_race_info(&lhs, rhs.clone(), |r| &mut r.time, RACE_NONE.time);
+        verify_race_info_compare(&lhs, rhs.clone(), |r| &mut r.season, RACE_NONE.season);
+        verify_race_info_compare(&lhs, rhs.clone(), |r| &mut r.round, RACE_NONE.round);
+        verify_race_info_compare(&lhs, rhs.clone(), |r| &mut r.url, RACE_NONE.url.clone());
+        verify_race_info_compare(&lhs, rhs.clone(), |r| &mut r.race_name, RACE_NONE.race_name.clone());
+        verify_race_info_compare(&lhs, rhs.clone(), |r| &mut r.circuit, RACE_NONE.circuit.clone());
+        verify_race_info_compare(&lhs, rhs.clone(), |r| &mut r.date, RACE_NONE.date);
+        verify_race_info_compare(&lhs, rhs.clone(), |r| &mut r.time, RACE_NONE.time);
+    }
+
+    #[test]
+    fn race_info_as_hash_key() {
+        let mut map = indexmap::IndexMap::new();
+
+        assert!(map.insert(RACE_2003_4.to_info(), RACE_2003_4.clone()).is_none());
+        assert!(map.contains_key(&RACE_2003_4.to_info()));
+        assert!(!map.contains_key(&RACE_2023_4.to_info()));
+
+        assert!(map.insert(RACE_2023_4.to_info(), RACE_2023_4.clone()).is_none());
+        assert!(map.contains_key(&RACE_2003_4.to_info()));
+        assert!(map.contains_key(&RACE_2023_4.to_info()));
+
+        assert_ne!(*RACE_2003_4, *RACE_2023_4);
+        assert_ne!(&RACE_2003_4.to_info(), &RACE_2023_4.to_info());
+        assert_eq!(map[&RACE_2003_4.to_info()], *RACE_2003_4);
+        assert_eq!(map[&RACE_2023_4.to_info()], *RACE_2023_4);
     }
 
     #[test]
@@ -1662,7 +1725,7 @@ mod tests {
         let from = Race::from(RACE_2023_4.clone(), true);
 
         let into = from.clone().try_map::<_, _, Infallible>(|_| Ok(String::from("true")));
-        assert!(eq_race_info(&into.as_ref().unwrap(), &from));
+        assert_eq!(into.as_ref().unwrap().as_info(), from.as_info());
         assert_eq!(into.unwrap().payload, String::from("true"));
 
         #[derive(Debug)]
@@ -1685,7 +1748,7 @@ mod tests {
         let from = Race::from(RACE_2023_4.clone(), 1);
 
         let into = from.clone().map(|payload_i32| payload_i32.to_string());
-        assert!(eq_race_info(&into, &from));
+        assert_eq!(into.as_info(), from.as_info());
         assert_eq!(into.payload, String::from("1"));
     }
 
@@ -1694,7 +1757,7 @@ mod tests {
         let from = RACE_2023_4.clone();
 
         let into = Race::from(from.clone(), String::from("some"));
-        assert!(eq_race_info(&into, &from));
+        assert_eq!(into.as_info(), from.as_info());
         assert_eq!(into.payload, String::from("some"));
     }
 
@@ -1818,8 +1881,8 @@ mod tests {
         assert!(serde_json::from_str::<Position>("\"unknown\"").is_err());
     }
 
-    // Response::into_* and Response::as_* tests
-    // -----------------------------------------
+    // Response tests
+    // --------------
 
     const RESPONSE_NONE: LazyLock<Response> = LazyLock::new(|| Response {
         xmlns: "".into(),
@@ -1869,6 +1932,57 @@ mod tests {
             drivers: vec![DRIVER_MAX.clone(), DRIVER_LECLERC.clone()],
         })
     });
+
+    // Response::as_into() and .to_info()
+    // ----------------------------------
+
+    fn verify_response_info_compare<V, F>(lhs: &Response, mut rhs: Response, mut field: F, new_val: V)
+    where
+        V: Clone + PartialEq + std::fmt::Debug,
+        F: FnMut(&mut Response) -> &mut V,
+    {
+        let old_val = field(&mut rhs).clone();
+        assert_ne!(old_val, new_val);
+
+        assert_eq!(lhs.as_info(), rhs.as_info());
+        assert_eq!(lhs.to_info(), rhs.to_info());
+        field(&mut rhs).clone_from(&new_val);
+        assert_ne!(lhs.as_info(), rhs.as_info());
+        assert_ne!(lhs.to_info(), rhs.to_info());
+
+        field(&mut rhs).clone_from(&old_val);
+        assert_eq!(lhs.as_info(), rhs.as_info());
+        assert_eq!(lhs.to_info(), rhs.to_info());
+    }
+
+    #[test]
+    fn response_as_to_info() {
+        let lhs = RESPONSE_SEASONS_NONE.clone();
+
+        let rhs_diff_pagination = Response {
+            pagination: Pagination {
+                limit: 30,
+                offset: 10,
+                total: 0,
+            },
+            ..lhs.clone()
+        };
+
+        let rhs_diff_table = RESPONSE_DRIVERS_NONE.clone();
+
+        assert_eq!(lhs.as_info(), lhs.as_info());
+        assert_eq!(lhs.as_info(), rhs_diff_pagination.as_info());
+        assert_eq!(lhs.as_info(), rhs_diff_table.as_info());
+        assert_eq!(lhs.to_info(), lhs.to_info());
+        assert_eq!(lhs.to_info(), rhs_diff_pagination.to_info());
+        assert_eq!(lhs.to_info(), rhs_diff_table.to_info());
+
+        let rhs = lhs.clone();
+
+        verify_response_info_compare(&lhs, rhs.clone(), |r| &mut r.xmlns, "other".into());
+        verify_response_info_compare(&lhs, rhs.clone(), |r| &mut r.series, "f2".into());
+        verify_response_info_compare(&lhs, rhs.clone(), |r| &mut r.url, Url::parse("https://example.com").unwrap());
+    }
 
     // ::into/as_season(s)
     // -------------------

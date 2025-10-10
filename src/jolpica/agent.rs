@@ -1008,7 +1008,7 @@ mod tests {
     {
         let actual = retry_http(|| get_actual()).unwrap();
 
-        assert!(eq_race_info(&actual, expected));
+        assert_eq!(actual.as_info(), expected.as_info());
 
         assert_each_expected_in_actual(
             || Ok(actual.payload.clone()),
@@ -1673,6 +1673,9 @@ mod tests {
         let leclerc_laps = retry_http(|| JOLPICA.get_driver_laps(race_id, &DriverID::from("leclerc"))).unwrap();
         let max_laps = retry_http(|| JOLPICA.get_driver_laps(race_id, &DriverID::from("max_verstappen"))).unwrap();
 
+        assert_eq!(leclerc_laps.len(), 51);
+        assert_eq!(max_laps.len(), 51);
+
         assert_driver_lap_eq(&leclerc_laps[0], &LAP_2023_4_L1, &TIMING_2023_4_L1_P1);
         assert_driver_lap_eq(&leclerc_laps[1], &LAP_2023_4_L2, &TIMING_2023_4_L2_P1);
         assert_driver_lap_eq(&max_laps[0], &LAP_2023_4_L1, &TIMING_2023_4_L1_P2);
@@ -1731,7 +1734,7 @@ mod tests {
         let actual = verify_has_one_race_and_extract(resp).unwrap();
         let expected = &RACE_2023_4_LAPS;
 
-        assert!(eq_race_info(&actual, expected));
+        assert_eq!(actual.as_info(), expected.as_info());
 
         let actual_laps = actual.payload.as_laps().unwrap();
         let expected_laps = expected.payload.as_laps().unwrap();
@@ -1768,7 +1771,7 @@ mod tests {
         let resp = retry_http(|| JOLPICA.get_response(&Resource::PitStops(PitStopFilters::new(2023, 4)))).unwrap();
         let race = verify_has_one_race_and_extract(resp).unwrap();
 
-        assert!(eq_race_info(&race, &RACE_2023_4_PIT_STOPS));
+        assert_eq!(race.as_info(), RACE_2023_4_PIT_STOPS.as_info());
         assert_eq!(race.payload.as_pit_stops().unwrap().len(), 23);
     }
 

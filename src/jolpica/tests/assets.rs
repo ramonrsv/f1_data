@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use const_format::formatcp;
+use ordered_float::OrderedFloat;
 use std::sync::LazyLock;
 use url::Url;
 
@@ -683,8 +684,8 @@ pub(crate) static CIRCUIT_GEORGE: LazyLock<Circuit> = LazyLock::new(|| Circuit {
     url: Url::parse("https://en.wikipedia.org/wiki/Prince_George_Circuit").unwrap(),
     circuit_name: "Prince George Circuit".to_string(),
     location: Location {
-        lat: -33.0486,
-        long: 27.8736,
+        lat: OrderedFloat(-33.0486),
+        long: OrderedFloat(27.8736),
         locality: "Eastern Cape Province".to_string(),
         country: "South Africa".to_string(),
     },
@@ -695,8 +696,8 @@ pub(crate) static CIRCUIT_SPA: LazyLock<Circuit> = LazyLock::new(|| Circuit {
     url: Url::parse("https://en.wikipedia.org/wiki/Circuit_de_Spa-Francorchamps").unwrap(),
     circuit_name: "Circuit de Spa-Francorchamps".to_string(),
     location: Location {
-        lat: 50.4372,
-        long: 5.97139,
+        lat: OrderedFloat(50.4372),
+        long: OrderedFloat(5.97139),
         locality: "Spa".to_string(),
         country: "Belgium".to_string(),
     },
@@ -707,8 +708,8 @@ pub(crate) static CIRCUIT_SILVERSTONE: LazyLock<Circuit> = LazyLock::new(|| Circ
     url: Url::parse("https://en.wikipedia.org/wiki/Silverstone_Circuit").unwrap(),
     circuit_name: "Silverstone Circuit".to_string(),
     location: Location {
-        lat: 52.0786,
-        long: -1.01694,
+        lat: OrderedFloat(52.0786),
+        long: OrderedFloat(-1.01694),
         locality: "Silverstone".to_string(),
         country: "UK".to_string(),
     },
@@ -719,8 +720,8 @@ pub(crate) static CIRCUIT_IMOLA: LazyLock<Circuit> = LazyLock::new(|| Circuit {
     url: Url::parse("https://en.wikipedia.org/wiki/Imola_Circuit").unwrap(),
     circuit_name: "Autodromo Enzo e Dino Ferrari".to_string(),
     location: Location {
-        lat: 44.3439,
-        long: 11.7167,
+        lat: OrderedFloat(44.3439),
+        long: OrderedFloat(11.7167),
         locality: "Imola".to_string(),
         country: "Italy".to_string(),
     },
@@ -731,8 +732,8 @@ pub(crate) static CIRCUIT_BAKU: LazyLock<Circuit> = LazyLock::new(|| Circuit {
     url: Url::parse("https://en.wikipedia.org/wiki/Baku_City_Circuit").unwrap(),
     circuit_name: "Baku City Circuit".to_string(),
     location: Location {
-        lat: 40.3725,
-        long: 49.8533,
+        lat: OrderedFloat(40.3725),
+        long: OrderedFloat(49.8533),
         locality: "Baku".to_string(),
         country: "Azerbaijan".to_string(),
     },
@@ -901,8 +902,8 @@ pub(crate) const RACE_NONE: LazyLock<Race> = LazyLock::new(|| Race {
         url: Url::parse("https://empty.org").unwrap(),
         circuit_name: "".to_string(),
         location: Location {
-            lat: f64::NAN,
-            long: f64::NAN,
+            lat: OrderedFloat(f64::NAN),
+            long: OrderedFloat(f64::NAN),
             locality: "".to_string(),
             country: "".to_string(),
         },

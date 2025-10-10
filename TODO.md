@@ -18,3 +18,4 @@
 - [ ] Add options to jolpica::Agent, e.g. base URL, auto-merging toggle, rate limiting, etc.
 - [ ] Look into using `newtype` idiom for ID types, and into implementing `From<>` for common
       sources, e.g. `&str` and `u32`. Consider using https://docs.rs/derive_more/latest/derive_more/
+- [ ] Clean up and improve the `get_*` and `into_*` lap timings and pit stops interface.
