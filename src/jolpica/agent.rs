@@ -97,6 +97,10 @@ impl Agent {
     /// Performs a GET request to the jolpica-f1 API for a single page of specified [`Resource`] and
     /// returns a single-page [`Response`], parsed from the JSON response.
     ///
+    /// Note that this method always uses a [`Page::with_max_limit`] to request the maximum allowed
+    /// pagination limit, in order to minimize the chance of a multi-page response, and/or to
+    /// reduce the number of requests needed to retrieve all the data for a given resource.
+    ///
     /// This method performs no additional processing, it returns the top-level [`Response`] type
     /// that is a direct representation of the full JSON response. It is expected that users will
     /// use one of the other convenience `get_*` methods, e.g. [`get_seasons`][Self::get_seasons],
@@ -119,45 +123,15 @@ impl Agent {
     ///     ..Filters::none()
     /// }))
     /// .unwrap();
-    ///
     /// assert_eq!(resp.table.as_drivers().unwrap()[0].given_name, "Charles".to_string());
-    /// ```
-    pub fn get_response(&self, resource: &Resource) -> Result<Response> {
-        self.get_response_page(resource, Page::default())
-            .and_then(verify_is_single_page)
-    }
-
-    /// Performs a GET request to the jolpica-f1 API for the specified [`Resource`] and returns a
-    /// maximum size single-page [`Response`], parsed from the JSON response.
     ///
-    /// This method is similar to [`get_response`][Self::get_response] but allows for larger
-    /// requests to be accommodated in a single page, by requesting the maximum allowed pagination
-    /// limit.
-    ///
-    /// This method performs no additional processing, it returns the top-level [`Response`] type
-    /// that is a direct representation of the full JSON response. It is expected that users will
-    /// use one of the other convenience `get_*` methods, e.g. [`get_driver`][Self::get_driver], in
-    /// almost all cases, but this method is provided for maximum flexibility.
-    ///
-    /// # Errors
-    ///
-    /// An [`Error::MultiPage`] is returned if the requested [`Resource`] results in a multi-page
-    /// response.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// # use f1_data::jolpica::{agent::Agent, resource::{Filters, Resource}};
-    /// # let jolpica = Agent::default();
-    /// #
-    /// let resp = jolpica.get_response_max_limit(&Resource::SeasonList(Filters::none())).unwrap();
-    ///
+    /// let resp = jolpica.get_response(&Resource::SeasonList(Filters::none())).unwrap();
     /// let seasons = resp.table.as_seasons().unwrap();
     /// assert!(seasons.len() >= 74);
     /// assert_eq!(seasons[0].season, 1950);
     /// assert_eq!(seasons[73].season, 2023);
     /// ```
-    pub fn get_response_max_limit(&self, resource: &Resource) -> Result<Response> {
+    pub fn get_response(&self, resource: &Resource) -> Result<Response> {
         self.get_response_page(resource, Page::with_max_limit())
             .and_then(verify_is_single_page)
     }
@@ -187,7 +161,7 @@ impl Agent {
     /// assert_eq!(seasons[73].season, 2023);
     /// ```
     pub fn get_table_list<T: TableList>(&self, filters: Filters) -> Result<Vec<T>> {
-        self.get_response_max_limit(&T::to_resource(filters))?.into_table_list()
+        self.get_response(&T::to_resource(filters))?.into_table_list()
     }
 
     /// Performs a GET request to the jolpica-f1 API for a single element of the [`Resource`]
@@ -453,7 +427,7 @@ impl Agent {
     /// assert_eq!(races[0].time.unwrap(), time!(15:00:00));
     /// ```
     pub fn get_race_schedules(&self, filters: Filters) -> Result<Vec<Race<Schedule>>> {
-        self.get_response_max_limit(&Resource::RaceSchedule(filters))?
+        self.get_response(&Resource::RaceSchedule(filters))?
             .into_race_schedules()
     }
 
@@ -554,8 +528,7 @@ impl Agent {
     /// assert_eq!(race_points + sprint_points, 585.5);
     /// ```
     pub fn get_session_results<T: SessionResult>(&self, filters: Filters) -> Result<Vec<Race<Vec<T>>>> {
-        self.get_response_max_limit(&T::to_resource(filters))?
-            .into_session_results()
+        self.get_response(&T::to_resource(filters))?.into_session_results()
     }
 
     /// Performs a GET request to the jolpica-f1 API for the [`Resource`] corresponding to the
@@ -654,7 +627,7 @@ impl Agent {
     /// assert_eq!(seb_poles, 57);
     /// ```
     pub fn get_session_result_for_events<T: SessionResult>(&self, filters: Filters) -> Result<Vec<Race<T>>> {
-        self.get_response_max_limit(&T::to_resource(filters))?
+        self.get_response(&T::to_resource(filters))?
             .into_session_result_for_events()
     }
 
@@ -793,8 +766,7 @@ impl Agent {
     /// );
     /// ```
     pub fn get_statuses(&self, filters: Filters) -> Result<Vec<Status>> {
-        self.get_response_max_limit(&Resource::FinishingStatus(filters))?
-            .into_statuses()
+        self.get_response(&Resource::FinishingStatus(filters))?.into_statuses()
     }
 
     /// Performs a GET request to the jolpica-f1 API for [`Resource::LapTimes`] from a specified
@@ -824,7 +796,7 @@ impl Agent {
     /// assert_eq!(laps[2].position, 2)
     /// ```
     pub fn get_driver_laps(&self, race_id: RaceID, driver_id: &DriverID) -> Result<Vec<DriverLap>> {
-        self.get_response_max_limit(&Resource::LapTimes(LapTimeFilters {
+        self.get_response(&Resource::LapTimes(LapTimeFilters {
             season: race_id.season,
             round: race_id.round,
             lap: None,
@@ -856,7 +828,7 @@ impl Agent {
     /// assert_eq!(timings[0].time, duration_m_s_ms(1, 50, 109));
     /// ```
     pub fn get_lap_timings(&self, race_id: RaceID, lap: u32) -> Result<Vec<Timing>> {
-        self.get_response_max_limit(&Resource::LapTimes(LapTimeFilters {
+        self.get_response(&Resource::LapTimes(LapTimeFilters {
             season: race_id.season,
             round: race_id.round,
             lap: Some(lap),
@@ -901,8 +873,7 @@ impl Agent {
     /// );
     /// ```
     pub fn get_pit_stops(&self, filters: PitStopFilters) -> Result<Vec<PitStop>> {
-        self.get_response_max_limit(&Resource::PitStops(filters))?
-            .into_pit_stops()
+        self.get_response(&Resource::PitStops(filters))?.into_pit_stops()
     }
 }
 
@@ -925,6 +896,7 @@ mod tests {
     use pretty_assertions::assert_eq;
     use std::sync::LazyLock;
 
+    use crate::jolpica::api::JOLPICA_API_PAGINATION;
     use crate::{
         id::{RoundID, SeasonID},
         jolpica::{
@@ -1780,14 +1752,15 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_response_single_page() {
+    fn get_response_single_element() {
         let resp = retry_http(|| JOLPICA.get_response(&Resource::SeasonList(Filters::new().season(1950)))).unwrap();
 
         let pagination = resp.pagination;
         assert!(pagination.is_single_page());
         assert!(pagination.is_last_page());
-        assert_eq!(pagination.limit, 30);
-        assert_eq!(pagination.offset, 0);
+        // `get_response` always uses the maximum pagination limit, even for single-page responses
+        assert_eq!(pagination.limit, JOLPICA_API_PAGINATION.max_limit);
+        assert_eq!(pagination.offset, JOLPICA_API_PAGINATION.default_offset);
         assert_eq!(pagination.total, 1);
 
         let seasons = resp.table.as_seasons().unwrap();
@@ -1797,22 +1770,15 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_response_multi_page_error() {
-        let resp = retry_http(|| JOLPICA.get_response(&Resource::SeasonList(Filters::none())));
-        assert!(matches!(resp, Err(Error::MultiPage)));
-    }
-
-    #[test]
-    #[ignore]
-    fn get_response_max_limit_single_page() {
-        let resp = retry_http(|| JOLPICA.get_response_max_limit(&Resource::SeasonList(Filters::none()))).unwrap();
+    fn get_response_single_page() {
+        let resp = retry_http(|| JOLPICA.get_response(&Resource::SeasonList(Filters::none()))).unwrap();
 
         let pagination = resp.pagination;
         assert!(pagination.is_single_page());
         assert!(pagination.is_last_page());
-        assert_eq!(pagination.limit, 100);
-        assert_eq!(pagination.offset, 0);
-        assert!(pagination.total >= 74);
+        assert_eq!(pagination.limit, JOLPICA_API_PAGINATION.max_limit);
+        assert_eq!(pagination.offset, JOLPICA_API_PAGINATION.default_offset);
+        assert_ge!(pagination.total, 74);
 
         let seasons = resp.table.as_seasons().unwrap();
         assert_eq!(seasons[0], *SEASON_1950);
@@ -1823,8 +1789,11 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_response_max_limit_multi_page_error() {
-        let resp = retry_http(|| JOLPICA.get_response_max_limit(&Resource::LapTimes(LapTimeFilters::new(2023, 1))));
+    fn get_response_multi_page_error() {
+        let resp = retry_http(|| JOLPICA.get_response(&Resource::DriverInfo(Filters::none())));
+        assert!(matches!(resp, Err(Error::MultiPage)));
+
+        let resp = retry_http(|| JOLPICA.get_response(&Resource::LapTimes(LapTimeFilters::new(2023, 1))));
         assert!(matches!(resp, Err(Error::MultiPage)));
     }
 

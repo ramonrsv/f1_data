@@ -81,7 +81,7 @@ impl Response {
     /// # use f1_data::jolpica::response::Season;
     /// # let jolpica = Agent::default();
     /// #
-    /// let resp = jolpica.get_response_max_limit(&Resource::SeasonList(Filters::none())).unwrap();
+    /// let resp = jolpica.get_response(&Resource::SeasonList(Filters::none())).unwrap();
     ///
     /// let seasons = resp.into_table_list::<Season>().unwrap();
     /// assert!(seasons.len() >= 74);
@@ -153,7 +153,7 @@ impl Response {
     /// # use f1_data::jolpica::response::Season;
     /// # let jolpica = Agent::default();
     /// #
-    /// let resp = jolpica.get_response_max_limit(&Resource::SeasonList(Filters::none())).unwrap();
+    /// let resp = jolpica.get_response(&Resource::SeasonList(Filters::none())).unwrap();
     ///
     /// assert!(resp.as_seasons().unwrap().len() >= 74);
     /// assert_eq!(resp.as_seasons().unwrap()[0].season, 1950);
