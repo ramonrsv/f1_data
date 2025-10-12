@@ -1,7 +1,10 @@
 use nonzero_ext::nonzero;
 
 #[cfg(doc)]
-use crate::jolpica::{resource::Page, response::Response};
+use crate::jolpica::{
+    resource::{Filters, Page, Resource},
+    response::{RaceResult, Response, SprintResult},
+};
 
 /// Base URL of endpoints for the [jolpica-f1](https://github.com/jolpica/jolpica-f1) API
 pub const JOLPICA_API_BASE_URL: &str = "https://api.jolpi.ca/ergast/f1";
@@ -43,3 +46,8 @@ pub const JOLPICA_API_PAGINATION: Pagination = Pagination {
     default_offset: 0,
     max_limit: 100,
 };
+
+/// This value, as a grid position, indicates that a driver started the event from the pit lane.
+/// It can be set in the [`Filters::grid_pos`] field, and may be returned in [`SprintResult::grid`]
+/// and [`RaceResult::grid`]. See [`Resource::RaceResults`] for more information.
+pub const GRID_PIT_LANE: u32 = 0;

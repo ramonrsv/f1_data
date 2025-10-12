@@ -18,8 +18,6 @@ use crate::{
 #[cfg(doc)]
 use crate::jolpica::resource::Resource;
 
-pub const GRID_PIT_LANE: u32 = 0;
-
 /// Represents a full JSON response from the jolpica-f1 API.
 ///
 /// It contains metadata about the API and the response, and a single [`Table`] of data holding a

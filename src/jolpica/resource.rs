@@ -7,7 +7,7 @@ use crate::{
 
 #[cfg(doc)]
 use crate::jolpica::{
-    self,
+    self, api,
     response::{
         Circuit, Constructor, Driver, QualifyingResult, Race, RaceResult, Response, Season, SprintResult, Status,
     },
@@ -92,8 +92,8 @@ pub enum Resource {
     /// “F” (failed to qualify) or “N” (not classified). Further information is given by
     /// [`SprintResult::status`].
     ///
-    /// **Note:** A grid position of `0`, or [`Filters::GRID_PIT_LANE`], indicates that a driver
-    /// started from the pit lane.
+    /// **Note:** A grid position of `0`, or [`api::GRID_PIT_LANE`], indicates that a driver started
+    /// from the pit lane.
     ///
     /// **Note:** The [`Filters::sprint_pos`] field, which can be set to filter results based on
     /// [`SprintResult::position`], is only valid for results where the driver finished the sprint,
@@ -112,8 +112,8 @@ pub enum Resource {
     /// “F” (failed to qualify) or “N” (not classified). Further information is given by
     /// [`RaceResult::status`].
     ///
-    /// **Note:** A grid position of `0`, or [`Filters::GRID_PIT_LANE`], indicates that a driver
-    /// started from the pit lane.
+    /// **Note:** A grid position of `0`, or [`api::GRID_PIT_LANE`], indicates that a driver started
+    /// from the pit lane.
     ///
     /// **Note:** Fastest lap times are included from the 2004 season onwards, returned in
     /// [`RaceResult::fastest_lap`].
@@ -431,8 +431,8 @@ pub struct Filters {
 
 impl Filters {
     /// Value that can be set in [`Filters::grid_pos`] field, or updated with field-update method,
-    /// to indicate a driver that started the race from the pit lane.
-    pub const GRID_PIT_LANE: u32 = crate::jolpica::response::GRID_PIT_LANE;
+    /// to indicate a driver that started the race from the pit lane. See [`api::GRID_PIT_LANE`];
+    pub const GRID_PIT_LANE: u32 = crate::jolpica::api::GRID_PIT_LANE;
 
     /// Returns a [`Filters`] object with all fields set to `None`, i.e. requesting no filtering.
     /// This method is identical to [`Filters::none`]; both are provided to maximize readability.
