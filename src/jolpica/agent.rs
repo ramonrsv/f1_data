@@ -68,8 +68,9 @@ impl Agent {
     /// # use f1_data::jolpica::{agent::Agent, resource::{Filters, Page, Resource}};
     /// # let jolpica = Agent::default();
     /// #
-    /// let resp = jolpica.get_response_page(
-    ///     &Resource::SeasonList(Filters::none()), Page::with_limit(50)).unwrap();
+    /// let resp = jolpica
+    ///     .get_response_page(&Resource::SeasonList(Filters::none()), Page::with_limit(50))
+    ///     .unwrap();
     ///
     /// let seasons = resp.table.as_seasons().unwrap();
     /// assert_eq!(seasons.len(), 50);
@@ -77,11 +78,12 @@ impl Agent {
     /// assert_eq!(seasons.last().unwrap().season, 1999);
     /// assert!(!resp.pagination.is_last_page());
     ///
-    /// let resp = jolpica.get_response_page(
-    ///     &Resource::SeasonList(Filters::none()),
-    ///     resp.pagination.next_page().unwrap().into(),
-    /// )
-    /// .unwrap();
+    /// let resp = jolpica
+    ///     .get_response_page(
+    ///         &Resource::SeasonList(Filters::none()),
+    ///         resp.pagination.next_page().unwrap().into(),
+    ///     )
+    ///     .unwrap();
     ///
     /// let seasons = resp.table.as_seasons().unwrap();
     /// assert!(seasons.len() <= 50);
@@ -117,14 +119,17 @@ impl Agent {
     /// # use f1_data::jolpica::{agent::Agent, resource::{Filters, Resource}};
     /// # let jolpica = Agent::default();
     /// #
-    /// let resp = jolpica.get_response(&Resource::DriverInfo(Filters {
-    ///     driver_id: Some(DriverID::from("leclerc")),
-    ///     ..Filters::none()
-    /// }))
-    /// .unwrap();
+    /// let resp = jolpica
+    ///     .get_response(&Resource::DriverInfo(Filters {
+    ///         driver_id: Some(DriverID::from("leclerc")),
+    ///         ..Filters::none()
+    ///     }))
+    ///     .unwrap();
     /// assert_eq!(resp.table.as_drivers().unwrap()[0].given_name, "Charles".to_string());
     ///
-    /// let resp = jolpica.get_response(&Resource::SeasonList(Filters::none())).unwrap();
+    /// let resp = jolpica
+    ///     .get_response(&Resource::SeasonList(Filters::none()))
+    ///     .unwrap();
     /// let seasons = resp.table.as_seasons().unwrap();
     /// assert!(seasons.len() >= 74);
     /// assert_eq!(seasons[0].season, 1950);
@@ -187,7 +192,13 @@ impl Agent {
     /// # use f1_data::{jolpica::agent::Agent, jolpica::response::Season, error::Error};
     /// # let jolpica = Agent::default();
     /// #
-    /// assert_eq!(jolpica.get_table_list_single_element::<Season>(1950).unwrap().season, 1950);
+    /// assert_eq!(
+    ///     jolpica
+    ///         .get_table_list_single_element::<Season>(1950)
+    ///         .unwrap()
+    ///         .season,
+    ///     1950
+    /// );
     /// assert!(matches!(jolpica.get_table_list_single_element::<Season>(1940), Err(Error::NotFound)));
     /// ```
     pub fn get_table_list_single_element<T: ToResource + IdFilter + TableInnerList>(&self, id: T::ID) -> Result<T> {
@@ -281,7 +292,13 @@ impl Agent {
     /// # use f1_data::{error::Error, id::DriverID, jolpica::agent::Agent};
     /// # let jolpica = Agent::default();
     /// #
-    /// assert_eq!(jolpica.get_driver(DriverID::from("alonso")).unwrap().given_name, "Fernando".to_string());
+    /// assert_eq!(
+    ///     jolpica
+    ///         .get_driver(DriverID::from("alonso"))
+    ///         .unwrap()
+    ///         .given_name,
+    ///     "Fernando".to_string()
+    /// );
     /// assert!(matches!(jolpica.get_driver(DriverID::from("unknown")), Err(Error::NotFound)));
     /// ```
     pub fn get_driver(&self, driver_id: DriverID) -> Result<Driver> {
@@ -303,7 +320,9 @@ impl Agent {
     /// # use f1_data::jolpica::{agent::Agent, resource::Filters};
     /// # let jolpica = Agent::default();
     /// #
-    /// let constructors = jolpica.get_constructors(Filters::new().season(2022)).unwrap();
+    /// let constructors = jolpica
+    ///     .get_constructors(Filters::new().season(2022))
+    ///     .unwrap();
     /// assert!(!constructors.is_empty());
     /// assert_eq!(
     ///     constructors
@@ -331,8 +350,17 @@ impl Agent {
     /// # use f1_data::{jolpica::agent::Agent, error::Error, id::ConstructorID};
     /// # let jolpica = Agent::default();
     /// #
-    /// assert_eq!(jolpica.get_constructor(ConstructorID::from("ferrari")).unwrap().name, "Ferrari".to_string());
-    /// assert!(matches!(jolpica.get_constructor(ConstructorID::from("unknown")), Err(Error::NotFound)));
+    /// assert_eq!(
+    ///     jolpica
+    ///         .get_constructor(ConstructorID::from("ferrari"))
+    ///         .unwrap()
+    ///         .name,
+    ///     "Ferrari".to_string()
+    /// );
+    /// assert!(matches!(
+    ///     jolpica.get_constructor(ConstructorID::from("unknown")),
+    ///     Err(Error::NotFound)
+    /// ));
     /// ```
     pub fn get_constructor(&self, constructor_id: ConstructorID) -> Result<Constructor> {
         self.get_table_list_single_element::<Constructor>(constructor_id)
@@ -382,7 +410,10 @@ impl Agent {
     /// # let jolpica = Agent::default();
     /// #
     /// assert_eq!(
-    ///     jolpica.get_circuit(CircuitID::from("spa")).unwrap().circuit_name,
+    ///     jolpica
+    ///         .get_circuit(CircuitID::from("spa"))
+    ///         .unwrap()
+    ///         .circuit_name,
     ///     "Circuit de Spa-Francorchamps".to_string()
     /// );
     /// assert!(matches!(jolpica.get_circuit(CircuitID::from("unknown")), Err(Error::NotFound)));
@@ -504,25 +535,27 @@ impl Agent {
     /// # };
     /// # let jolpica = Agent::default();
     /// #
-    /// let race_points = jolpica.get_session_results::<RaceResult>(
-    ///     Filters::new()
-    ///         .season(2021)
-    ///         .constructor_id(ConstructorID::from("red_bull")),
-    /// )
-    /// .unwrap()
-    /// .iter()
-    /// .map(|r| r.race_results().iter().map(|r| r.points).sum::<Points>())
-    /// .sum::<Points>();
+    /// let race_points = jolpica
+    ///     .get_session_results::<RaceResult>(
+    ///         Filters::new()
+    ///             .season(2021)
+    ///             .constructor_id(ConstructorID::from("red_bull")),
+    ///     )
+    ///     .unwrap()
+    ///     .iter()
+    ///     .map(|r| r.race_results().iter().map(|r| r.points).sum::<Points>())
+    ///     .sum::<Points>();
     ///
-    /// let sprint_points = jolpica.get_session_results::<SprintResult>(
-    ///     Filters::new()
-    ///         .season(2021)
-    ///         .constructor_id(ConstructorID::from("red_bull")),
-    /// )
-    /// .unwrap()
-    /// .iter()
-    /// .map(|s| s.sprint_results().iter().map(|r| r.points).sum::<Points>())
-    /// .sum::<Points>();
+    /// let sprint_points = jolpica
+    ///     .get_session_results::<SprintResult>(
+    ///         Filters::new()
+    ///             .season(2021)
+    ///             .constructor_id(ConstructorID::from("red_bull")),
+    ///     )
+    ///     .unwrap()
+    ///     .iter()
+    ///     .map(|s| s.sprint_results().iter().map(|r| r.points).sum::<Points>())
+    ///     .sum::<Points>();
     ///
     /// assert_eq!(race_points + sprint_points, 585.5);
     /// ```
@@ -564,7 +597,9 @@ impl Agent {
     /// # use f1_data::jolpica::{agent::Agent, resource::Filters, response::RaceResult};
     /// # let jolpica = Agent::default();
     /// #
-    /// let race = jolpica.get_session_results_for_event::<RaceResult>(Filters::new().season(2021).round(22)).unwrap();
+    /// let race = jolpica
+    ///     .get_session_results_for_event::<RaceResult>(Filters::new().season(2021).round(22))
+    ///     .unwrap();
     ///
     /// assert_eq!(race.race_name, "Abu Dhabi Grand Prix");
     /// assert_eq!(race.race_results()[0].driver.family_name, "Verstappen");
@@ -616,13 +651,22 @@ impl Agent {
     /// # };
     /// # let jolpica = Agent::default();
     /// #
-    /// let seb_poles: u32 = jolpica.get_session_result_for_events::<QualifyingResult>(
-    ///     Filters::new().driver_id(DriverID::from("vettel")).qualifying_pos(1),
-    /// )
-    /// .unwrap()
-    /// .iter()
-    /// .map(|race| if race.qualifying_result().position == 1 { 1 } else { 0 })
-    /// .sum();
+    /// let seb_poles: u32 = jolpica
+    ///     .get_session_result_for_events::<QualifyingResult>(
+    ///         Filters::new()
+    ///             .driver_id(DriverID::from("vettel"))
+    ///             .qualifying_pos(1),
+    ///     )
+    ///     .unwrap()
+    ///     .iter()
+    ///     .map(|race| {
+    ///         if race.qualifying_result().position == 1 {
+    ///             1
+    ///         } else {
+    ///             0
+    ///         }
+    ///     })
+    ///     .sum();
     ///
     /// assert_eq!(seb_poles, 57);
     /// ```
@@ -664,8 +708,9 @@ impl Agent {
     /// # use f1_data::jolpica::{agent::Agent, resource::Filters, response::SprintResult};
     /// # let jolpica = Agent::default();
     /// #
-    /// let race = jolpica.get_session_result::<SprintResult>(
-    ///     Filters::new().season(2021).round(10).sprint_pos(1)).unwrap();
+    /// let race = jolpica
+    ///     .get_session_result::<SprintResult>(Filters::new().season(2021).round(10).sprint_pos(1))
+    ///     .unwrap();
     ///
     /// assert_eq!(race.sprint_result().position, 1);
     /// assert_eq!(race.sprint_result().driver.family_name, "Verstappen");
@@ -787,7 +832,9 @@ impl Agent {
     /// # use f1_data::jolpica::{agent::Agent, time::duration_m_s_ms};
     /// # let jolpica = Agent::default();
     /// #
-    /// let laps = jolpica.get_driver_laps(RaceID::from(2023, 4), &DriverID::from("leclerc")).unwrap();
+    /// let laps = jolpica
+    ///     .get_driver_laps(RaceID::from(2023, 4), &DriverID::from("leclerc"))
+    ///     .unwrap();
     /// assert_eq!(laps.len(), 51);
     /// assert_eq!(laps[0].number, 1);
     /// assert_eq!(laps[0].time, duration_m_s_ms(1, 50, 109));

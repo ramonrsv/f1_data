@@ -43,8 +43,9 @@ use crate::jolpica::{agent::Agent, response::Pagination};
 /// let resp = get_response_page(
 ///     JOLPICA_API_BASE_URL,
 ///     &Resource::SeasonList(Filters::none()),
-///     Some(Page::with_limit(50))
-/// ).unwrap();
+///     Some(Page::with_limit(50)),
+/// )
+/// .unwrap();
 ///
 /// let seasons = resp.table.as_seasons().unwrap();
 /// assert_eq!(seasons.len(), 50);
@@ -65,9 +66,10 @@ use crate::jolpica::{agent::Agent, response::Pagination};
 /// assert!(resp.pagination.is_last_page());
 ///
 /// let resp = get_response_page(
-///   JOLPICA_API_BASE_URL,
-///   &Resource::DriverInfo(Filters::new().driver_id("leclerc".into())),
-///   None)
+///     JOLPICA_API_BASE_URL,
+///     &Resource::DriverInfo(Filters::new().driver_id("leclerc".into())),
+///     None,
+/// )
 /// .unwrap();
 ///
 /// assert_eq!(resp.pagination.limit, JOLPICA_API_PAGINATION.default_limit);

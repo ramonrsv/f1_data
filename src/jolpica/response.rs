@@ -80,7 +80,9 @@ impl Response {
     /// # use f1_data::jolpica::response::Season;
     /// # let jolpica = Agent::default();
     /// #
-    /// let resp = jolpica.get_response(&Resource::SeasonList(Filters::none())).unwrap();
+    /// let resp = jolpica
+    ///     .get_response(&Resource::SeasonList(Filters::none()))
+    ///     .unwrap();
     ///
     /// let seasons = resp.into_table_list::<Season>().unwrap();
     /// assert!(seasons.len() >= 74);
@@ -117,7 +119,9 @@ impl Response {
     /// # use f1_data::jolpica::response::Season;
     /// # let jolpica = Agent::default();
     /// #
-    /// let resp = jolpica.get_response(&Resource::SeasonList(Filters::new().season(2023))).unwrap();
+    /// let resp = jolpica
+    ///     .get_response(&Resource::SeasonList(Filters::new().season(2023)))
+    ///     .unwrap();
     /// let season = resp.into_table_list_single_element::<Season>().unwrap();
     /// assert_eq!(season.season, 2023);
     /// assert_eq!(
@@ -152,7 +156,9 @@ impl Response {
     /// # use f1_data::jolpica::response::Season;
     /// # let jolpica = Agent::default();
     /// #
-    /// let resp = jolpica.get_response(&Resource::SeasonList(Filters::none())).unwrap();
+    /// let resp = jolpica
+    ///     .get_response(&Resource::SeasonList(Filters::none()))
+    ///     .unwrap();
     ///
     /// assert!(resp.as_seasons().unwrap().len() >= 74);
     /// assert_eq!(resp.as_seasons().unwrap()[0].season, 1950);
@@ -190,7 +196,9 @@ impl Response {
     /// # use f1_data::jolpica::response::Season;
     /// # let jolpica = Agent::default();
     /// #
-    /// let resp = jolpica.get_response(&Resource::SeasonList(Filters::new().season(2023))).unwrap();
+    /// let resp = jolpica
+    ///     .get_response(&Resource::SeasonList(Filters::new().season(2023)))
+    ///     .unwrap();
     /// assert_eq!(resp.as_season().unwrap().season, 2023);
     /// assert_eq!(
     ///     resp.as_season().unwrap().url.as_str(),
@@ -473,7 +481,9 @@ impl Pagination {
 ///     }],
 /// };
 ///
-/// let Table::Seasons { ref seasons } = table else { panic!("Expected Seasons variant") };
+/// let Table::Seasons { ref seasons } = table else {
+///     panic!("Expected Seasons variant")
+/// };
 /// assert_eq!(seasons[0].season, 2022);
 ///
 /// assert_eq!(table.as_seasons().unwrap()[0].season, 2022);
@@ -798,7 +808,9 @@ impl Race<Schedule> {
 /// #
 /// let payload = Payload::Laps(vec![]);
 ///
-/// let Payload::Laps(laps) = &payload else { panic!("Expected Laps variant"); };
+/// let Payload::Laps(laps) = &payload else {
+///     panic!("Expected Laps variant");
+/// };
 /// assert!(laps.is_empty());
 ///
 /// assert!(payload.as_laps().unwrap().is_empty());

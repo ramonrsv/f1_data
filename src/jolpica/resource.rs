@@ -203,7 +203,8 @@ impl Resource {
     ///
     /// assert_eq!(
     ///     request.to_url_with(Page::with_limit(100)),
-    ///     Url::parse("https://api.jolpi.ca/ergast/f1/drivers/leclerc.json?limit=100&offset=0").unwrap()
+    ///     Url::parse("https://api.jolpi.ca/ergast/f1/drivers/leclerc.json?limit=100&offset=0")
+    ///         .unwrap()
     /// );
     /// ```
     pub fn to_url_with(&self, page: Page) -> Url {
@@ -216,7 +217,6 @@ impl Resource {
     /// This method is primarily intended for internal use, as the core implementation that the
     /// simpler [`to_url`][Self::to_url] and [`to_url_with`][Self::to_url_with] methods forward to.
     /// It is provided here to cover any edge use cases, e.g. requesting from alternate servers.
-    ///
     ///
     pub fn to_url_with_base_and_opt_page(&self, base: &str, page: Option<Page>) -> Url {
         let mut url = Url::parse(&format!("{}{}.json", base, self.to_endpoint())).unwrap();
