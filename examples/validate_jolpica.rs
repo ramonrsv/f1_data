@@ -11,9 +11,9 @@ use f1_data::{
     error::{Error, Result},
     id::{RaceID, RoundID, SeasonID},
     jolpica::{
-        agent::Agent,
+        agent::{self, Agent},
         resource::{Filters, PitStopFilters},
-        response::{self, QualifyingResult, RaceResult, SprintResult},
+        response::{QualifyingResult, RaceResult, SprintResult},
     },
 };
 
@@ -234,7 +234,7 @@ impl SessionResult for RaceResult {
 
 fn validate_granular_session_results_for_round<T>(season: SeasonID, round: RoundID)
 where
-    T: response::SessionResult + SessionResult,
+    T: agent::SessionResult + SessionResult,
 {
     section_sub_header(&format!("granular - {}, R{}", season, round));
 
@@ -262,7 +262,7 @@ where
 
 fn validate_granular_session_results_for_season<T>(season: SeasonID)
 where
-    T: response::SessionResult + SessionResult,
+    T: agent::SessionResult + SessionResult,
 {
     section_sub_header(&format!("granular - {}", season));
 
@@ -297,7 +297,7 @@ fn is_known_no_number(season: SeasonID, round: RoundID, position: u32) -> bool {
 
 fn validate_session_results<T>(configs: Configurations) -> anyhow::Result<()>
 where
-    T: response::SessionResult + SessionResult,
+    T: agent::SessionResult + SessionResult,
 {
     let mut status = Ok(());
 

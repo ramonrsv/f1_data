@@ -1,13 +1,13 @@
 use crate::{
     error::{Error, Result},
-    id::{CircuitID, ConstructorID, DriverID, RaceID, SeasonID},
+    id::{CircuitID, ConstructorID, DriverID, RaceID, SeasonID, StatusID},
     jolpica::{
         api::{JOLPICA_API_BASE_URL, JOLPICA_API_RATE_LIMIT},
         get,
         resource::{Filters, LapTimeFilters, Page, PitStopFilters, Resource},
         response::{
-            Circuit, Constructor, Driver, DriverLap, PitStop, QualifyingResult, Race, RaceResult, Response, Schedule,
-            Season, SessionResult, SprintResult, Status, TableList, Timing,
+            Circuit, Constructor, Driver, DriverLap, PayloadInnerList, PitStop, QualifyingResult, Race, RaceResult,
+            Response, Schedule, Season, SprintResult, Status, TableInnerList, Timing,
         },
     },
     rate_limiter::{Quota, RateLimiter},
@@ -136,8 +136,8 @@ impl Agent {
     }
 
     /// Performs a GET request to the jolpica-f1 API for the [`Resource`] associated with the
-    /// [`TableList`], with the argument [`Filters`], and returns the resulting inner list from
-    /// [`Response::table`].
+    /// [`TableInnerList`], with the argument [`Filters`], and returns the resulting inner list from
+    /// [`Response::table`], from the variant associated with the [`TableInnerList`].
     ///
     /// For example, [`get_table_list::<Season>`][Self::get_table_list] will perform a GET request,
     /// with argument [`Filters`], for [`Resource::SeasonList`] and return the resulting
@@ -159,15 +159,16 @@ impl Agent {
     /// assert_eq!(seasons[0].season, 1950);
     /// assert_eq!(seasons[73].season, 2023);
     /// ```
-    pub fn get_table_list<T: TableList>(&self, filters: Filters) -> Result<Vec<T>> {
+    pub fn get_table_list<T: ToResource + TableInnerList>(&self, filters: Filters) -> Result<Vec<T>> {
         self.get_response(&T::to_resource(filters))?.into_table_list::<T>()
     }
 
     /// Performs a GET request to the jolpica-f1 API for a single element of the [`Resource`]
-    /// associated with the [`TableList`], filtered by an `ID` value of its associated
-    /// [`TableList::ID`] type.
+    /// associated with the [`ToResource`].
     ///
-    /// It returns the resulting inner single element from the [`Response::table`] list.
+    /// The request is filtered by an `ID` value of the associated [`IdFilter::ID`] type, and it
+    /// returns the resulting single element of the inner list from [`Response::table`], from the
+    /// variant associated with the [`TableInnerList`].
     ///
     /// For example,
     /// [`get_table_list_single_element::<Season>`][Self::get_table_list_single_element] will
@@ -189,8 +190,8 @@ impl Agent {
     /// assert_eq!(jolpica.get_table_list_single_element::<Season>(1950).unwrap().season, 1950);
     /// assert!(matches!(jolpica.get_table_list_single_element::<Season>(1940), Err(Error::NotFound)));
     /// ```
-    pub fn get_table_list_single_element<T: TableList>(&self, id: T::ID) -> Result<T> {
-        self.get_response(&T::to_resource_with_id_filter(id))?
+    pub fn get_table_list_single_element<T: ToResource + IdFilter + TableInnerList>(&self, id: T::ID) -> Result<T> {
+        self.get_response(&T::to_resource(T::id_filter(id)))?
             .into_table_list_single_element::<T>()
     }
 
@@ -876,6 +877,127 @@ impl Agent {
     }
 }
 
+/// This trait allows generically requesting [`Resource`]s based on the corresponding underlying
+/// inner types, e.g. [`Season`]s are requested via [`Resource::SeasonList`].
+pub trait ToResource
+where
+    Self: Sized,
+{
+    /// Wrap a [`Filters`] with the corresponding [`Resource`] variant for this [`ToResource`],
+    /// e.g. [`Resource::SeasonList`] for [`Season`], [`Resource::DriverInfo`] for [`Driver`], etc.
+    fn to_resource(filters: Filters) -> Resource;
+}
+
+impl ToResource for Season {
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::SeasonList(filters)
+    }
+}
+
+impl ToResource for Driver {
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::DriverInfo(filters)
+    }
+}
+
+impl ToResource for Constructor {
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::ConstructorInfo(filters)
+    }
+}
+
+impl ToResource for Circuit {
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::CircuitInfo(filters)
+    }
+}
+
+impl ToResource for Status {
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::FinishingStatus(filters)
+    }
+}
+
+impl ToResource for QualifyingResult {
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::QualifyingResults(filters)
+    }
+}
+
+impl ToResource for SprintResult {
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::SprintResults(filters)
+    }
+}
+
+impl ToResource for RaceResult {
+    fn to_resource(filters: Filters) -> Resource {
+        Resource::RaceResults(filters)
+    }
+}
+
+/// This trait allows generically creating ID [`Filters`] for [`Resource`] requests based on the
+/// corresponding underlying inner types, e.g. [`Filters::driver_id`] for [`Driver`]s.
+pub trait IdFilter
+where
+    Self: Sized,
+{
+    /// The type of the [`Filters`] ID for this [`IdFilter`], e.g. [`SeasonID`] for [`Season`].
+    type ID;
+
+    /// Create a [`Filters`] with the corresponding ID filter for this [`IdFilter`], e.g. a
+    /// [`Filters::season`] filter for [`Season`], [`Filters::driver_id`] for [`Driver`], etc.
+    fn id_filter(id: Self::ID) -> Filters;
+}
+
+impl IdFilter for Season {
+    type ID = SeasonID;
+
+    fn id_filter(id: Self::ID) -> Filters {
+        Filters::new().season(id)
+    }
+}
+
+impl IdFilter for Driver {
+    type ID = DriverID;
+
+    fn id_filter(id: Self::ID) -> Filters {
+        Filters::new().driver_id(id)
+    }
+}
+
+impl IdFilter for Constructor {
+    type ID = ConstructorID;
+
+    fn id_filter(id: Self::ID) -> Filters {
+        Filters::new().constructor_id(id)
+    }
+}
+
+impl IdFilter for Circuit {
+    type ID = CircuitID;
+
+    fn id_filter(id: Self::ID) -> Filters {
+        Filters::new().circuit_id(id)
+    }
+}
+
+impl IdFilter for Status {
+    type ID = StatusID;
+
+    fn id_filter(id: Self::ID) -> Filters {
+        Filters::new().finishing_status(id)
+    }
+}
+
+/// This trait is a combination of [`ToResource`] and [`PayloadInnerList`], which allows more
+/// succinctly handling the concept of session result types, e.g. [`QualifyingResult`], etc.
+pub trait SessionResult: ToResource + PayloadInnerList {}
+
+impl SessionResult for QualifyingResult {}
+impl SessionResult for SprintResult {}
+impl SessionResult for RaceResult {}
+
 /// Convert a [`Response`] to [`Result<Response>`], enforcing that [`Response`] is single-page, via
 /// `response::Pagination::is_single_page`, and returning [`Error::MultiPage`] if it's not.
 fn verify_is_single_page(response: Response) -> Result<Response> {
@@ -975,7 +1097,7 @@ mod tests {
         actual_payload_len_constraint: LenConstraint,
     ) where
         G: Fn() -> Result<Race<Vec<T>>>,
-        T: SessionResult + PartialEq + Clone + core::fmt::Debug,
+        T: PayloadInnerList + PartialEq + Clone + core::fmt::Debug,
     {
         let actual = retry_http(|| get_actual()).unwrap();
 
@@ -995,7 +1117,7 @@ mod tests {
     where
         G: Fn(Filters) -> Result<Race<T>>,
         F: Fn(&T, Filters) -> Filters,
-        T: SessionResult + Clone + PartialEq + core::fmt::Debug,
+        T: PayloadInnerList + Clone + PartialEq + core::fmt::Debug,
     {
         assert_each_get_eq_expected(
             |result| retry_http(|| get(add_result_filter(result, race_filters_from(race)))).map(|race| race.payload),

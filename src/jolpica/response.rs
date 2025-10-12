@@ -9,14 +9,14 @@ use url::Url;
 use crate::{
     error::{Error, Result},
     id::{CircuitID, ConstructorID, DriverID, RoundID, SeasonID, StatusID},
-    jolpica::{
-        resource::{Filters, Resource},
-        time::{
-            Date, DateTime, Duration, QualifyingTime, RaceTime, Time, deserialize_duration, deserialize_optional_time,
-            deserialize_time,
-        },
+    jolpica::time::{
+        Date, DateTime, Duration, QualifyingTime, RaceTime, Time, deserialize_duration, deserialize_optional_time,
+        deserialize_time,
     },
 };
+
+#[cfg(doc)]
+use crate::jolpica::resource::Resource;
 
 pub const GRID_PIT_LANE: u32 = 0;
 
@@ -58,21 +58,22 @@ impl Response {
         (self.xmlns.clone(), self.series.clone(), self.url.clone())
     }
 
-    // TableLists
-    // ----------
+    // TableInnerLists
+    // ---------------
 
-    /// Extracts the inner value from the corresponding [`Table`] variant for this [`TableList`].
+    /// Extracts the inner list value from the corresponding [`Table`] variant for this
+    /// [`TableInnerList`].
     ///
     /// For example, [`Response::into_table_list::<Season>()`] extracts from [`Response::table`]
     /// the inner [`Vec<Season>`] of the [`Table::Seasons`] variant.
     ///
-    /// Convenience aliases are provided for all implemented [`TableList`] types, e.g.
+    /// Convenience aliases are provided for all implemented [`TableInnerList`] types, e.g.
     /// [`Response::into_seasons()`] is an alias for [`Response::into_table_list::<Season>()`].
     ///
     /// # Errors
     ///
     /// Returns an [`Error::BadTableVariant`] if the contained [`Table`] variant does not match the
-    /// requested [`TableList`] type `T`.
+    /// requested [`TableInnerList`] type `T`.
     ///
     /// # Examples
     ///
@@ -88,12 +89,12 @@ impl Response {
     /// assert_eq!(seasons[0].season, 1950);
     /// assert_eq!(seasons[73].season, 2023);
     /// ```
-    pub fn into_table_list<T: TableList>(self) -> Result<Vec<T>> {
+    pub fn into_table_list<T: TableInnerList>(self) -> Result<Vec<T>> {
         T::try_into_inner_from(self.table)
     }
 
     /// Extracts an expected single element from the inner list for the corresponding [`Table`]
-    /// variant for this [`TableList`].
+    /// variant for this [`TableInnerList`].
     ///
     /// This method is similar to [`Response::into_table_list::<T>()`], but verifies that one and
     /// only one element is present in the extracted list, returning that element directly.For
@@ -101,15 +102,15 @@ impl Response {
     /// [`Response::table`] the inner [`Vec<Season>`] of the [`Table::Seasons`] variant, verifies
     /// that it contains only one element, then extracts and returns that single [`Season`].
     ///
-    /// Convenience aliases are provided for all implemented [`TableList`] types, e.g.
+    /// Convenience aliases are provided for all implemented [`TableInnerList`] types, e.g.
     /// [`Response::into_season()`] is an alias for
     /// [`Response::into_table_list_single_element::<Season>()`].
     ///
     /// # Errors
     ///
     /// Returns an [`Error::BadTableVariant`] if the contained [`Table`] variant does not match the
-    /// requested [`TableList`] type `T`. Returns an [`Error::NotFound`] if the extracted list is
-    /// empty, or an [`Error::TooMany`] if it contains more than one element.
+    /// requested [`TableInnerList`] type `T`. Returns an [`Error::NotFound`] if the extracted list
+    /// is empty, or an [`Error::TooMany`] if it contains more than one element.
     ///
     /// # Examples
     ///
@@ -126,25 +127,25 @@ impl Response {
     ///     "https://en.wikipedia.org/wiki/2023_Formula_One_World_Championship"
     /// );
     /// ```
-    pub fn into_table_list_single_element<T: TableList>(self) -> Result<T> {
+    pub fn into_table_list_single_element<T: TableInnerList>(self) -> Result<T> {
         self.into_table_list().and_then(verify_has_one_element_and_extract)
     }
 
-    /// Gets a reference to the inner value from the corresponding [`Table`] variant for this
-    /// [`TableList`].
+    /// Gets a reference to the inner list value from the corresponding [`Table`] variant for this
+    /// [`TableInnerList`].
     ///
     /// This method is similar to [`Response::into_table_list::<T>()`], but it returns a reference
     /// and does not consume the [`Response`]. For example, [`Response::as_table_list::<Season>()`]
     /// gets a reference to the inner [`Vec<Season>`] of the [`Table::Seasons`] variant in
     /// [`Response::table`].
     ///
-    /// Convenience aliases are provided for all implemented [`TableList`] types, e.g.
+    /// Convenience aliases are provided for all implemented [`TableInnerList`] types, e.g.
     /// [`Response::as_season()`] is an alias for [`Response::as_table_list::<Season>()`].
     ///
     /// # Errors
     ///
     /// Returns an [`Error::BadTableVariant`] if the contained [`Table`] variant does not match the
-    /// requested [`TableList`] type `T`.
+    /// requested [`TableInnerList`] type `T`.
     ///
     /// # Examples
     ///
@@ -159,12 +160,12 @@ impl Response {
     /// assert_eq!(resp.as_seasons().unwrap()[0].season, 1950);
     /// assert_eq!(resp.as_seasons().unwrap()[73].season, 2023);
     /// ```
-    pub fn as_table_list<T: TableList>(&self) -> Result<&Vec<T>> {
+    pub fn as_table_list<T: TableInnerList>(&self) -> Result<&Vec<T>> {
         T::try_as_inner_from(&self.table)
     }
 
     /// Gets a reference to an expected single element from the inner list for the corresponding
-    /// [`Table`] variant for this [`TableList`].
+    /// [`Table`] variant for this [`TableInnerList`].
     ///
     /// This method is similar to [`Response::as_table_list::<T>()`], but verifies that one and
     /// only one element is present in the list, returning a reference to that element directly.
@@ -174,14 +175,14 @@ impl Response {
     /// [`Vec<Season>`] from the [`Table::Seasons`] variant in [`Response::table`], verifies that it
     /// contains only one element, then returns a reference to that single [`Season`].
     ///
-    /// Convenience aliases are provided for all implemented [`TableList`] types, e.g.
+    /// Convenience aliases are provided for all implemented [`TableInnerList`] types, e.g.
     /// [`Response::as_season()`] is an alias for
     /// [`Response::as_table_list_single_element::<Season>()`].
     ///
     /// # Errors
     ///
     /// Returns an [`Error::BadTableVariant`] if the contained [`Table`] variant does not match the
-    /// requested [`TableList`] type `T`. Returns an [`Error::NotFound`] if the extracted list is
+    /// requested [`TableInnerList`] type `T`. Returns an [`Error::NotFound`] if the extracted list is
     /// empty, or an [`Error::TooMany`] if it contains more than one element.
     ///
     /// # Examples
@@ -198,7 +199,7 @@ impl Response {
     ///     "https://en.wikipedia.org/wiki/2023_Formula_One_World_Championship"
     /// );
     /// ```
-    pub fn as_table_list_single_element<T: TableList>(&self) -> Result<&T> {
+    pub fn as_table_list_single_element<T: TableInnerList>(&self) -> Result<&T> {
         self.as_table_list()
             .map(Vec::as_slice)
             .and_then(verify_has_one_element)
@@ -227,26 +228,26 @@ impl Response {
         self.into_race_schedules().and_then(verify_has_one_element_and_extract)
     }
 
-    pub fn into_many_session_results_for_many_events<T: SessionResult>(self) -> Result<Vec<Race<Vec<T>>>> {
+    pub fn into_many_session_results_for_many_events<T: PayloadInnerList>(self) -> Result<Vec<Race<Vec<T>>>> {
         self.into_races()?
             .into_iter()
             .map(|race| race.try_map(|payload| T::try_into_inner_from(payload)))
             .collect()
     }
 
-    pub fn into_many_session_results_for_single_event<T: SessionResult>(self) -> Result<Race<Vec<T>>> {
+    pub fn into_many_session_results_for_single_event<T: PayloadInnerList>(self) -> Result<Race<Vec<T>>> {
         self.into_many_session_results_for_many_events::<T>()
             .and_then(verify_has_one_element_and_extract)
     }
 
-    pub fn into_single_session_result_for_many_events<T: SessionResult>(self) -> Result<Vec<Race<T>>> {
+    pub fn into_single_session_result_for_many_events<T: PayloadInnerList>(self) -> Result<Vec<Race<T>>> {
         self.into_many_session_results_for_many_events::<T>()?
             .into_iter()
             .map(|race| race.try_map(verify_has_one_element_and_extract))
             .collect()
     }
 
-    pub fn into_single_session_result_for_single_event<T: SessionResult>(self) -> Result<Race<T>> {
+    pub fn into_single_session_result_for_single_event<T: PayloadInnerList>(self) -> Result<Race<T>> {
         self.into_single_session_result_for_many_events::<T>()
             .and_then(verify_has_one_element_and_extract)
     }
@@ -283,7 +284,7 @@ impl Response {
     }
 
     // Convenience aliases for into/as_table_list(s)::<T> and into/as_table_list_single_element::<T>
-    // Aliases implemented for TableList types: Seasons, Drivers, Constructors, Circuits, Statuses
+    // Aliases implemented for TableInnerList's: Seasons, Drivers, Constructors, Circuits, Statuses
     // ---------------------------------------------------------------------------------------------
 
     /// Convenience alias for `into_table_list::<Season>()`.
@@ -533,42 +534,30 @@ pub enum Table {
     },
 }
 
-/// Inner type of a [`Payload`] variant for a [`SessionResult`] type, and of a [`Table`] variant
-/// for a [`TableList`] type.
+/// Inner list type of a [`Table`] variant for a [`TableInnerList`] type, and of a [`Payload`]
+/// variant for a [`PayloadInnerList`] type. This is unlikely to change from [`Vec<T>`].
 ///
-/// For example, the inner type of the [`Payload::RaceResults`] variant is [`Vec<RaceResult>`], and
-/// the inner type of the [`Table::Seasons`] variant is [`Vec<Season>`].
-type Inner<T> = Vec<T>;
+/// For example, the inner list type of the [`Table::Seasons`] variant is [`Vec<Season>`], and the
+/// inner list type of the [`Payload::RaceResults`] variant is [`Vec<RaceResult>`].
+type InnerList<T> = Vec<T>;
 
-/// The [`TableList`] trait allows the generic handling of all [`Table`] list inner types,
-/// associated [`Resource`] requests, and the extraction of the corresponding variants.
+/// This trait allows for the generic extraction of the inner list types of all [`Table`] variants
 ///
-/// For example, [`Season`]s, which are requested via [`Resource::SeasonList`], can be extracted
-/// from a [`Response`] via [`Response::table`], from the [`Table::Seasons`] variant.
+/// For example, [`Season`]s can be extracted from a [`Response`]'s [`Response::table`], from the
+/// [`Table::Seasons`] variant, via  [`T::try_into_inner_from()`](Self::try_into_inner_from).
 ///
 /// The trait is implemented for [`Season`], [`Driver`], [`Constructor`], [`Circuit`], [`Status`].
-pub trait TableList
+pub trait TableInnerList
 where
     Self: Sized,
 {
-    /// The type of the [`Filters`] ID for this [`TableList`], e.g. [`SeasonID`] for [`Season`].
-    type ID;
-
-    /// Wrap a [`Filters`] with the corresponding [`Resource`] variant for this [`TableList`],
-    /// e.g. [`Resource::SeasonList`] for [`Season`].
-    fn to_resource(filters: Filters) -> Resource;
-
-    /// Wrap a [`Filters`] with the corresponding ID filter and [`Resource`] for this [`TableList`],
-    /// e.g. a [`Filters::season`] filter for [`Season`], to be passed to [`Resource::SeasonList`].
-    fn to_resource_with_id_filter(id: Self::ID) -> Resource;
-
-    /// Extract the inner value from the corresponding [`Table`] variant for this [`TableList`],
+    /// Extract the inner value from the corresponding [`Table`] variant for this [`TableInnerList`],
     /// e.g. a [`Vec<Season>`] from the [`Table::Seasons`] variant for [`Season`].
-    fn try_into_inner_from(table: Table) -> Result<Inner<Self>>;
+    fn try_into_inner_from(table: Table) -> Result<InnerList<Self>>;
 
     /// Get a reference to the inner value from the corresponding [`Table`] variant for this
-    /// [`TableList`], e.g. a <code>&[`Vec<Season>`]</code> from the [`Table::Seasons`] variant.
-    fn try_as_inner_from(table: &Table) -> Result<&Inner<Self>>;
+    /// [`TableInnerList`], e.g. a <code>&[`Vec<Season>`]</code> from the [`Table::Seasons`] variant.
+    fn try_as_inner_from(table: &Table) -> Result<&InnerList<Self>>;
 }
 
 #[serde_as]
@@ -579,22 +568,12 @@ pub struct Season {
     pub url: Url,
 }
 
-impl TableList for Season {
-    type ID = SeasonID;
-
-    fn to_resource(filters: Filters) -> Resource {
-        Resource::SeasonList(filters)
-    }
-
-    fn to_resource_with_id_filter(season: Self::ID) -> Resource {
-        Self::to_resource(Filters::new().season(season))
-    }
-
-    fn try_into_inner_from(table: Table) -> Result<Inner<Self>> {
+impl TableInnerList for Season {
+    fn try_into_inner_from(table: Table) -> Result<InnerList<Self>> {
         table.into_seasons().map_err(into)
     }
 
-    fn try_as_inner_from(table: &Table) -> Result<&Inner<Self>> {
+    fn try_as_inner_from(table: &Table) -> Result<&InnerList<Self>> {
         table.as_seasons().ok_or(Error::BadTableVariant)
     }
 }
@@ -614,22 +593,12 @@ pub struct Driver {
     pub nationality: String,
 }
 
-impl TableList for Driver {
-    type ID = DriverID;
-
-    fn to_resource(filters: Filters) -> Resource {
-        Resource::DriverInfo(filters)
-    }
-
-    fn to_resource_with_id_filter(id: Self::ID) -> Resource {
-        Self::to_resource(Filters::new().driver_id(id))
-    }
-
-    fn try_into_inner_from(table: Table) -> Result<Inner<Self>> {
+impl TableInnerList for Driver {
+    fn try_into_inner_from(table: Table) -> Result<InnerList<Self>> {
         table.into_drivers().map_err(into)
     }
 
-    fn try_as_inner_from(table: &Table) -> Result<&Inner<Self>> {
+    fn try_as_inner_from(table: &Table) -> Result<&InnerList<Self>> {
         table.as_drivers().ok_or(Error::BadTableVariant)
     }
 }
@@ -643,22 +612,12 @@ pub struct Constructor {
     pub nationality: String,
 }
 
-impl TableList for Constructor {
-    type ID = ConstructorID;
-
-    fn to_resource(filters: Filters) -> Resource {
-        Resource::ConstructorInfo(filters)
-    }
-
-    fn to_resource_with_id_filter(id: Self::ID) -> Resource {
-        Self::to_resource(Filters::new().constructor_id(id))
-    }
-
-    fn try_into_inner_from(table: Table) -> Result<Inner<Self>> {
+impl TableInnerList for Constructor {
+    fn try_into_inner_from(table: Table) -> Result<InnerList<Self>> {
         table.into_constructors().map_err(into)
     }
 
-    fn try_as_inner_from(table: &Table) -> Result<&Inner<Self>> {
+    fn try_as_inner_from(table: &Table) -> Result<&InnerList<Self>> {
         table.as_constructors().ok_or(Error::BadTableVariant)
     }
 }
@@ -673,22 +632,12 @@ pub struct Circuit {
     pub location: Location,
 }
 
-impl TableList for Circuit {
-    type ID = CircuitID;
-
-    fn to_resource(filters: Filters) -> Resource {
-        Resource::CircuitInfo(filters)
-    }
-
-    fn to_resource_with_id_filter(id: Self::ID) -> Resource {
-        Self::to_resource(Filters::new().circuit_id(id))
-    }
-
-    fn try_into_inner_from(table: Table) -> Result<Inner<Self>> {
+impl TableInnerList for Circuit {
+    fn try_into_inner_from(table: Table) -> Result<InnerList<Self>> {
         table.into_circuits().map_err(into)
     }
 
-    fn try_as_inner_from(table: &Table) -> Result<&Inner<Self>> {
+    fn try_as_inner_from(table: &Table) -> Result<&InnerList<Self>> {
         table.as_circuits().ok_or(Error::BadTableVariant)
     }
 }
@@ -704,22 +653,12 @@ pub struct Status {
     pub status: String,
 }
 
-impl TableList for Status {
-    type ID = StatusID;
-
-    fn to_resource(filters: Filters) -> Resource {
-        Resource::FinishingStatus(filters)
-    }
-
-    fn to_resource_with_id_filter(id: Self::ID) -> Resource {
-        Self::to_resource(Filters::new().finishing_status(id))
-    }
-
-    fn try_into_inner_from(table: Table) -> Result<Inner<Self>> {
+impl TableInnerList for Status {
+    fn try_into_inner_from(table: Table) -> Result<InnerList<Self>> {
         table.into_status().map_err(into)
     }
 
-    fn try_as_inner_from(table: &Table) -> Result<&Inner<Self>> {
+    fn try_as_inner_from(table: &Table) -> Result<&InnerList<Self>> {
         table.as_status().ok_or(Error::BadTableVariant)
     }
 }
@@ -939,24 +878,19 @@ impl<'de> Deserialize<'de> for Payload {
     }
 }
 
-/// The [`SessionResult`] trait allows the generic handling of all [`Payload`] session result inner
-/// types, associated [`Resource`] requests, and extraction of the corresponding variants.
+/// This trait allows the generic extraction of the inner list types of all [`Payload`] variants.
 ///
-/// For example, [`RaceResult`]s are requested via [`Resource::RaceResults`], and the response
-/// [`Vec<RaceResult>`] can be extracted from the [`Payload::RaceResults`] variant.
+/// For example, [`RaceResult`]s can be extracted from a [`Race`]'s [`Race::payload`], from the
+/// [`Payload::RaceResults`] variant, via  [`T::try_into_inner_from()`](Self::try_into_inner_from).
 ///
 /// The trait is implemented for [`QualifyingResult`], [`SprintResult`], and [`RaceResult`].
-pub trait SessionResult
+pub trait PayloadInnerList
 where
     Self: Sized,
 {
-    /// Wrap a [`Filters`] with the corresponding [`Resource`] variant for this [`SessionResult`],
-    /// e.g. [`Resource::RaceResults`] for [`RaceResult`].
-    fn to_resource(filters: Filters) -> Resource;
-
     /// Extract the inner value from the corresponding [`Payload`] variant for this
-    /// [`SessionResult`], e.g. a [`Vec<RaceResult>`] from the [`Payload::RaceResults`] variant.
-    fn try_into_inner_from(payload: Payload) -> Result<Inner<Self>>;
+    /// [`PayloadInnerList`], e.g. a [`Vec<RaceResult>`] from the [`Payload::RaceResults`] variant.
+    fn try_into_inner_from(payload: Payload) -> Result<InnerList<Self>>;
 }
 
 #[serde_as]
@@ -1002,12 +936,8 @@ impl Race<QualifyingResult> {
     }
 }
 
-impl SessionResult for QualifyingResult {
-    fn to_resource(filters: Filters) -> Resource {
-        Resource::QualifyingResults(filters)
-    }
-
-    fn try_into_inner_from(payload: Payload) -> Result<Inner<Self>> {
+impl PayloadInnerList for QualifyingResult {
+    fn try_into_inner_from(payload: Payload) -> Result<InnerList<Self>> {
         payload.into_qualifying_results().map_err(into)
     }
 }
@@ -1068,12 +998,8 @@ impl Race<SprintResult> {
     }
 }
 
-impl SessionResult for SprintResult {
-    fn to_resource(filters: Filters) -> Resource {
-        Resource::SprintResults(filters)
-    }
-
-    fn try_into_inner_from(payload: Payload) -> Result<Inner<Self>> {
+impl PayloadInnerList for SprintResult {
+    fn try_into_inner_from(payload: Payload) -> Result<InnerList<Self>> {
         payload.into_sprint_results().map_err(into)
     }
 }
@@ -1140,12 +1066,8 @@ impl Race<RaceResult> {
     }
 }
 
-impl SessionResult for RaceResult {
-    fn to_resource(filters: Filters) -> Resource {
-        Resource::RaceResults(filters)
-    }
-
-    fn try_into_inner_from(payload: Payload) -> Result<Inner<Self>> {
+impl PayloadInnerList for RaceResult {
+    fn try_into_inner_from(payload: Payload) -> Result<InnerList<Self>> {
         payload.into_race_results().map_err(into)
     }
 }
@@ -1807,11 +1729,11 @@ mod tests {
         assert_eq!(actual.into_schedule(), expected);
     }
 
-    fn map_race_multi_results<T: SessionResult>(race: Race<Payload>) -> Race<Vec<T>> {
+    fn map_race_multi_results<T: PayloadInnerList>(race: Race<Payload>) -> Race<Vec<T>> {
         race.map(|payload| T::try_into_inner_from(payload).unwrap())
     }
 
-    fn map_race_single_result<T: SessionResult>(race: Race<Payload>) -> Race<T> {
+    fn map_race_single_result<T: PayloadInnerList>(race: Race<Payload>) -> Race<T> {
         map_race_multi_results(race).map(|payload| payload.into_iter().next().unwrap())
     }
 
