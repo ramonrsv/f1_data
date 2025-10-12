@@ -208,27 +208,47 @@ impl Response {
     // Races and SessionResults
     // ------------------------
 
+    pub fn into_races(self) -> Result<Vec<Race>> {
+        self.table.into_races().map_err(into)
+    }
+
+    pub fn into_race(self) -> Result<Race> {
+        self.into_races().and_then(verify_has_one_element_and_extract)
+    }
+
     pub fn into_race_schedules(self) -> Result<Vec<Race<Schedule>>> {
-        self.table
-            .into_races()?
+        self.into_races()?
             .into_iter()
             .map(|race| race.try_map(|payload| payload.into_schedule().map_err(into)))
             .collect()
     }
 
-    pub fn into_session_results<T: SessionResult>(self) -> Result<Vec<Race<Vec<T>>>> {
-        self.table
-            .into_races()?
+    pub fn into_race_schedule(self) -> Result<Race<Schedule>> {
+        self.into_race_schedules().and_then(verify_has_one_element_and_extract)
+    }
+
+    pub fn into_many_session_results_for_many_events<T: SessionResult>(self) -> Result<Vec<Race<Vec<T>>>> {
+        self.into_races()?
             .into_iter()
             .map(|race| race.try_map(|payload| T::try_into_inner_from(payload)))
             .collect()
     }
 
-    pub fn into_session_result_for_events<T: SessionResult>(self) -> Result<Vec<Race<T>>> {
-        self.into_session_results()?
+    pub fn into_many_session_results_for_single_event<T: SessionResult>(self) -> Result<Race<Vec<T>>> {
+        self.into_many_session_results_for_many_events::<T>()
+            .and_then(verify_has_one_element_and_extract)
+    }
+
+    pub fn into_single_session_result_for_many_events<T: SessionResult>(self) -> Result<Vec<Race<T>>> {
+        self.into_many_session_results_for_many_events::<T>()?
             .into_iter()
             .map(|race| race.try_map(verify_has_one_element_and_extract))
             .collect()
+    }
+
+    pub fn into_single_session_result_for_single_event<T: SessionResult>(self) -> Result<Race<T>> {
+        self.into_single_session_result_for_many_events::<T>()
+            .and_then(verify_has_one_element_and_extract)
     }
 
     // Laps, Timings, PitStops

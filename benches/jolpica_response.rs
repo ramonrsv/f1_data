@@ -33,10 +33,22 @@ fn bench_process_response(c: &mut Criterion) {
         b.iter_batched(|| response.clone(), |response| response.into_race_schedules(), BatchSize::SmallInput)
     });
 
-    group.bench_function("into_session_results::<RaceResult>", |b| {
+    group.bench_function("into_race_schedule", |b| {
+        b.iter_batched(|| response.clone(), |response| response.into_race_schedule(), BatchSize::SmallInput)
+    });
+
+    group.bench_function("into_many_session_results_for_many_events::<RaceResult>", |b| {
         b.iter_batched(
             || response.clone(),
-            |response| response.into_session_results::<RaceResult>(),
+            |response| response.into_many_session_results_for_many_events::<RaceResult>(),
+            BatchSize::SmallInput,
+        )
+    });
+
+    group.bench_function("into_single_session_result_for_single_event::<RaceResult>", |b| {
+        b.iter_batched(
+            || response.clone(),
+            |response| response.into_single_session_result_for_single_event::<RaceResult>(),
             BatchSize::SmallInput,
         )
     });

@@ -5,7 +5,6 @@ use crate::{
         api::{JOLPICA_API_BASE_URL, JOLPICA_API_RATE_LIMIT},
         get,
         resource::{Filters, LapTimeFilters, Page, PitStopFilters, Resource},
-        response::verify_has_one_element_and_extract,
         response::{
             Circuit, Constructor, Driver, DriverLap, PitStop, QualifyingResult, Race, RaceResult, Response, Schedule,
             Season, SessionResult, SprintResult, Status, TableList, Timing,
@@ -161,7 +160,7 @@ impl Agent {
     /// assert_eq!(seasons[73].season, 2023);
     /// ```
     pub fn get_table_list<T: TableList>(&self, filters: Filters) -> Result<Vec<T>> {
-        self.get_response(&T::to_resource(filters))?.into_table_list()
+        self.get_response(&T::to_resource(filters))?.into_table_list::<T>()
     }
 
     /// Performs a GET request to the jolpica-f1 API for a single element of the [`Resource`]
@@ -192,7 +191,7 @@ impl Agent {
     /// ```
     pub fn get_table_list_single_element<T: TableList>(&self, id: T::ID) -> Result<T> {
         self.get_response(&T::to_resource_with_id_filter(id))?
-            .into_table_list_single_element()
+            .into_table_list_single_element::<T>()
     }
 
     /// Performs a GET request to the jolpica-f1 API for [`Resource::SeasonList`], with the argument
@@ -388,8 +387,7 @@ impl Agent {
     /// assert!(matches!(jolpica.get_circuit(CircuitID::from("unknown")), Err(Error::NotFound)));
     /// ```
     pub fn get_circuit(&self, circuit_id: CircuitID) -> Result<Circuit> {
-        self.get_circuits(Filters::new().circuit_id(circuit_id))
-            .and_then(verify_has_one_element_and_extract)
+        self.get_table_list_single_element::<Circuit>(circuit_id)
     }
 
     /// Performs a GET request to the jolpica-f1 API for [`Resource::RaceSchedule`], with the
@@ -465,8 +463,8 @@ impl Agent {
     /// );
     /// ```
     pub fn get_race_schedule(&self, race_id: RaceID) -> Result<Race<Schedule>> {
-        self.get_race_schedules(Filters::new().season(race_id.season).round(race_id.round))
-            .and_then(verify_has_one_element_and_extract)
+        self.get_response(&Resource::RaceSchedule(Filters::new().season(race_id.season).round(race_id.round)))?
+            .into_race_schedule()
     }
 
     /// Performs a GET request to the jolpica-f1 API for the [`Resource`] corresponding to the
@@ -528,7 +526,8 @@ impl Agent {
     /// assert_eq!(race_points + sprint_points, 585.5);
     /// ```
     pub fn get_session_results<T: SessionResult>(&self, filters: Filters) -> Result<Vec<Race<Vec<T>>>> {
-        self.get_response(&T::to_resource(filters))?.into_session_results()
+        self.get_response(&T::to_resource(filters))?
+            .into_many_session_results_for_many_events::<T>()
     }
 
     /// Performs a GET request to the jolpica-f1 API for the [`Resource`] corresponding to the
@@ -573,8 +572,8 @@ impl Agent {
     /// assert_eq!(race.race_results()[1].position, 2);
     /// ```
     pub fn get_session_results_for_event<T: SessionResult>(&self, filters: Filters) -> Result<Race<Vec<T>>> {
-        self.get_session_results(filters)
-            .and_then(verify_has_one_element_and_extract)
+        self.get_response(&T::to_resource(filters))?
+            .into_many_session_results_for_single_event::<T>()
     }
 
     /// Performs a GET request to the jolpica-f1 API for the [`Resource`] corresponding to the
@@ -628,7 +627,7 @@ impl Agent {
     /// ```
     pub fn get_session_result_for_events<T: SessionResult>(&self, filters: Filters) -> Result<Vec<Race<T>>> {
         self.get_response(&T::to_resource(filters))?
-            .into_session_result_for_events()
+            .into_single_session_result_for_many_events::<T>()
     }
 
     /// Performs a GET request to the jolpica-f1 API for the [`Resource`] corresponding to the
@@ -671,8 +670,8 @@ impl Agent {
     /// assert_eq!(race.sprint_result().driver.family_name, "Verstappen");
     /// ```
     pub fn get_session_result<T: SessionResult>(&self, filters: Filters) -> Result<Race<T>> {
-        self.get_session_result_for_events(filters)
-            .and_then(verify_has_one_element_and_extract)
+        self.get_response(&T::to_resource(filters))?
+            .into_single_session_result_for_single_event::<T>()
     }
 
     /// Alias for [`get_session_results::<QualifyingResult>`][Self::get_session_results].
