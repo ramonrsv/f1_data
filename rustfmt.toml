@@ -3,7 +3,8 @@ max_width = 120
 fn_call_width = 100
 
 # Unstable features, only available in nightly channel
-# ----------------------------------------------------
+# To use, uncomment the lines below and run with `cargo +nightly fmt`
+# -------------------------------------------------------------------
 
 # wrap_comments = true
 # comment_width = 100

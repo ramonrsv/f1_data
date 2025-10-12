@@ -180,8 +180,8 @@ impl Response {
     /// # Errors
     ///
     /// Returns an [`Error::BadTableVariant`] if the contained [`Table`] variant does not match the
-    /// requested [`TableInnerList`] type `T`. Returns an [`Error::NotFound`] if the extracted list is
-    /// empty, or an [`Error::TooMany`] if it contains more than one element.
+    /// requested [`TableInnerList`] type `T`. Returns an [`Error::NotFound`] if the extracted list
+    /// is empty, or an [`Error::TooMany`] if it contains more than one element.
     ///
     /// # Examples
     ///
@@ -549,12 +549,14 @@ pub trait TableInnerList
 where
     Self: Sized,
 {
-    /// Extract the inner value from the corresponding [`Table`] variant for this [`TableInnerList`],
-    /// e.g. a [`Vec<Season>`] from the [`Table::Seasons`] variant for [`Season`].
+    /// Extract the inner value from the corresponding [`Table`] variant for this
+    /// [`TableInnerList`], e.g. a [`Vec<Season>`] from the [`Table::Seasons`] variant for
+    /// [`Season`].
     fn try_into_inner_from(table: Table) -> Result<InnerList<Self>>;
 
     /// Get a reference to the inner value from the corresponding [`Table`] variant for this
-    /// [`TableInnerList`], e.g. a <code>&[`Vec<Season>`]</code> from the [`Table::Seasons`] variant.
+    /// [`TableInnerList`], e.g. a <code>&[`Vec<Season>`]</code> from the [`Table::Seasons`]
+    /// variant.
     fn try_as_inner_from(table: &Table) -> Result<&InnerList<Self>>;
 }
 

@@ -1,4 +1,4 @@
-//! To run this example, use `RUST_LOG=validate_jolpica=<level> cargo run --example validate_jolpica`
+//! To run this example use `RUST_LOG=validate_jolpica=<level> cargo run --example validate_jolpica`
 //! where `<level>` is one of `error` (the default), `warn`, `info`, `debug`, or `trace`.
 //! See the [`env_logger`](https://docs.rs/env_logger/latest/env_logger/) crate for details.
 use std::sync::LazyLock;
