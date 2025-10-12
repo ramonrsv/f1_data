@@ -48,6 +48,7 @@ pub const JOLPICA_API_PAGINATION: Pagination = Pagination {
 };
 
 /// This value, as a grid position, indicates that a driver started the event from the pit lane.
+///
 /// It can be set in the [`Filters::grid_pos`] field, and may be returned in [`SprintResult::grid`]
 /// and [`RaceResult::grid`]. See [`Resource::RaceResults`] for more information.
 pub const GRID_PIT_LANE: u32 = 0;
