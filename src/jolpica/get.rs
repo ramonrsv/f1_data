@@ -12,7 +12,7 @@ use crate::jolpica::{agent::Agent, response::Pagination};
 /// Performs a GET request to the jolpica-f1 API for a specific page of the specified
 /// [`Resource`].
 ///
-/// Performs a GET request to the jolpica-f1 API for a specific page of the specified
+/// Performs a GET request to the jolpica-f1 API at `base_url` for a specific page of the specified
 /// [`Resource`], and returns a [`Response`] with a single page, parsed from the JSON response,
 /// of a possibly multi-page response. [`Response::pagination`] can be used to check for
 /// [`Pagination::is_last_page`] and get [`Pagination::next_page`] to request the following page
@@ -87,6 +87,97 @@ pub fn get_response_page(base_url: &str, resource: &Resource, page: Option<Page>
         .map_err(Into::into)
 }
 
+/// Performs GET requests to the jolpica-f1 API for all pages of the specified [`Resource`].
+///
+/// Performs GET requests to the jolpica-f1 API at `base_url` for all pages of the specified
+/// [`Resource`], optionally up to a maximum allowed number of pages, via `max_page_count`. It
+/// returns a [`Vec<Response>`] with the [`Response`]s parsed from the JSON responses.
+///
+/// This function unconditionally makes at least one request for either the optionally specified
+/// `initial_page`, or by specifying no page at all. The [`Response::pagination`] field of the first
+/// response is then used to determine the subsequent pages to request, if any, via
+/// [`Pagination::next_page`]. If `max_page_count` is specified, and the total number of pages
+/// would exceed it, then an error is returned and no requests beyond the first are made.
+///
+/// If a `rate_limiter` is provided, it is used to wait before each request, including the first.
+///
+/// This method performs no additional processing; it returns the top-level [`Response`]s that
+/// are a direct representation of the full JSON responses. It is provided here to maximize
+/// flexibility and cover edge uses cases, but it is expected that users will use the convenience
+/// methods in [`Agent`], e.g. [`Agent::get_seasons`], and/or the extractions methods in
+/// [`Response`], e.g. [`Response::into_seasons`].
+///
+/// # Examples
+///
+/// ```no_run
+/// # use f1_data::{
+/// #     jolpica::{
+/// #         api::{JOLPICA_API_BASE_URL, JOLPICA_API_RATE_LIMIT},
+/// #         get::get_response_multi_pages,
+/// #         resource::{Filters, Page, Resource},
+/// #     },
+/// #     rate_limiter::{Quota, RateLimiter},
+/// # };
+/// #
+/// # let rate_limiter =
+/// #     RateLimiter::new(Quota::per_hour(JOLPICA_API_RATE_LIMIT.sustained_limit_per_hour));
+/// #
+/// let responses = get_response_multi_pages(
+///     JOLPICA_API_BASE_URL,
+///     &Resource::SeasonList(Filters::none()),
+///     Some(Page::with_limit(50)),
+///     Some(10),
+///     Some(&rate_limiter),
+/// )
+/// .unwrap();
+///
+/// assert_eq!(responses.len(), 2); // 76 / 50 -> 2 pages
+/// assert!(!responses.first().unwrap().pagination.is_last_page());
+/// assert!(responses.last().unwrap().pagination.is_last_page());
+///
+/// let seasons = responses.first().unwrap().table.as_seasons().unwrap();
+/// assert_eq!(seasons.len(), 50);
+/// assert_eq!(seasons.first().unwrap().season, 1950);
+///
+/// let seasons = responses.last().unwrap().table.as_seasons().unwrap();
+/// assert_eq!(seasons.len(), 26);
+/// assert_eq!(seasons.first().unwrap().season, 2000);
+/// ```
+pub fn get_response_multi_pages(
+    base_url: &str,
+    resource: &Resource,
+    initial_page: Option<Page>,
+    max_page_count: Option<usize>,
+    rate_limiter: Option<&crate::rate_limiter::RateLimiter>,
+) -> Result<Vec<Response>> {
+    let rate_limiter_wait_until_ready = || {
+        if let Some(limiter) = rate_limiter {
+            limiter.wait_until_ready();
+        }
+    };
+
+    rate_limiter_wait_until_ready();
+    let mut responses = vec![get_response_page(base_url, resource, initial_page)?];
+    let mut pages = vec![responses.last().unwrap().pagination];
+
+    while let Some(next_page) = pages.last().unwrap().next_page() {
+        pages.push(next_page);
+    }
+
+    if let Some(max_page_count) = max_page_count
+        && pages.len() > max_page_count
+    {
+        return Err(Error::ExceededMaxPageCount(max_page_count));
+    }
+
+    pages[1..].iter().for_each(|page| {
+        rate_limiter_wait_until_ready();
+        responses.push(get_response_page(base_url, resource, Some((*page).into())).unwrap());
+    });
+
+    Ok(responses)
+}
+
 /// Call the provided function, retrying on HTTP errors, and forwarding anything else.
 /// `max_attempt_count` and `retry_sleep` are used to control the retry behaviour.
 pub fn retry_on_http_error<T>(
@@ -105,24 +196,30 @@ pub fn retry_on_http_error<T>(
 
 #[cfg(test)]
 mod tests {
-    use more_asserts::{assert_ge, assert_le};
+    use std::sync::LazyLock;
+    use std::time::Duration;
+
+    use more_asserts::{assert_ge, assert_le, assert_lt};
 
     use crate::{
         error::Error,
         jolpica::{
-            api::{JOLPICA_API_BASE_URL, JOLPICA_API_PAGINATION},
+            api::{JOLPICA_API_BASE_URL, JOLPICA_API_PAGINATION, JOLPICA_API_RATE_LIMIT},
             resource::Filters,
         },
+        rate_limiter::{Quota, RateLimiter},
     };
 
     use super::*;
-    use crate::jolpica::tests::{
-        assets::*,
-        util::{RATE_LIMIT_SLEEP_DURATION, retry_http},
-    };
+    use crate::jolpica::tests::{assets::*, util::retry_http};
+
+    static RATE_LIMIT: Quota = Quota::per_hour(JOLPICA_API_RATE_LIMIT.sustained_limit_per_hour)
+        .allow_burst(JOLPICA_API_RATE_LIMIT.burst_limit_per_sec);
+
+    static RATE_LIMITER: LazyLock<RateLimiter> = LazyLock::new(|| RateLimiter::new(RATE_LIMIT));
 
     fn rate_limited_get_response_page(base_url: &str, resource: &Resource, page: Option<Page>) -> Result<Response> {
-        std::thread::sleep(RATE_LIMIT_SLEEP_DURATION);
+        RATE_LIMITER.wait_until_ready();
         super::get_response_page(base_url, resource, page)
     }
 
@@ -239,7 +336,7 @@ mod tests {
             assert!(!pagination.is_single_page());
             assert_eq!(pagination.limit, page.limit());
             assert_eq!(pagination.offset, current_offset);
-            assert!(pagination.total >= 74);
+            assert!(pagination.total >= 76);
 
             let seasons = resp.table.as_seasons().unwrap();
             assert_eq!(seasons.len(), page.limit() as usize);
@@ -265,7 +362,7 @@ mod tests {
         assert!(pagination.is_last_page());
         assert_eq!(pagination.limit, page.limit());
         assert_eq!(pagination.offset, current_offset);
-        assert!(pagination.total >= 74);
+        assert!(pagination.total >= 76);
 
         let seasons = resp.table.as_seasons().unwrap();
         assert_eq!(seasons.last().unwrap().season, 1950 + current_offset + (seasons.len() as u32) - 1);
@@ -278,5 +375,124 @@ mod tests {
             super::get_response_page("http://nonexistent.local", &Resource::SeasonList(Filters::none()), None),
             Err(Error::Http(_))
         ));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_response_multi_pages() {
+        let req = Resource::SeasonList(Filters::none());
+        let page = Page::with_limit(5);
+
+        let responses =
+            super::get_response_multi_pages(JOLPICA_API_BASE_URL, &req, Some(page.clone()), None, Some(&RATE_LIMITER))
+                .unwrap();
+
+        assert!(!responses.first().unwrap().pagination.is_last_page());
+        assert!(responses.last().unwrap().pagination.is_last_page());
+        assert_ge!(responses.len(), 16); // 76 / 5
+
+        let mut current_offset: u32 = 0;
+
+        for resp in &responses {
+            let pagination = resp.pagination;
+            assert!(!pagination.is_single_page());
+            assert_eq!(pagination.limit, page.limit());
+            assert_eq!(pagination.offset, current_offset);
+            assert_ge!(pagination.total, 76);
+
+            let seasons = resp.table.as_seasons().unwrap();
+
+            if !resp.pagination.is_last_page() {
+                assert_eq!(seasons.len(), page.limit() as usize);
+            } else {
+                assert_le!(seasons.len(), page.limit() as usize);
+            }
+
+            match current_offset {
+                0 => assert_eq!(seasons[0], *SEASON_1950),
+                25 => assert_eq!(seasons[4], *SEASON_1979),
+                50 => assert_eq!(seasons[0], *SEASON_2000),
+                70 => assert_eq!(seasons[3], *SEASON_2023),
+                _ => (),
+            }
+
+            if !resp.pagination.is_last_page() {
+                current_offset += page.limit();
+            }
+        }
+
+        let pagination = responses.last().unwrap().pagination;
+        assert!(!pagination.is_single_page());
+        assert!(pagination.is_last_page());
+        assert_eq!(pagination.limit, page.limit());
+        assert_eq!(pagination.offset, current_offset);
+        assert_ge!(pagination.total, 76);
+
+        let seasons = responses.last().unwrap().table.as_seasons().unwrap();
+        assert_eq!(seasons.last().unwrap().season, 1950 + current_offset + (seasons.len() as u32) - 1);
+    }
+
+    #[test]
+    #[ignore]
+    fn get_response_multi_pages_rate_limiting() {
+        // Requests take about ~300ms each without rate limiting
+        // 500 requests per hour = 1 request every 7.2 seconds
+
+        let rate_limiter = RateLimiter::new(RATE_LIMIT);
+
+        let start = std::time::Instant::now();
+        let _responses = super::get_response_multi_pages(
+            JOLPICA_API_BASE_URL,
+            &Resource::SeasonList(Filters::none()),
+            Some(Page::with_limit(20)),
+            None,
+            Some(&rate_limiter),
+        );
+        let elapsed = start.elapsed();
+        assert_eq!(_responses.unwrap().len(), 4);
+
+        // First four requests should not wait, ~600ms per request to allow for network latency
+        assert_lt!(elapsed, Duration::from_millis(600 * 4));
+
+        // Clear any accumulation from previous requests' latency
+        rate_limiter.wait_until_ready();
+
+        let start = std::time::Instant::now();
+        let _responses = super::get_response_multi_pages(
+            JOLPICA_API_BASE_URL,
+            &Resource::SeasonList(Filters::none()),
+            Some(Page::with_limit(20)),
+            None,
+            Some(&rate_limiter),
+        );
+        let elapsed = start.elapsed();
+        assert_eq!(_responses.unwrap().len(), 4);
+
+        // Subsequent requests should wait, at least ~7s each
+        assert_ge!(elapsed, Duration::from_secs(7 * 4));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_response_multi_pages_error_exceeded_max_page_count() {
+        let rate_limiter = RateLimiter::new(RATE_LIMIT);
+
+        let req = Resource::SeasonList(Filters::none());
+
+        let start = std::time::Instant::now();
+        assert!(matches!(
+            super::get_response_multi_pages(
+                JOLPICA_API_BASE_URL,
+                &req,
+                Some(Page::with_limit(5)),
+                Some(10),
+                Some(&rate_limiter)
+            ),
+            Err(Error::ExceededMaxPageCount(10))
+        ));
+        let elapsed = start.elapsed();
+
+        // Only the first request should have been made
+        assert_lt!(elapsed, Duration::from_millis(600));
     }
 }

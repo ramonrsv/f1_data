@@ -799,6 +799,7 @@ impl Agent {
     /// # use f1_data::jolpica::{agent::Agent, resource::Filters};
     /// # let jolpica = Agent::default();
     /// #
+    /// # // @todo This panics with Err(Error::MultiPage)
     /// let statuses = jolpica.get_statuses(Filters::none()).unwrap();
     /// assert!(!statuses.is_empty());
     /// assert_eq!(

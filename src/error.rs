@@ -44,6 +44,8 @@ pub enum Error {
     NotFound,
     /// A request resulted in a response that contained more than the expected number of elements.
     TooMany,
+    /// A request for multiple pages would or has exceeded the maximum allowed number of pages.
+    ExceededMaxPageCount(usize),
     /// A generic error for when unexpected data was found during processing of a response.
     UnexpectedData(String),
 }
