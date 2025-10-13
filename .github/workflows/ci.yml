@@ -2,16 +2,12 @@
 # ignored tests), build docs, run clippy, run rustfmt, run benchmarks, and generate code coverage
 # reports and upload them to Codecov. It runs on push and pull_requests, and on a nightly schedule.
 #
-# Ignored tests depend on network and jolpica-f1 API availability, which could produce problematic
-# spurious failures and exceed jolpica-f1 API rate limits if run on every CI trigger. However, get_*
-# unit tests have rate limiting and solutions to mitigate instability caused by HTTP errors, and
-# there are few enough tests that the jolpica-f1 API should not be greatly taxed. As such, the
-# benefits of running these on every CI trigger, which include faster feedback and greater ease of
-# local testing, outweigh the possible downsides, so ignored tests are run on every CI trigger.
-#
-# Benchmarks are built on every CI trigger, but they are only run on a nightly schedule to avoid
-# taxing the jolpica-f1 API, because they are very time consuming, and because running them on
-# GitHub's virtualized environment does not produce reliable results.
+# Some jobs and/or steps, e.g. ignored tests, benchmarks, and code coverage, are time consuming
+# and/or depend on network and jolpica-f1 API availability. This can cause several issues if run
+# on every CI job, including spurious failures, excessive API usage, and consuming a lot of the
+# available GitHub Actions minutes. As such, these jobs and/or steps are skipped on push and PRs,
+# and only run on schedules and locally via act. It is highly recommended that the full CI workflow
+# be run locally before pushing changes, to catch any issues that the reduced workflow may miss.
 #
 # Some jobs and/or steps are skipped when running locally with `act` - controlled via env.ACT and
 # vars.ACT, because they may take too long or may undesirably upload codecov or performance reports.
@@ -27,7 +23,8 @@ on:
   pull_request:
     branches: ["main"]
   schedule:
-    - cron: "00 01 * * *"
+    # Weekly, at 00:00 on Sundays
+    - cron: "0 0 * * 0"
 
 env:
   CARGO_TERM_COLOR: always
@@ -48,6 +45,7 @@ jobs:
       - name: Test (non-ignored)
         run: cargo test --workspace --all-features
       - name: Test (ignored)
+        if: github.event_name == 'schedule' || vars.ACT == 'true'
         run: cargo test --workspace --all-features -- --ignored --test-threads 1
 
   build_docs:
@@ -82,7 +80,7 @@ jobs:
 
   code_coverage:
     runs-on: ubuntu-latest
-    if: vars.ACT != 'true' || vars.FORCE_CODECOV == 'true'
+    if: github.event_name == 'schedule' || vars.FORCE_CODECOV == 'true'
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@master
@@ -112,5 +110,5 @@ jobs:
       - name: Build benchmarks
         run: cargo bench --workspace --all-features --no-run
       - name: Run benchmarks
-        if: (env.ACT != 'true' && github.event_name == 'schedule') || vars.FORCE_RUN_BENCH == 'true'
+        if: github.event_name == 'schedule' || vars.FORCE_RUN_BENCH == 'true'
         run: cargo bench --workspace --all-features
