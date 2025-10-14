@@ -7,7 +7,11 @@ use serde_yaml;
 use crate::jolpica::response::{Payload, Table};
 
 #[cfg(doc)]
-use crate::jolpica::{resource::Resource, response};
+use crate::jolpica::{
+    concat::PageVerify,
+    resource::Resource,
+    response::{self, Response},
+};
 
 /// An error that may occur while processing a [`Resource`] HTTP request from the jolpica-f1 API,
 /// via the provided family of `get_*` methods.
@@ -46,6 +50,13 @@ pub enum Error {
     TooMany,
     /// A request for multiple pages would or has exceeded the maximum allowed number of pages.
     ExceededMaxPageCount(usize),
+    /// A request to merge multiple [`Response`]s contained inconsistent [`Response::as_info`].
+    BadResponseInfo(String),
+    /// A request to merge multiple [`Response`]s contained invalid pagination, as per the
+    /// verification requested via [`PageVerify`], e.g. non-contiguous pages.
+    BadPagination(String),
+    /// A request was made to merge multiple [`Response`]s from an empty list.
+    EmptyResponseList,
     /// A generic error for when unexpected data was found during processing of a response.
     UnexpectedData(String),
 }
