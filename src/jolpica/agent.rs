@@ -2,7 +2,7 @@ use crate::{
     error::{Error, Result},
     id::{CircuitID, ConstructorID, DriverID, RaceID, SeasonID, StatusID},
     jolpica::{
-        api::{JOLPICA_API_BASE_URL, JOLPICA_API_RATE_LIMIT},
+        api::{JOLPICA_API_BASE_URL, JOLPICA_API_RATE_LIMIT_QUOTA},
         get,
         resource::{Filters, LapTimeFilters, Page, PitStopFilters, Resource},
         response::{
@@ -10,7 +10,7 @@ use crate::{
             Response, Schedule, Season, SprintResult, Status, TableInnerList, Timing,
         },
     },
-    rate_limiter::{Quota, RateLimiter},
+    rate_limiter::RateLimiter,
 };
 
 #[cfg(doc)]
@@ -39,10 +39,7 @@ impl Default for Agent {
     /// Creates a new [`Agent`] with default settings.
     fn default() -> Self {
         Self {
-            rate_limiter: RateLimiter::new(
-                Quota::per_hour(JOLPICA_API_RATE_LIMIT.sustained_limit_per_hour)
-                    .allow_burst(JOLPICA_API_RATE_LIMIT.burst_limit_per_sec),
-            ),
+            rate_limiter: RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA),
         }
     }
 }

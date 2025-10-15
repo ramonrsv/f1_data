@@ -112,15 +112,14 @@ pub fn get_response_page(base_url: &str, resource: &Resource, page: Option<Page>
 /// ```no_run
 /// # use f1_data::{
 /// #     jolpica::{
-/// #         api::{JOLPICA_API_BASE_URL, JOLPICA_API_RATE_LIMIT},
+/// #         api::{JOLPICA_API_BASE_URL, JOLPICA_API_RATE_LIMIT_QUOTA},
 /// #         get::get_response_multi_pages,
 /// #         resource::{Filters, Page, Resource},
 /// #     },
 /// #     rate_limiter::{Quota, RateLimiter},
 /// # };
 /// #
-/// # let rate_limiter =
-/// #     RateLimiter::new(Quota::per_hour(JOLPICA_API_RATE_LIMIT.sustained_limit_per_hour));
+/// # let rate_limiter = RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA);
 /// #
 /// let responses = get_response_multi_pages(
 ///     JOLPICA_API_BASE_URL,
@@ -204,19 +203,16 @@ mod tests {
     use crate::{
         error::Error,
         jolpica::{
-            api::{JOLPICA_API_BASE_URL, JOLPICA_API_PAGINATION, JOLPICA_API_RATE_LIMIT},
+            api::{JOLPICA_API_BASE_URL, JOLPICA_API_PAGINATION, JOLPICA_API_RATE_LIMIT_QUOTA},
             resource::Filters,
         },
-        rate_limiter::{Quota, RateLimiter},
+        rate_limiter::RateLimiter,
     };
 
     use super::*;
     use crate::jolpica::tests::{assets::*, util::retry_http};
 
-    static RATE_LIMIT: Quota = Quota::per_hour(JOLPICA_API_RATE_LIMIT.sustained_limit_per_hour)
-        .allow_burst(JOLPICA_API_RATE_LIMIT.burst_limit_per_sec);
-
-    static RATE_LIMITER: LazyLock<RateLimiter> = LazyLock::new(|| RateLimiter::new(RATE_LIMIT));
+    static RATE_LIMITER: LazyLock<RateLimiter> = LazyLock::new(|| RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA));
 
     fn rate_limited_get_response_page(base_url: &str, resource: &Resource, page: Option<Page>) -> Result<Response> {
         RATE_LIMITER.wait_until_ready();
@@ -438,7 +434,7 @@ mod tests {
         // Requests take about ~300ms each without rate limiting
         // 500 requests per hour = 1 request every 7.2 seconds
 
-        let rate_limiter = RateLimiter::new(RATE_LIMIT);
+        let rate_limiter = RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA);
 
         let start = std::time::Instant::now();
         let _responses = super::get_response_multi_pages(
@@ -475,7 +471,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_multi_pages_error_exceeded_max_page_count() {
-        let rate_limiter = RateLimiter::new(RATE_LIMIT);
+        let rate_limiter = RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA);
 
         let req = Resource::SeasonList(Filters::none());
 

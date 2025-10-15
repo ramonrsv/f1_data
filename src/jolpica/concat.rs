@@ -217,12 +217,12 @@ mod tests {
 
     use crate::{
         jolpica::{
-            api::{JOLPICA_API_BASE_URL, JOLPICA_API_RATE_LIMIT},
+            api::{JOLPICA_API_BASE_URL, JOLPICA_API_RATE_LIMIT_QUOTA},
             get::{get_response_multi_pages, get_response_page},
             resource::{Filters, Page, Resource},
             response::Pagination,
         },
-        rate_limiter::{Quota, RateLimiter},
+        rate_limiter::RateLimiter,
     };
 
     use super::*;
@@ -232,10 +232,7 @@ mod tests {
         Pagination { limit, offset, total }
     }
 
-    static RATE_LIMIT: Quota = Quota::per_hour(JOLPICA_API_RATE_LIMIT.sustained_limit_per_hour)
-        .allow_burst(JOLPICA_API_RATE_LIMIT.burst_limit_per_sec);
-
-    static RATE_LIMITER: LazyLock<RateLimiter> = LazyLock::new(|| RateLimiter::new(RATE_LIMIT));
+    static RATE_LIMITER: LazyLock<RateLimiter> = LazyLock::new(|| RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA));
 
     const RESPONSE_NONE: LazyLock<Response> = LazyLock::new(|| Response {
         xmlns: "".into(),

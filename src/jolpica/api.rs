@@ -1,9 +1,14 @@
 use nonzero_ext::nonzero;
 
+use crate::rate_limiter::Quota;
+
 #[cfg(doc)]
-use crate::jolpica::{
-    resource::{Filters, Page, Resource},
-    response::{RaceResult, Response, SprintResult},
+use crate::{
+    jolpica::{
+        resource::{Filters, Page, Resource},
+        response::{RaceResult, Response, SprintResult},
+    },
+    rate_limiter::RateLimiter,
 };
 
 /// Base URL of endpoints for the [jolpica-f1](https://github.com/jolpica/jolpica-f1) API
@@ -24,6 +29,10 @@ pub const JOLPICA_API_RATE_LIMIT: RateLimit = RateLimit {
     burst_limit_per_sec: nonzero!(4u32),
     sustained_limit_per_hour: nonzero!(500u32),
 };
+
+/// The above rate limit expressed as a [`Quota`], to be used with a [`RateLimiter`].
+pub const JOLPICA_API_RATE_LIMIT_QUOTA: Quota = Quota::per_hour(JOLPICA_API_RATE_LIMIT.sustained_limit_per_hour)
+    .allow_burst(JOLPICA_API_RATE_LIMIT.burst_limit_per_sec);
 
 #[derive(Clone, Copy, Debug)]
 pub struct Pagination {
