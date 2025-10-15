@@ -643,6 +643,18 @@ pub(crate) const CIRCUIT_SPA_STR: &str = r#"{
     }
   }"#;
 
+pub(crate) const CIRCUIT_ALBERT_PARK_STR: &str = r#"{
+    "circuitId": "albert_park",
+    "url": "https://en.wikipedia.org/wiki/Albert_Park_Circuit",
+    "circuitName": "Albert Park Grand Prix Circuit",
+    "Location": {
+        "lat": "-37.8497",
+        "long": "144.968",
+        "locality": "Melbourne",
+        "country": "Australia"
+    }
+  }"#;
+
 pub(crate) const CIRCUIT_SILVERSTONE_STR: &str = r#"{
     "circuitId": "silverstone",
     "url": "https://en.wikipedia.org/wiki/Silverstone_Circuit",
@@ -688,6 +700,18 @@ pub(crate) static CIRCUIT_GEORGE: LazyLock<Circuit> = LazyLock::new(|| Circuit {
         long: OrderedFloat(27.8736),
         locality: "Eastern Cape Province".to_string(),
         country: "South Africa".to_string(),
+    },
+});
+
+pub(crate) static CIRCUIT_ALBERT_PARK: LazyLock<Circuit> = LazyLock::new(|| Circuit {
+    circuit_id: "albert_park".into(),
+    url: Url::parse("https://en.wikipedia.org/wiki/Albert_Park_Circuit").unwrap(),
+    circuit_name: "Albert Park Grand Prix Circuit".to_string(),
+    location: Location {
+        lat: OrderedFloat(-37.8497),
+        long: OrderedFloat(144.968),
+        locality: "Melbourne".to_string(),
+        country: "Australia".to_string(),
     },
 });
 
@@ -744,6 +768,7 @@ pub(crate) const CIRCUIT_TABLE_STR: &str = formatcp!(
     "CircuitTable": {{
         "Circuits": [
             {CIRCUIT_GEORGE_STR},
+            {CIRCUIT_ALBERT_PARK_STR},
             {CIRCUIT_SPA_STR},
             {CIRCUIT_SILVERSTONE_STR},
             {CIRCUIT_IMOLA_STR},
@@ -755,6 +780,7 @@ pub(crate) const CIRCUIT_TABLE_STR: &str = formatcp!(
 pub(crate) static CIRCUIT_TABLE: LazyLock<Table> = LazyLock::new(|| Table::Circuits {
     circuits: vec![
         CIRCUIT_GEORGE.clone(),
+        CIRCUIT_ALBERT_PARK.clone(),
         CIRCUIT_SPA.clone(),
         CIRCUIT_SILVERSTONE.clone(),
         CIRCUIT_IMOLA.clone(),
@@ -843,6 +869,18 @@ pub(crate) const RACE_2022_4_STR: &str = formatcp!(
     "Circuit": {CIRCUIT_IMOLA_STR},
     "date": "2022-04-24",
     "time": "13:00:00Z"
+  "#
+);
+
+pub(crate) const RACE_2023_3_STR: &str = formatcp!(
+    r#"
+    "season": "2023",
+    "round": "3",
+    "url": "https://en.wikipedia.org/wiki/2023_Australian_Grand_Prix",
+    "raceName": "Australian Grand Prix",
+    "Circuit": {CIRCUIT_ALBERT_PARK_STR},
+    "date": "2023-04-02",
+    "time": "05:00:00Z"
   "#
 );
 
@@ -987,6 +1025,17 @@ pub(crate) const RACE_2022_4: LazyLock<Race> = LazyLock::new(|| Race {
     ..RACE_NONE.clone()
 });
 
+pub(crate) const RACE_2023_3: LazyLock<Race> = LazyLock::new(|| Race {
+    season: 2023,
+    round: 3,
+    url: Url::parse("https://en.wikipedia.org/wiki/2023_Australian_Grand_Prix").unwrap(),
+    race_name: "Australian Grand Prix".to_string(),
+    circuit: CIRCUIT_ALBERT_PARK.clone(),
+    date: date!(2023 - 04 - 02),
+    time: Some(time!(5:00:00)),
+    ..RACE_NONE.clone()
+});
+
 pub(crate) const RACE_2023_4: LazyLock<Race> = LazyLock::new(|| Race {
     season: 2023,
     round: 4,
@@ -1122,6 +1171,28 @@ pub(crate) const RACE_2022_4_SCHEDULE_STR: &str = formatcp!(
     "Sprint": {{
       "date": "2022-04-23",
       "time": "14:30:00Z"
+    }}
+}}"#
+);
+
+pub(crate) const RACE_2023_3_SCHEDULE_STR: &str = formatcp!(
+    r#"{{
+    {RACE_2023_3_STR},
+    "FirstPractice": {{
+      "date": "2023-03-31",
+      "time": "01:30:00Z"
+    }},
+    "SecondPractice": {{
+      "date": "2023-03-31",
+      "time": "05:00:00Z"
+    }},
+    "ThirdPractice": {{
+      "date": "2023-04-01",
+      "time": "01:30:00Z"
+    }},
+    "Qualifying": {{
+      "date": "2023-04-01",
+      "time": "05:00:00Z"
     }}
 }}"#
 );
@@ -1290,6 +1361,29 @@ pub(crate) const RACE_2022_4_SCHEDULE: LazyLock<Race> = LazyLock::new(|| Race {
     ..RACE_2022_4.clone()
 });
 
+pub(crate) const RACE_2023_3_SCHEDULE: LazyLock<Race> = LazyLock::new(|| Race {
+    payload: Payload::Schedule(Schedule {
+        first_practice: Some(DateTime {
+            date: date!(2023 - 03 - 31),
+            time: Some(time!(01:30:00)),
+        }),
+        second_practice: Some(DateTime {
+            date: date!(2023 - 03 - 31),
+            time: Some(time!(05:00:00)),
+        }),
+        third_practice: Some(DateTime {
+            date: date!(2023 - 04 - 01),
+            time: Some(time!(01:30:00)),
+        }),
+        qualifying: Some(DateTime {
+            date: date!(2023 - 04 - 01),
+            time: Some(time!(05:00:00)),
+        }),
+        ..SCHEDULE_NONE.clone()
+    }),
+    ..RACE_2023_3.clone()
+});
+
 // @todo Implement sprint_shootout field
 pub(crate) const RACE_2023_4_SCHEDULE: LazyLock<Race> = LazyLock::new(|| Race {
     payload: Payload::Schedule(Schedule {
@@ -1364,6 +1458,7 @@ pub(crate) const RACE_TABLE_SCHEDULE_STR: &str = formatcp!(
             {RACE_2020_4_SCHEDULE_STR},
             {RACE_2021_12_SCHEDULE_STR},
             {RACE_2022_4_SCHEDULE_STR},
+            {RACE_2023_3_SCHEDULE_STR},
             {RACE_2023_4_SCHEDULE_STR},
             {RACE_2023_10_SCHEDULE_STR},
             {RACE_2023_12_SCHEDULE_STR}
@@ -1380,6 +1475,7 @@ pub(crate) static RACE_TABLE_SCHEDULE: LazyLock<Table> = LazyLock::new(|| Table:
         RACE_2020_4_SCHEDULE.clone(),
         RACE_2021_12_SCHEDULE.clone(),
         RACE_2022_4_SCHEDULE.clone(),
+        RACE_2023_3_SCHEDULE.clone(),
         RACE_2023_4_SCHEDULE.clone(),
         RACE_2023_10_SCHEDULE.clone(),
         RACE_2023_12_SCHEDULE.clone(),
@@ -2010,6 +2106,36 @@ pub(crate) const RACE_RESULT_2021_12_P10_STR: &str = formatcp!(
   }}"#
 );
 
+// @todo Buggy "Time" field in Jolpi-ca F1 for this entry
+pub(crate) const RACE_RESULT_2023_3_P15_STR: &str = formatcp!(
+    r#"{{
+        "number": "21",
+        "position": "15",
+        "positionText": "15",
+        "points": "0",
+        "Driver": {DRIVER_DE_VRIES_STR},
+        "Constructor": {CONSTRUCTOR_ALPHA_TAURI_STR},
+        "grid": "15",
+        "laps": "56",
+        "status": "Finished",
+        "Time": {{
+            "millis": "7005713",
+            "time": "+-1:24:07.342"
+        }},
+        "FastestLap": {{
+            "rank": "10",
+            "lap": "50",
+            "Time": {{
+                "time": "1:21.183"
+            }},
+            "AverageSpeed": {{
+                "units": "kph",
+                "speed": "234.049"
+            }}
+        }}
+      }}"#
+);
+
 pub(crate) const RACE_RESULT_2023_4_P1_STR: &str = formatcp!(
     r#"{{
     "number": "11",
@@ -2199,6 +2325,29 @@ pub(crate) const RACE_RESULT_2021_12_P10: LazyLock<RaceResult> = LazyLock::new(|
     fastest_lap: None,
 });
 
+// @todo Buggy "Time" field in Jolpi-ca F1 for this entry
+pub(crate) const RACE_RESULT_2023_3_P15: LazyLock<RaceResult> = LazyLock::new(|| RaceResult {
+    number: 21,
+    position: 15,
+    position_text: Position::Finished(15),
+    points: 0.0,
+    driver: DRIVER_DE_VRIES.clone(),
+    constructor: CONSTRUCTOR_ALPHA_TAURI.clone(),
+    grid: 15,
+    laps: 56,
+    status: "Finished".to_string(),
+    time: None, // Buggy in Jolpi-ca F1
+    fastest_lap: Some(FastestLap {
+        rank: Some(10),
+        lap: 50,
+        time: duration_m_s_ms(1, 21, 183),
+        average_speed: Some(AverageSpeed {
+            units: SpeedUnits::Kph,
+            speed: 234.049,
+        }),
+    }),
+});
+
 pub(crate) const RACE_RESULT_2023_4_P1: LazyLock<RaceResult> = LazyLock::new(|| RaceResult {
     number: 11,
     position: 1,
@@ -2319,6 +2468,20 @@ pub(crate) static RACE_2021_12_RACE_RESULTS: LazyLock<Race> = LazyLock::new(|| R
         RACE_RESULT_2021_12_P10.clone(),
     ]),
     ..RACE_2021_12.clone()
+});
+
+pub(crate) const RACE_2023_3_RACE_RESULTS_STR: &str = formatcp!(
+    r#"{{
+    {RACE_2023_3_STR},
+    "Results": [
+        {RACE_RESULT_2023_3_P15_STR}
+    ]
+  }}"#
+);
+
+pub(crate) static RACE_2023_3_RACE_RESULTS: LazyLock<Race> = LazyLock::new(|| Race {
+    payload: Payload::RaceResults(vec![RACE_RESULT_2023_3_P15.clone()]),
+    ..RACE_2023_3.clone()
 });
 
 pub(crate) const RACE_2023_4_RACE_RESULTS_STR: &str = formatcp!(
