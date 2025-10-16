@@ -20,7 +20,7 @@ static URL: LazyLock<String> = LazyLock::new(|| RESOURCE.to_url_with(Page::with_
 
 static FILENAME: &str = "benches/assets/response_2022_race_results.json";
 
-static JOLPICA: LazyLock<Agent> = LazyLock::new(|| Agent::default());
+static JOLPICA_SP: LazyLock<Agent> = LazyLock::new(|| Agent::default());
 
 /// Duration to wait between GET calls to avoid exceeding the jolpica-f1 API rate limits.
 ///
@@ -43,7 +43,7 @@ fn bench_get_race_results(c: &mut Criterion) {
     group.bench_function("get_race_results", |b| {
         b.iter_batched(
             || std::thread::sleep(RATE_LIMIT_DURATION),
-            |_| JOLPICA.get_race_results(FILTERS.clone()).unwrap(),
+            |_| JOLPICA_SP.get_race_results(FILTERS.clone()).unwrap(),
             BatchSize::SmallInput,
         )
     });

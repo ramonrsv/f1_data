@@ -22,7 +22,7 @@ mod tests {
     use shadow_asserts::assert_eq;
 
     /// Shared instance of [`Agent`] for use in tests, to share a rate limiter, cache, etc.
-    static JOLPICA: LazyLock<Agent> = LazyLock::new(|| Agent::default());
+    static JOLPICA_SP: LazyLock<Agent> = LazyLock::new(|| Agent::default());
 
     #[test]
     fn race_result_buggy_time() {
@@ -40,7 +40,7 @@ mod tests {
         // I don't understand what this is. For now, as a workaround, those values are being parsed
         // as None for the race time field. If/when this test fails, we can investigate further.
         assert_eq!(
-            JOLPICA
+            JOLPICA_SP
                 .get_race_result(Filters::new().season(2023).round(3).finish_pos(15))
                 .unwrap()
                 .race_result(),
@@ -62,7 +62,7 @@ mod tests {
     #[ignore]
     fn get_qualifying_result_2023_4_p3() {
         assert_eq!(
-            JOLPICA
+            JOLPICA_SP
                 .get_qualifying_result(Filters::new().season(2023).round(4).driver_id("perez".into()))
                 .unwrap()
                 .qualifying_result(),
@@ -76,7 +76,7 @@ mod tests {
         // @todo [`Filters::qualifying_pos`] appears to not be functional in the new jolpica-f1 API
         // If/when this test begins to fail, and we can add tests filtering by `qualifying_pos`
         assert!(matches!(
-            JOLPICA.get_qualifying_result(Filters::new().season(2023).round(4).qualifying_pos(1)),
+            JOLPICA_SP.get_qualifying_result(Filters::new().season(2023).round(4).qualifying_pos(1)),
             Err(Error::TooMany)
         ));
     }
@@ -90,7 +90,7 @@ mod tests {
         assert_eq!(RACE_RESULT_2023_4_P20.position_text, Position::R);
 
         assert!(matches!(
-            JOLPICA.get_race_result(Filters::new().season(2023).round(4).finish_pos(20)),
+            JOLPICA_SP.get_race_result(Filters::new().season(2023).round(4).finish_pos(20)),
             Err(Error::NotFound)
         ));
     }

@@ -1187,7 +1187,7 @@ mod tests {
     }
 
     /// Shared instance of [`Agent`] for use in tests, to share a rate limiter, cache, etc.
-    static JOLPICA: LazyLock<Agent> = LazyLock::new(|| Agent::default());
+    static JOLPICA_SP: LazyLock<Agent> = LazyLock::new(|| Agent::default());
 
     // Resource::SeasonList
     // --------------------
@@ -1196,7 +1196,7 @@ mod tests {
     #[ignore]
     fn get_seasons() {
         assert_each_expected_in_actual(
-            || JOLPICA.get_seasons(Filters::none()),
+            || JOLPICA_SP.get_seasons(Filters::none()),
             &SEASON_TABLE.as_seasons().unwrap(),
             LenConstraint::Minimum(74),
         );
@@ -1205,19 +1205,19 @@ mod tests {
     #[test]
     #[ignore]
     fn get_season() {
-        assert_each_get_eq_expected(|season| JOLPICA.get_season(season.season), SEASON_TABLE.as_seasons().unwrap());
+        assert_each_get_eq_expected(|season| JOLPICA_SP.get_season(season.season), SEASON_TABLE.as_seasons().unwrap());
     }
 
     #[test]
     #[ignore]
     fn get_seasons_empty() {
-        assert_is_empty(|| JOLPICA.get_seasons(Filters::new().season(1949)));
+        assert_is_empty(|| JOLPICA_SP.get_seasons(Filters::new().season(1949)));
     }
 
     #[test]
     #[ignore]
     fn get_season_error_not_found() {
-        assert_not_found(|| JOLPICA.get_season(1949));
+        assert_not_found(|| JOLPICA_SP.get_season(1949));
     }
 
     // Resource::DriverInfo
@@ -1234,7 +1234,7 @@ mod tests {
 
         for (season, expected_list) in &*DRIVERS_BY_SEASON {
             assert_each_expected_in_actual(
-                || JOLPICA.get_drivers(Filters::new().season(*season)),
+                || JOLPICA_SP.get_drivers(Filters::new().season(*season)),
                 &expected_list,
                 LenConstraint::Minimum(22),
             );
@@ -1245,7 +1245,7 @@ mod tests {
     #[ignore]
     fn get_driver() {
         assert_each_get_eq_expected(
-            |driver| JOLPICA.get_driver(driver.driver_id.clone()),
+            |driver| JOLPICA_SP.get_driver(driver.driver_id.clone()),
             DRIVER_TABLE.as_drivers().unwrap(),
         );
     }
@@ -1253,13 +1253,13 @@ mod tests {
     #[test]
     #[ignore]
     fn get_drivers_empty() {
-        assert_is_empty(|| JOLPICA.get_drivers(Filters::new().season(1949)));
+        assert_is_empty(|| JOLPICA_SP.get_drivers(Filters::new().season(1949)));
     }
 
     #[test]
     #[ignore]
     fn get_driver_error_not_found() {
-        assert_not_found(|| JOLPICA.get_driver(DriverID::from("unknown")));
+        assert_not_found(|| JOLPICA_SP.get_driver(DriverID::from("unknown")));
     }
 
     // Resource::ConstructorInfo
@@ -1276,7 +1276,7 @@ mod tests {
 
         for (season, expected_list) in &*CONSTRUCTORS_BY_SEASON {
             assert_each_expected_in_actual(
-                || JOLPICA.get_constructors(Filters::new().season(*season)),
+                || JOLPICA_SP.get_constructors(Filters::new().season(*season)),
                 &expected_list,
                 LenConstraint::Minimum(10),
             );
@@ -1287,7 +1287,7 @@ mod tests {
     #[ignore]
     fn get_constructor() {
         assert_each_get_eq_expected(
-            |constructor| JOLPICA.get_constructor(constructor.constructor_id.clone()),
+            |constructor| JOLPICA_SP.get_constructor(constructor.constructor_id.clone()),
             CONSTRUCTOR_TABLE.as_constructors().unwrap(),
         );
     }
@@ -1295,13 +1295,13 @@ mod tests {
     #[test]
     #[ignore]
     fn get_constructors_empty() {
-        assert_is_empty(|| JOLPICA.get_constructors(Filters::new().season(1949)));
+        assert_is_empty(|| JOLPICA_SP.get_constructors(Filters::new().season(1949)));
     }
 
     #[test]
     #[ignore]
     fn get_constructor_error_not_found() {
-        assert_not_found(|| JOLPICA.get_constructor(ConstructorID::from("unknown")));
+        assert_not_found(|| JOLPICA_SP.get_constructor(ConstructorID::from("unknown")));
     }
 
     // Resource::CircuitInfo
@@ -1311,7 +1311,7 @@ mod tests {
     #[ignore]
     fn get_circuits() {
         assert_each_expected_in_actual(
-            || JOLPICA.get_circuits(Filters::none()),
+            || JOLPICA_SP.get_circuits(Filters::none()),
             &CIRCUIT_TABLE.as_circuits().unwrap(),
             LenConstraint::Minimum(77),
         );
@@ -1321,7 +1321,7 @@ mod tests {
     #[ignore]
     fn get_circuit() {
         assert_each_get_eq_expected(
-            |circuit| JOLPICA.get_circuit(circuit.circuit_id.clone()),
+            |circuit| JOLPICA_SP.get_circuit(circuit.circuit_id.clone()),
             CIRCUIT_TABLE.as_circuits().unwrap(),
         );
     }
@@ -1329,13 +1329,13 @@ mod tests {
     #[test]
     #[ignore]
     fn get_circuits_empty() {
-        assert_is_empty(|| JOLPICA.get_circuits(Filters::new().season(1949)));
+        assert_is_empty(|| JOLPICA_SP.get_circuits(Filters::new().season(1949)));
     }
 
     #[test]
     #[ignore]
     fn get_circuit_error_not_found() {
-        assert_not_found(|| JOLPICA.get_circuit(CircuitID::from("unknown")));
+        assert_not_found(|| JOLPICA_SP.get_circuit(CircuitID::from("unknown")));
     }
 
     // Resource::RaceSchedule
@@ -1372,7 +1372,7 @@ mod tests {
 
         for (season, expected_list) in &*RACE_SCHEDULES_BY_SEASON {
             assert_each_expected_in_actual(
-                || JOLPICA.get_race_schedules(Filters::new().season(*season)),
+                || JOLPICA_SP.get_race_schedules(Filters::new().season(*season)),
                 &map_schedules(expected_list.clone()),
                 LenConstraint::Exactly(*RACE_SCHEDULES_COUNTS_BY_SEASON.get(season).unwrap()),
             );
@@ -1383,7 +1383,7 @@ mod tests {
     #[ignore]
     fn get_race_schedule() {
         assert_each_get_eq_expected(
-            |race| JOLPICA.get_race_schedule(RaceID::from(race.season, race.round)),
+            |race| JOLPICA_SP.get_race_schedule(RaceID::from(race.season, race.round)),
             &map_schedules(RACE_TABLE_SCHEDULE.clone().into_races().unwrap()),
         );
     }
@@ -1391,13 +1391,13 @@ mod tests {
     #[test]
     #[ignore]
     fn get_race_schedules_empty() {
-        assert_is_empty(|| JOLPICA.get_race_schedules(Filters::new().season(1949)));
+        assert_is_empty(|| JOLPICA_SP.get_race_schedules(Filters::new().season(1949)));
     }
 
     #[test]
     #[ignore]
     fn get_race_schedule_error_not_found() {
-        assert_not_found(|| JOLPICA.get_race_schedule(RaceID::from(1949, 1)));
+        assert_not_found(|| JOLPICA_SP.get_race_schedule(RaceID::from(1949, 1)));
     }
 
     // Resource::QualifyingResults
@@ -1407,7 +1407,7 @@ mod tests {
     #[ignore]
     fn get_qualifying_results() {
         assert_each_expected_in_actual(
-            || JOLPICA.get_qualifying_results(Filters::new().constructor_id("red_bull".into()).season(2023)),
+            || JOLPICA_SP.get_qualifying_results(Filters::new().constructor_id("red_bull".into()).season(2023)),
             &RACES_QUALIFYING_RESULTS_RED_BULL,
             LenConstraint::Exactly(22),
         );
@@ -1417,25 +1417,25 @@ mod tests {
     #[ignore]
     fn get_qualifying_results_for_event() {
         assert_each_expected_session_result_in_actual_event(
-            || JOLPICA.get_qualifying_results_for_event(race_filters(2003, 4)),
+            || JOLPICA_SP.get_qualifying_results_for_event(race_filters(2003, 4)),
             &RACE_2003_4_QUALIFYING_RESULTS,
             LenConstraint::Exactly(20),
         );
 
         assert_each_expected_session_result_in_actual_event(
-            || JOLPICA.get_qualifying_results_for_event(race_filters(2023, 4)),
+            || JOLPICA_SP.get_qualifying_results_for_event(race_filters(2023, 4)),
             &RACE_2023_4_QUALIFYING_RESULTS,
             LenConstraint::Exactly(20),
         );
 
         assert_each_expected_session_result_in_actual_event(
-            || JOLPICA.get_qualifying_results_for_event(race_filters(2023, 10)),
+            || JOLPICA_SP.get_qualifying_results_for_event(race_filters(2023, 10)),
             &RACE_2023_10_QUALIFYING_RESULTS,
             LenConstraint::Exactly(20),
         );
 
         assert_each_expected_session_result_in_actual_event(
-            || JOLPICA.get_qualifying_results_for_event(race_filters(2023, 12)),
+            || JOLPICA_SP.get_qualifying_results_for_event(race_filters(2023, 12)),
             &RACE_2023_12_QUALIFYING_RESULTS,
             LenConstraint::Exactly(20),
         );
@@ -1463,7 +1463,7 @@ mod tests {
         let _ = &RACES_QUALIFYING_RESULT_P2;
 
         assert_each_expected_in_actual(
-            || JOLPICA.get_qualifying_result_for_events(Filters::new().season(2023).driver_id("leclerc".into())),
+            || JOLPICA_SP.get_qualifying_result_for_events(Filters::new().season(2023).driver_id("leclerc".into())),
             &RACES_2023_QUALIFYING_RESULT_CHARLES,
             LenConstraint::Exactly(22),
         );
@@ -1478,13 +1478,13 @@ mod tests {
         // |result, filters| filters.qualifying_pos(result.position),
 
         assert_each_get_eq_expected_session_result(
-            |filters| JOLPICA.get_qualifying_result(filters),
+            |filters| JOLPICA_SP.get_qualifying_result(filters),
             |result, filters| filters.driver_id(result.driver.driver_id.clone()),
             &RACE_2003_4_QUALIFYING_RESULTS,
         );
 
         assert_each_get_eq_expected_session_result(
-            |filters| JOLPICA.get_qualifying_result(filters),
+            |filters| JOLPICA_SP.get_qualifying_result(filters),
             |result, filters| filters.driver_id(result.driver.driver_id.clone()),
             &RACE_2023_4_QUALIFYING_RESULTS,
         );
@@ -1493,14 +1493,14 @@ mod tests {
     #[test]
     #[ignore]
     fn get_qualifying_results_empty() {
-        assert_is_empty(|| JOLPICA.get_qualifying_results(Filters::new().season(1949)));
-        assert_is_empty(|| JOLPICA.get_qualifying_results(Filters::new().season(2021).qualifying_pos(100)));
+        assert_is_empty(|| JOLPICA_SP.get_qualifying_results(Filters::new().season(1949)));
+        assert_is_empty(|| JOLPICA_SP.get_qualifying_results(Filters::new().season(2021).qualifying_pos(100)));
     }
 
     #[test]
     #[ignore]
     fn get_qualifying_results_for_event_error_not_found() {
-        assert_not_found(|| JOLPICA.get_qualifying_results_for_event(Filters::new().season(1949).round(1)));
+        assert_not_found(|| JOLPICA_SP.get_qualifying_results_for_event(Filters::new().season(1949).round(1)));
     }
 
     #[test]
@@ -1508,14 +1508,16 @@ mod tests {
     fn get_qualifying_results_for_event_error_too_many() {
         // Using [`Filters::driver_id`] instead of `season` to avoid getting [`Error::MultiPage`],
         // with the new jolpica-f1 API lower limit, instead of the [`Error::TooMany`] being tested
-        assert_too_many(|| JOLPICA.get_qualifying_results_for_event(Filters::new().driver_id("de_vries".into())));
+        assert_too_many(|| JOLPICA_SP.get_qualifying_results_for_event(Filters::new().driver_id("de_vries".into())));
     }
 
     #[test]
     #[ignore]
     fn get_qualifying_result_for_events_empty() {
-        assert_is_empty(|| JOLPICA.get_qualifying_result_for_events(Filters::new().season(1949).qualifying_pos(1)));
-        assert_is_empty(|| JOLPICA.get_qualifying_result_for_events(Filters::new().season(2021).qualifying_pos(100)));
+        assert_is_empty(|| JOLPICA_SP.get_qualifying_result_for_events(Filters::new().season(1949).qualifying_pos(1)));
+        assert_is_empty(|| {
+            JOLPICA_SP.get_qualifying_result_for_events(Filters::new().season(2021).qualifying_pos(100))
+        });
     }
 
     #[test]
@@ -1524,22 +1526,24 @@ mod tests {
         // Using [`Filters::constructor_id`] in addition to `season` to avoid getting `MultiPage`,
         // with the new jolpica-f1 API lower limit, instead of the [`Error::TooMany`] being tested
         assert_too_many(|| {
-            JOLPICA.get_qualifying_result_for_events(Filters::new().season(2021).constructor_id("red_bull".into()))
+            JOLPICA_SP.get_qualifying_result_for_events(Filters::new().season(2021).constructor_id("red_bull".into()))
         });
     }
 
     #[test]
     #[ignore]
     fn get_qualifying_result_error_not_found() {
-        assert_not_found(|| JOLPICA.get_qualifying_result(Filters::new().season(1949).round(1).qualifying_pos(1)));
-        assert_not_found(|| JOLPICA.get_qualifying_result(Filters::new().season(2021).round(10).qualifying_pos(100)));
+        assert_not_found(|| JOLPICA_SP.get_qualifying_result(Filters::new().season(1949).round(1).qualifying_pos(1)));
+        assert_not_found(|| {
+            JOLPICA_SP.get_qualifying_result(Filters::new().season(2021).round(10).qualifying_pos(100))
+        });
     }
 
     #[test]
     #[ignore]
     fn get_qualifying_result_error_too_many() {
-        assert_too_many(|| JOLPICA.get_qualifying_result(Filters::new().season(2021).qualifying_pos(1)));
-        assert_too_many(|| JOLPICA.get_qualifying_result(Filters::new().season(2021).round(10)));
+        assert_too_many(|| JOLPICA_SP.get_qualifying_result(Filters::new().season(2021).qualifying_pos(1)));
+        assert_too_many(|| JOLPICA_SP.get_qualifying_result(Filters::new().season(2021).round(10)));
     }
 
     // Resource::SprintResults
@@ -1549,7 +1553,7 @@ mod tests {
     #[ignore]
     fn get_sprint_results() {
         assert_each_expected_in_actual(
-            || JOLPICA.get_sprint_results(Filters::new().constructor_id("red_bull".into())),
+            || JOLPICA_SP.get_sprint_results(Filters::new().constructor_id("red_bull".into())),
             &RACES_SPRINT_RESULTS_RED_BULL,
             LenConstraint::Minimum(8),
         );
@@ -1559,7 +1563,7 @@ mod tests {
     #[ignore]
     fn get_sprint_results_for_event() {
         assert_each_expected_session_result_in_actual_event(
-            || JOLPICA.get_sprint_results_for_event(race_filters(2023, 4)),
+            || JOLPICA_SP.get_sprint_results_for_event(race_filters(2023, 4)),
             &RACE_2023_4_SPRINT_RESULTS,
             LenConstraint::Exactly(20),
         );
@@ -1569,7 +1573,7 @@ mod tests {
     #[ignore]
     fn get_sprint_result_for_events() {
         assert_each_expected_in_actual(
-            || JOLPICA.get_sprint_result_for_events(Filters::new().sprint_pos(1)),
+            || JOLPICA_SP.get_sprint_result_for_events(Filters::new().sprint_pos(1)),
             &RACES_SPRINT_RESULT_P1,
             LenConstraint::Minimum(8),
         );
@@ -1579,7 +1583,7 @@ mod tests {
     #[ignore]
     fn get_sprint_result() {
         assert_each_get_eq_expected_session_result(
-            |filters| JOLPICA.get_sprint_result(filters),
+            |filters| JOLPICA_SP.get_sprint_result(filters),
             |result, filters| filters.sprint_pos(result.position),
             &RACE_2023_4_SPRINT_RESULTS,
         );
@@ -1588,47 +1592,47 @@ mod tests {
     #[test]
     #[ignore]
     fn get_sprint_results_empty() {
-        assert_is_empty(|| JOLPICA.get_sprint_results(Filters::new().season(1949)));
-        assert_is_empty(|| JOLPICA.get_sprint_results(Filters::new().season(2021).sprint_pos(100)));
+        assert_is_empty(|| JOLPICA_SP.get_sprint_results(Filters::new().season(1949)));
+        assert_is_empty(|| JOLPICA_SP.get_sprint_results(Filters::new().season(2021).sprint_pos(100)));
     }
 
     #[test]
     #[ignore]
     fn get_sprint_results_for_event_error_not_found() {
-        assert_not_found(|| JOLPICA.get_sprint_results_for_event(Filters::new().season(1949).round(1)));
+        assert_not_found(|| JOLPICA_SP.get_sprint_results_for_event(Filters::new().season(1949).round(1)));
     }
 
     #[test]
     #[ignore]
     fn get_sprint_results_for_event_error_too_many() {
-        assert_too_many(|| JOLPICA.get_sprint_results_for_event(Filters::new().season(2021)));
+        assert_too_many(|| JOLPICA_SP.get_sprint_results_for_event(Filters::new().season(2021)));
     }
 
     #[test]
     #[ignore]
     fn get_sprint_result_for_events_empty() {
-        assert_is_empty(|| JOLPICA.get_sprint_result_for_events(Filters::new().season(1949).sprint_pos(1)));
-        assert_is_empty(|| JOLPICA.get_sprint_result_for_events(Filters::new().season(2021).sprint_pos(100)));
+        assert_is_empty(|| JOLPICA_SP.get_sprint_result_for_events(Filters::new().season(1949).sprint_pos(1)));
+        assert_is_empty(|| JOLPICA_SP.get_sprint_result_for_events(Filters::new().season(2021).sprint_pos(100)));
     }
 
     #[test]
     #[ignore]
     fn get_sprint_result_for_events_error_too_many() {
-        assert_too_many(|| JOLPICA.get_sprint_result_for_events(Filters::new().season(2021)));
+        assert_too_many(|| JOLPICA_SP.get_sprint_result_for_events(Filters::new().season(2021)));
     }
 
     #[test]
     #[ignore]
     fn get_sprint_result_error_not_found() {
-        assert_not_found(|| JOLPICA.get_sprint_result(Filters::new().season(1949).round(1).sprint_pos(1)));
-        assert_not_found(|| JOLPICA.get_sprint_result(Filters::new().season(2021).round(10).sprint_pos(100)));
+        assert_not_found(|| JOLPICA_SP.get_sprint_result(Filters::new().season(1949).round(1).sprint_pos(1)));
+        assert_not_found(|| JOLPICA_SP.get_sprint_result(Filters::new().season(2021).round(10).sprint_pos(100)));
     }
 
     #[test]
     #[ignore]
     fn get_sprint_result_error_too_many() {
-        assert_too_many(|| JOLPICA.get_sprint_result(Filters::new().season(2021).sprint_pos(1)));
-        assert_too_many(|| JOLPICA.get_sprint_result(Filters::new().season(2021).round(10)));
+        assert_too_many(|| JOLPICA_SP.get_sprint_result(Filters::new().season(2021).sprint_pos(1)));
+        assert_too_many(|| JOLPICA_SP.get_sprint_result(Filters::new().season(2021).round(10)));
     }
 
     // Resource::RaceResults
@@ -1638,7 +1642,7 @@ mod tests {
     #[ignore]
     fn get_race_results() {
         assert_each_expected_in_actual(
-            || JOLPICA.get_race_results(Filters::new().season(2023).constructor_id("red_bull".into())),
+            || JOLPICA_SP.get_race_results(Filters::new().season(2023).constructor_id("red_bull".into())),
             &RACES_RACE_RESULTS_RED_BULL,
             LenConstraint::Exactly(22),
         );
@@ -1648,25 +1652,25 @@ mod tests {
     #[ignore]
     fn get_race_results_for_event() {
         assert_each_expected_session_result_in_actual_event(
-            || JOLPICA.get_race_results_for_event(race_filters(1963, 10)),
+            || JOLPICA_SP.get_race_results_for_event(race_filters(1963, 10)),
             &RACE_1963_10_RACE_RESULTS,
             LenConstraint::Exactly(23),
         );
 
         assert_each_expected_session_result_in_actual_event(
-            || JOLPICA.get_race_results_for_event(race_filters(2003, 4)),
+            || JOLPICA_SP.get_race_results_for_event(race_filters(2003, 4)),
             &RACE_2003_4_RACE_RESULTS,
             LenConstraint::Exactly(20),
         );
 
         assert_each_expected_session_result_in_actual_event(
-            || JOLPICA.get_race_results_for_event(race_filters(2021, 12)),
+            || JOLPICA_SP.get_race_results_for_event(race_filters(2021, 12)),
             &RACE_2021_12_RACE_RESULTS,
             LenConstraint::Exactly(20),
         );
 
         assert_each_expected_session_result_in_actual_event(
-            || JOLPICA.get_race_results_for_event(race_filters(2023, 4)),
+            || JOLPICA_SP.get_race_results_for_event(race_filters(2023, 4)),
             &RACE_2023_4_RACE_RESULTS,
             LenConstraint::Exactly(20),
         );
@@ -1676,13 +1680,16 @@ mod tests {
     #[ignore]
     fn get_race_result_for_events() {
         assert_each_expected_in_actual(
-            || JOLPICA.get_race_result_for_events(Filters::new().season(2003).driver_id("michael_schumacher".into())),
+            || {
+                JOLPICA_SP
+                    .get_race_result_for_events(Filters::new().season(2003).driver_id("michael_schumacher".into()))
+            },
             &RACES_RACE_RESULT_MICHAEL,
             LenConstraint::Exactly(16),
         );
 
         assert_each_expected_in_actual(
-            || JOLPICA.get_race_result_for_events(Filters::new().season(2023).driver_id("max_verstappen".into())),
+            || JOLPICA_SP.get_race_result_for_events(Filters::new().season(2023).driver_id("max_verstappen".into())),
             &RACES_RACE_RESULT_MAX,
             LenConstraint::Minimum(22),
         );
@@ -1692,7 +1699,7 @@ mod tests {
     #[ignore]
     fn get_race_result() {
         assert_each_get_eq_expected_session_result(
-            |filters| JOLPICA.get_race_result(filters),
+            |filters| JOLPICA_SP.get_race_result(filters),
             |result, filters| filters.finish_pos(result.position),
             &RACE_2021_12_RACE_RESULTS,
         );
@@ -1703,7 +1710,7 @@ mod tests {
 
         assert_each_get_eq_expected(
             |result| {
-                JOLPICA
+                JOLPICA_SP
                     .get_race_result(race_filters(2003, 4).finish_pos(result.position))
                     .map(|race| race.payload)
             },
@@ -1712,7 +1719,7 @@ mod tests {
 
         assert_each_get_eq_expected(
             |result| {
-                JOLPICA
+                JOLPICA_SP
                     .get_race_result(race_filters(2023, 4).finish_pos(result.position))
                     .map(|race| race.payload)
             },
@@ -1723,14 +1730,14 @@ mod tests {
     #[test]
     #[ignore]
     fn get_race_results_empty() {
-        assert_is_empty(|| JOLPICA.get_race_results(Filters::new().season(1949)));
-        assert_is_empty(|| JOLPICA.get_race_results(Filters::new().season(2021).finish_pos(100)));
+        assert_is_empty(|| JOLPICA_SP.get_race_results(Filters::new().season(1949)));
+        assert_is_empty(|| JOLPICA_SP.get_race_results(Filters::new().season(2021).finish_pos(100)));
     }
 
     #[test]
     #[ignore]
     fn get_race_results_for_event_error_not_found() {
-        assert_not_found(|| JOLPICA.get_race_results_for_event(Filters::new().season(1949).round(1)));
+        assert_not_found(|| JOLPICA_SP.get_race_results_for_event(Filters::new().season(1949).round(1)));
     }
 
     #[test]
@@ -1739,15 +1746,15 @@ mod tests {
         // Using [`Filters::constructor_id`] in addition to `season` to avoid getting `MultiPage`,
         // with the new jolpica-f1 API lower limit, instead of the [`Error::TooMany`] being tested
         assert_too_many(|| {
-            JOLPICA.get_race_results_for_event(Filters::new().season(2021).constructor_id("ferrari".into()))
+            JOLPICA_SP.get_race_results_for_event(Filters::new().season(2021).constructor_id("ferrari".into()))
         });
     }
 
     #[test]
     #[ignore]
     fn get_race_result_for_events_empty() {
-        assert_is_empty(|| JOLPICA.get_race_result_for_events(Filters::new().season(1949).finish_pos(1)));
-        assert_is_empty(|| JOLPICA.get_race_result_for_events(Filters::new().season(2021).finish_pos(100)));
+        assert_is_empty(|| JOLPICA_SP.get_race_result_for_events(Filters::new().season(1949).finish_pos(1)));
+        assert_is_empty(|| JOLPICA_SP.get_race_result_for_events(Filters::new().season(2021).finish_pos(100)));
     }
 
     #[test]
@@ -1756,22 +1763,22 @@ mod tests {
         // Using [`Filters::constructor_id`] in addition to `season` to avoid getting `MultiPage`,
         // with the new jolpica-f1 API lower limit, instead of the [`Error::TooMany`] being tested
         assert_too_many(|| {
-            JOLPICA.get_race_result_for_events(Filters::new().season(2021).constructor_id("ferrari".into()))
+            JOLPICA_SP.get_race_result_for_events(Filters::new().season(2021).constructor_id("ferrari".into()))
         });
     }
 
     #[test]
     #[ignore]
     fn get_race_result_error_not_found() {
-        assert_not_found(|| JOLPICA.get_race_result(Filters::new().season(1949).round(1).finish_pos(1)));
-        assert_not_found(|| JOLPICA.get_race_result(Filters::new().season(2021).round(10).finish_pos(100)));
+        assert_not_found(|| JOLPICA_SP.get_race_result(Filters::new().season(1949).round(1).finish_pos(1)));
+        assert_not_found(|| JOLPICA_SP.get_race_result(Filters::new().season(2021).round(10).finish_pos(100)));
     }
 
     #[test]
     #[ignore]
     fn get_race_result_error_too_many() {
-        assert_too_many(|| JOLPICA.get_race_result(Filters::new().season(2021).finish_pos(1)));
-        assert_too_many(|| JOLPICA.get_race_result(Filters::new().season(2021).round(10)));
+        assert_too_many(|| JOLPICA_SP.get_race_result(Filters::new().season(2021).finish_pos(1)));
+        assert_too_many(|| JOLPICA_SP.get_race_result(Filters::new().season(2021).round(10)));
     }
 
     // Resource::FinishingStatus
@@ -1781,7 +1788,7 @@ mod tests {
     #[ignore]
     fn get_statuses() {
         assert_each_expected_in_actual(
-            || JOLPICA.get_statuses(Filters::new().season(2022)),
+            || JOLPICA_SP.get_statuses(Filters::new().season(2022)),
             &STATUS_TABLE_2022.as_status().unwrap(),
             LenConstraint::Exactly(29),
         );
@@ -1790,7 +1797,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_statuses_empty() {
-        assert_is_empty(|| JOLPICA.get_statuses(Filters::new().season(1949)));
+        assert_is_empty(|| JOLPICA_SP.get_statuses(Filters::new().season(1949)));
     }
 
     // Resource::LapTimes
@@ -1806,8 +1813,8 @@ mod tests {
     #[ignore]
     fn get_driver_laps() {
         let race_id = RaceID::from(2023, 4);
-        let leclerc_laps = retry_http(|| JOLPICA.get_driver_laps(race_id, &DriverID::from("leclerc"))).unwrap();
-        let max_laps = retry_http(|| JOLPICA.get_driver_laps(race_id, &DriverID::from("max_verstappen"))).unwrap();
+        let leclerc_laps = retry_http(|| JOLPICA_SP.get_driver_laps(race_id, &DriverID::from("leclerc"))).unwrap();
+        let max_laps = retry_http(|| JOLPICA_SP.get_driver_laps(race_id, &DriverID::from("max_verstappen"))).unwrap();
 
         assert_eq!(leclerc_laps.len(), 51);
         assert_eq!(max_laps.len(), 51);
@@ -1838,8 +1845,8 @@ mod tests {
     #[test]
     #[ignore]
     fn get_lap_timings() {
-        let l1 = || JOLPICA.get_lap_timings(RaceID::from(2023, 4), 1);
-        let l2 = || JOLPICA.get_lap_timings(RaceID::from(2023, 4), 2);
+        let l1 = || JOLPICA_SP.get_lap_timings(RaceID::from(2023, 4), 1);
+        let l2 = || JOLPICA_SP.get_lap_timings(RaceID::from(2023, 4), 2);
 
         assert_each_expected_in_actual(l1, &LAP_2023_4_L1.timings, LenConstraint::Exactly(20));
         assert_each_expected_in_actual(l2, &LAP_2023_4_L2.timings, LenConstraint::Exactly(20));
@@ -1848,22 +1855,22 @@ mod tests {
     #[test]
     #[ignore]
     fn get_driver_laps_error_not_found() {
-        assert_not_found(|| JOLPICA.get_driver_laps(RaceID::from(1949, 1), &DriverID::from("leclerc")));
-        assert_not_found(|| JOLPICA.get_driver_laps(RaceID::from(2023, 4), &DriverID::from("abate")));
+        assert_not_found(|| JOLPICA_SP.get_driver_laps(RaceID::from(1949, 1), &DriverID::from("leclerc")));
+        assert_not_found(|| JOLPICA_SP.get_driver_laps(RaceID::from(2023, 4), &DriverID::from("abate")));
     }
 
     #[test]
     #[ignore]
     fn get_lap_timings_error_not_found() {
-        assert_not_found(|| JOLPICA.get_lap_timings(RaceID::from(1949, 1), 1));
-        assert_not_found(|| JOLPICA.get_lap_timings(RaceID::from(2023, 4), 100));
+        assert_not_found(|| JOLPICA_SP.get_lap_timings(RaceID::from(1949, 1), 1));
+        assert_not_found(|| JOLPICA_SP.get_lap_timings(RaceID::from(2023, 4), 100));
     }
 
     #[test]
     #[ignore]
     fn get_response_page_lap_times_race_2023_4() {
         let resp = retry_http(|| {
-            JOLPICA.get_response_page(&Resource::LapTimes(LapTimeFilters::new(2023, 4)), Page::default())
+            JOLPICA_SP.get_response_page(&Resource::LapTimes(LapTimeFilters::new(2023, 4)), Page::default())
         })
         .unwrap();
 
@@ -1889,7 +1896,7 @@ mod tests {
     #[ignore]
     fn get_pit_stops() {
         assert_each_expected_in_actual(
-            || JOLPICA.get_pit_stops(PitStopFilters::new(2023, 4)),
+            || JOLPICA_SP.get_pit_stops(PitStopFilters::new(2023, 4)),
             &RACE_2023_4_PIT_STOPS.payload.as_pit_stops().unwrap(),
             LenConstraint::Exactly(23),
         );
@@ -1898,13 +1905,13 @@ mod tests {
     #[test]
     #[ignore]
     fn get_pit_stops_error_not_found() {
-        assert_not_found(|| JOLPICA.get_pit_stops(PitStopFilters::new(1949, 1)));
+        assert_not_found(|| JOLPICA_SP.get_pit_stops(PitStopFilters::new(1949, 1)));
     }
 
     #[test]
     #[ignore]
     fn get_response_pit_stops_race_2023_4() {
-        let resp = retry_http(|| JOLPICA.get_response(&Resource::PitStops(PitStopFilters::new(2023, 4)))).unwrap();
+        let resp = retry_http(|| JOLPICA_SP.get_response(&Resource::PitStops(PitStopFilters::new(2023, 4)))).unwrap();
         let race = verify_has_one_race_and_extract(resp).unwrap();
 
         assert_eq!(race.as_info(), RACE_2023_4_PIT_STOPS.as_info());
@@ -1917,7 +1924,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_single_element() {
-        let resp = retry_http(|| JOLPICA.get_response(&Resource::SeasonList(Filters::new().season(1950)))).unwrap();
+        let resp = retry_http(|| JOLPICA_SP.get_response(&Resource::SeasonList(Filters::new().season(1950)))).unwrap();
 
         let pagination = resp.pagination;
         assert_true!(pagination.is_single_page());
@@ -1935,7 +1942,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_single_page() {
-        let resp = retry_http(|| JOLPICA.get_response(&Resource::SeasonList(Filters::none()))).unwrap();
+        let resp = retry_http(|| JOLPICA_SP.get_response(&Resource::SeasonList(Filters::none()))).unwrap();
 
         let pagination = resp.pagination;
         assert_true!(pagination.is_single_page());
@@ -1954,10 +1961,10 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_multi_page_error() {
-        let resp = retry_http(|| JOLPICA.get_response(&Resource::DriverInfo(Filters::none())));
+        let resp = retry_http(|| JOLPICA_SP.get_response(&Resource::DriverInfo(Filters::none())));
         assert!(matches!(resp, Err(Error::MultiPage)));
 
-        let resp = retry_http(|| JOLPICA.get_response(&Resource::LapTimes(LapTimeFilters::new(2023, 1))));
+        let resp = retry_http(|| JOLPICA_SP.get_response(&Resource::LapTimes(LapTimeFilters::new(2023, 1))));
         assert!(matches!(resp, Err(Error::MultiPage)));
     }
 
@@ -1967,7 +1974,7 @@ mod tests {
         let req = Resource::SeasonList(Filters::none());
         let page = Page::with_limit(5);
 
-        let mut resp = retry_http(|| JOLPICA.get_response_page(&req, page.clone())).unwrap();
+        let mut resp = retry_http(|| JOLPICA_SP.get_response_page(&req, page.clone())).unwrap();
         assert_false!(resp.pagination.is_last_page());
 
         let mut current_offset: u32 = 0;
@@ -1990,7 +1997,7 @@ mod tests {
                 _ => (),
             }
 
-            resp = retry_http(|| JOLPICA.get_response_page(&req, pagination.next_page().unwrap().into())).unwrap();
+            resp = retry_http(|| JOLPICA_SP.get_response_page(&req, pagination.next_page().unwrap().into())).unwrap();
 
             current_offset += page.limit();
         }
