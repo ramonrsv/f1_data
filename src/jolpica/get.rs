@@ -96,16 +96,19 @@ pub fn get_response_page(base_url: &str, resource: &Resource, page: Option<Page>
 /// This function unconditionally makes at least one request for either the optionally specified
 /// `initial_page`, or by specifying no page at all. The [`Response::pagination`] field of the first
 /// response is then used to determine the subsequent pages to request, if any, via
-/// [`Pagination::next_page`]. If `max_page_count` is specified, and the total number of pages
-/// would exceed it, then an error is returned and no requests beyond the first are made.
-///
-/// If a `rate_limiter` is provided, it is used to wait before each request, including the first.
+/// [`Pagination::next_page`]. If a `rate_limiter` is provided, it is used to wait before each
+/// request, including the first.
 ///
 /// This method performs no additional processing; it returns the top-level [`Response`]s that
 /// are a direct representation of the full JSON responses. It is provided here to maximize
 /// flexibility and cover edge uses cases, but it is expected that users will use the convenience
 /// methods in [`Agent`], e.g. [`Agent::get_seasons`], and/or the extractions methods in
 /// [`Response`], e.g. [`Response::into_seasons`].
+///
+/// # Errors
+///
+/// If `max_page_count` is specified, and the total number of pages would exceed it, then an
+/// [`Error::ExceededMaxPageCount`] is returned and no requests beyond the first are made.
 ///
 /// # Examples
 ///
@@ -169,10 +172,10 @@ pub fn get_response_multi_pages(
         return Err(Error::ExceededMaxPageCount(max_page_count));
     }
 
-    pages[1..].iter().for_each(|page| {
+    for page in &pages[1..] {
         rate_limiter_wait_until_ready();
-        responses.push(get_response_page(base_url, resource, Some((*page).into())).unwrap());
-    });
+        responses.push(get_response_page(base_url, resource, Some((*page).into()))?);
+    }
 
     Ok(responses)
 }
@@ -195,7 +198,6 @@ pub fn retry_on_http_error<T>(
 
 #[cfg(test)]
 mod tests {
-    use std::sync::LazyLock;
     use std::time::Duration;
 
     use crate::{
@@ -203,6 +205,7 @@ mod tests {
         jolpica::{
             api::{JOLPICA_API_BASE_URL, JOLPICA_API_PAGINATION, JOLPICA_API_RATE_LIMIT_QUOTA},
             resource::Filters,
+            tests::util::GLOBAL_JOLPICA_RATE_LIMITER,
         },
         rate_limiter::RateLimiter,
     };
@@ -213,10 +216,8 @@ mod tests {
 
     use super::*;
 
-    static RATE_LIMITER: LazyLock<RateLimiter> = LazyLock::new(|| RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA));
-
     fn rate_limited_get_response_page(base_url: &str, resource: &Resource, page: Option<Page>) -> Result<Response> {
-        RATE_LIMITER.wait_until_ready();
+        GLOBAL_JOLPICA_RATE_LIMITER.wait_until_ready();
         super::get_response_page(base_url, resource, page)
     }
 
@@ -319,11 +320,11 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_page_multi_page() {
-        let req = Resource::SeasonList(Filters::none());
+        let resource = Resource::SeasonList(Filters::none());
         let page = Page::with_limit(5);
 
         let mut resp =
-            retry_http(|| rate_limited_get_response_page(JOLPICA_API_BASE_URL, &req, Some(page.clone()))).unwrap();
+            retry_http(|| rate_limited_get_response_page(JOLPICA_API_BASE_URL, &resource, Some(page.clone()))).unwrap();
         assert_false!(resp.pagination.is_last_page());
 
         let mut current_offset: u32 = 0;
@@ -347,7 +348,11 @@ mod tests {
             }
 
             resp = retry_http(|| {
-                rate_limited_get_response_page(JOLPICA_API_BASE_URL, &req, Some(pagination.next_page().unwrap().into()))
+                rate_limited_get_response_page(
+                    JOLPICA_API_BASE_URL,
+                    &resource,
+                    Some(pagination.next_page().unwrap().into()),
+                )
             })
             .unwrap();
 
@@ -377,12 +382,17 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_multi_pages() {
-        let req = Resource::SeasonList(Filters::none());
+        let resource = Resource::SeasonList(Filters::none());
         let page = Page::with_limit(5);
 
-        let responses =
-            super::get_response_multi_pages(JOLPICA_API_BASE_URL, &req, Some(page.clone()), None, Some(&RATE_LIMITER))
-                .unwrap();
+        let responses = super::get_response_multi_pages(
+            JOLPICA_API_BASE_URL,
+            &resource,
+            Some(page.clone()),
+            None,
+            Some(&*GLOBAL_JOLPICA_RATE_LIMITER),
+        )
+        .unwrap();
 
         assert_false!(responses.first().unwrap().pagination.is_last_page());
         assert_true!(responses.last().unwrap().pagination.is_last_page());

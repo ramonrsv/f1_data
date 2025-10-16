@@ -3,6 +3,7 @@ use crate::{
     id::{CircuitID, ConstructorID, DriverID, RaceID, SeasonID, StatusID},
     jolpica::{
         api::{JOLPICA_API_BASE_URL, JOLPICA_API_RATE_LIMIT_QUOTA},
+        concat::{PageVerify, concat_response_multi_pages},
         get,
         resource::{Filters, LapTimeFilters, Page, PitStopFilters, Resource},
         response::{
@@ -15,9 +16,96 @@ use crate::{
 
 #[cfg(doc)]
 use crate::jolpica::{
-    api::JOLPICA_API_PAGINATION,
+    api::{JOLPICA_API_PAGINATION, JOLPICA_API_RATE_LIMIT},
     response::{Lap, Pagination, Payload, Table},
 };
+
+/// Options to configure the behavior of an [`Agent`], e.g. rate limiting, multi-page handling, etc.
+#[derive(Debug)]
+pub struct AgentConfigs<'a> {
+    /// Configuration for rate limiting of GET requests to the jolpica-f1 API.
+    pub rate_limiter: RateLimiterOption<'a>,
+    /// Configuration for handling multi-page responses from the jolpica-f1 API.
+    pub multi_page: MultiPageOption,
+}
+
+impl Default for AgentConfigs<'_> {
+    /// Creates a new [`AgentConfigs`] with default settings.
+    ///
+    /// The default settings are:
+    ///  - Enabled rate limiting [`RateLimiterOption::Internal`] with [`JOLPICA_API_RATE_LIMIT`]
+    ///  - Multi-page response handling [`MultiPageOption::Enabled`] with no max page count limit
+    fn default() -> Self {
+        Self {
+            rate_limiter: RateLimiterOption::Internal(RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA)),
+            multi_page: MultiPageOption::Enabled(None),
+        }
+    }
+}
+
+/// Options for configuring rate limiting of GET requests to the jolpica-f1 API.
+#[derive(Debug)]
+pub enum RateLimiterOption<'a> {
+    /// No rate limiting is performed.
+    None,
+    /// An internal [`RateLimiter`] is used, owned by the [`Agent`].
+    Internal(RateLimiter),
+    /// An external [`RateLimiter`] is used, shared via a [`&'a RateLimiter`].
+    External(&'a RateLimiter),
+}
+
+impl RateLimiterOption<'_> {
+    /// Get a reference to the configured [`RateLimiter`], if any, as an [`Option<&RateLimiter>`].
+    pub const fn get(&self) -> Option<&RateLimiter> {
+        match self {
+            RateLimiterOption::None => None,
+            RateLimiterOption::Internal(limiter) => Some(limiter),
+            RateLimiterOption::External(limiter) => Some(limiter),
+        }
+    }
+}
+
+/// Options for configuring multi-page response handling from the jolpica-f1 API.
+///
+/// The jolpica-f1 API supports a maximum of [`JOLPICA_API_PAGINATION.max_limit`] elements per
+/// page, which makes it likely for many requests to result in multi-page responses. Most of the
+/// [`Agent`] interface, i.e. the `get_*` methods, are not designed to explicitly handle multi-page
+/// responses. Users can explicitly handle these scenarios via [`Agent::get_response_page`] and
+/// [`Agent::get_response_multi_pages`], but that would be very cumbersome in most cases. As such,
+/// [`Agent`] supports implicitly handling multi-page responses, by making multiple requests for
+/// subsequent pages and concatenating the results into a single [`Response`]. The resulting
+/// [`Response`] can then be used directly from [`Agent::get_response`] or undergo the same
+/// post-processing that single-page responses do as part of the convenience `get_*` methods.
+#[derive(Copy, Clone, Debug)]
+pub enum MultiPageOption {
+    /// No implicit multi-page response handling is performed, and an [`Error::MultiPage`] is
+    /// returned if any request results in a multi-page response.
+    Disabled,
+    /// Implicit multi-page response handling is performed, by making multiple requests for
+    /// subsequent pages and concatenating the results into a single [`Response`].
+    ///
+    /// The inner [`Option<usize>`] configures an optional maximum page count limit, to avoid
+    /// inadvertently making too many requests. If a value is configured and it is exceeded, an
+    /// [`Error::ExceededMaxPageCount`] is returned. If [`None`] is configured, then unlimited
+    /// requests are made until the last page is reached.
+    Enabled(Option<usize>),
+}
+
+impl MultiPageOption {
+    /// Returns `true` if multi-page response handling is [`MultiPageOption::Enabled`].
+    pub const fn is_enabled(&self) -> bool {
+        matches!(self, Self::Enabled(_))
+    }
+}
+
+impl From<MultiPageOption> for Option<usize> {
+    fn from(option: MultiPageOption) -> Self {
+        match option {
+            MultiPageOption::Disabled => None,
+            MultiPageOption::Enabled(max_page_count) => max_page_count,
+        }
+    }
+}
 
 /// An agent for accessing the [jolpica-f1](https://github.com/jolpica/jolpica-f1) API for querying
 /// Formula 1 data.
@@ -31,20 +119,23 @@ use crate::jolpica::{
 /// [Ergast API](https://github.com/jolpica/jolpica-f1/blob/main/docs/ergast_differences.md).
 #[allow(missing_copy_implementations)]
 #[derive(Debug)]
-pub struct Agent {
-    rate_limiter: RateLimiter,
+pub struct Agent<'a> {
+    configs: AgentConfigs<'a>,
 }
 
-impl Default for Agent {
-    /// Creates a new [`Agent`] with default settings.
+impl Default for Agent<'_> {
+    /// Creates a new [`Agent`] with default settings via [`AgentConfigs::default`].
     fn default() -> Self {
-        Self {
-            rate_limiter: RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA),
-        }
+        Self::new(AgentConfigs::default())
     }
 }
 
-impl Agent {
+impl<'a> Agent<'a> {
+    /// Creates a new [`Agent`] with the given [`AgentConfigs`].
+    pub const fn new(configs: AgentConfigs<'a>) -> Self {
+        Self { configs }
+    }
+
     /// Performs a GET request to the jolpica-f1 API for a specific page of the specified
     /// [`Resource`].
     ///
@@ -88,26 +179,101 @@ impl Agent {
     /// assert!(resp.pagination.is_last_page());
     /// ```
     pub fn get_response_page(&self, resource: &Resource, page: Page) -> Result<Response> {
-        self.rate_limiter.wait_until_ready();
+        if let Some(rate_limiter) = self.configs.rate_limiter.get() {
+            rate_limiter.wait_until_ready();
+        }
+
         get::get_response_page(JOLPICA_API_BASE_URL, resource, Some(page))
     }
 
-    /// Performs a GET request to the jolpica-f1 API for a single page of specified [`Resource`] and
-    /// returns a single-page [`Response`], parsed from the JSON response.
+    /// Performs GET requests to the jolpica-f1 API for all pages of the specified [`Resource`],
+    /// starting from the `initial_page`, and returns a vector of [`Response`]s, one per page.
+    ///
+    /// Performs GET requests to the jolpica-f1 API for all pages of the specified [`Resource`],
+    /// optionally up to a maximum allowed number of pages, via `max_page_count`. It returns a
+    /// [`Vec<Response>`] with the [`Response`]s parsed from the JSON responses.
+    ///
+    /// This function unconditionally makes at least one request for either the optionally specified
+    /// `initial_page`, or by specifying no page at all. The [`Response::pagination`] field of the
+    /// first response is then used to determine the subsequent pages to request, if any, via
+    /// [`Pagination::next_page`]. If a `rate_limiter` is provided, it is used to wait before each
+    /// request, including the first.
+    ///
+    /// This method performs no additional processing; it returns the top-level [`Response`]s that
+    /// are a direct representation of the full JSON responses. It is expected that users will use
+    /// one of the other convenience `get_*` methods, e.g. [`get_seasons`][Self::get_seasons], in
+    /// almost all cases, but this method is provided for maximum flexibility.
+    ///
+    /// # Errors
+    ///
+    /// If `max_page_count` is specified, and the total number of pages would exceed it, then an
+    /// [`Error::ExceededMaxPageCount`] is returned and no requests beyond the first are made.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use f1_data::jolpica::{agent::Agent, resource::{Filters, Page, Resource}};
+    /// # let jolpica = Agent::default();
+    /// #
+    /// let responses = jolpica
+    ///     .get_response_multi_pages(
+    ///         &Resource::SeasonList(Filters::none()),
+    ///         Some(Page::with_limit(50)),
+    ///         None,
+    ///     )
+    ///     .unwrap();
+    ///
+    /// assert_eq!(responses.len(), 2); // 76 / 50 -> 2 pages
+    /// assert!(!responses.first().unwrap().pagination.is_last_page());
+    /// assert!(responses.last().unwrap().pagination.is_last_page());
+    ///
+    /// let seasons = responses.first().unwrap().table.as_seasons().unwrap();
+    /// assert_eq!(seasons.len(), 50);
+    /// assert_eq!(seasons.first().unwrap().season, 1950);
+    ///
+    /// let seasons = responses.last().unwrap().table.as_seasons().unwrap();
+    /// assert_eq!(seasons.len(), 26);
+    /// assert_eq!(seasons.first().unwrap().season, 2000);
+    /// ```
+    pub fn get_response_multi_pages(
+        &self,
+        resource: &Resource,
+        initial_page: Option<Page>,
+        max_page_count: Option<usize>,
+    ) -> Result<Vec<Response>> {
+        get::get_response_multi_pages(
+            JOLPICA_API_BASE_URL,
+            resource,
+            initial_page,
+            max_page_count,
+            self.configs.rate_limiter.get(),
+        )
+    }
+
+    /// Performs a GET request to the jolpica-f1 API for a specified [`Resource`] and returns a
+    /// single [`Response`], parsed from the JSON response(s).
     ///
     /// Note that this method always uses a [`Page::with_max_limit`] to request the maximum allowed
     /// pagination limit, in order to minimize the chance of a multi-page response, and/or to
     /// reduce the number of requests needed to retrieve all the data for a given resource.
     ///
-    /// This method performs no additional processing, it returns the top-level [`Response`] type
-    /// that is a direct representation of the full JSON response. It is expected that users will
-    /// use one of the other convenience `get_*` methods, e.g. [`get_seasons`][Self::get_seasons],
-    /// in almost all cases, but this method is provided for maximum flexibility.
+    /// If [`MultiPageOption::Enabled`] is configured and a request results in a multi-page
+    /// response, then multiple requests are made as needed to retrieve all pages. The resulting
+    /// [`Response`]s are then concatenated into a single [`Response`], via
+    /// [`concat_response_multi_pages`].
+    ///
+    /// Aside from potentially concatenating multiple [`Response`]s, this method performs no
+    /// additional processing; it returns the top-level [`Response`] type that is a direct
+    /// representation of the full JSON response. It is expected that users will use one of the
+    /// other convenience `get_*` methods, e.g. [`get_seasons`][Self::get_seasons], in almost all
+    /// cases, but this method is provided for maximum flexibility.
     ///
     /// # Errors
     ///
-    /// An [`Error::MultiPage`] is returned if the requested [`Resource`] results in a multi-page
-    /// response.
+    /// If [`MultiPageOption::Disabled`] is configured and a requested [`Resource`] results in a
+    /// multi-pager response, then an [`Error::MultiPage`] is returned. If
+    /// [`MultiPageOption::Enabled`] is configured with a `max_page_count`, then an
+    /// [`Error::ExceededMaxPageCount`] is returned if the total number of pages would exceed it.
     ///
     /// # Examples
     ///
@@ -133,8 +299,13 @@ impl Agent {
     /// assert_eq!(seasons[73].season, 2023);
     /// ```
     pub fn get_response(&self, resource: &Resource) -> Result<Response> {
-        self.get_response_page(resource, Page::with_max_limit())
-            .and_then(verify_is_single_page)
+        if self.configs.multi_page.is_enabled() {
+            self.get_response_multi_pages(resource, Some(Page::with_max_limit()), self.configs.multi_page.into())
+                .and_then(|responses| concat_response_multi_pages(responses, PageVerify::ALL))
+        } else {
+            self.get_response_page(resource, Page::with_max_limit())
+                .and_then(verify_is_single_page)
+        }
     }
 
     /// Performs a GET request to the jolpica-f1 API for the [`Resource`] associated with the
@@ -147,8 +318,11 @@ impl Agent {
     ///
     /// # Errors
     ///
-    /// An [`Error::MultiPage`] is returned if the response for requested [`Resource`] is larger
-    /// than a [`Page::with_max_limit`] and so results in a multi-page response.
+    /// If [`MultiPageOption::Disabled`] is configured, then an [`Error::MultiPage`] is returned if
+    /// the response for requested [`Resource`] is larger than a [`Page::with_max_limit`] and so
+    /// results in a multi-page response. If [`MultiPageOption::Enabled`] is configured with a
+    /// `max_page_count`, then an [`Error::ExceededMaxPageCount`] is returned if the total number
+    /// of pages would exceed it.
     ///
     /// # Examples
     ///
@@ -209,8 +383,8 @@ impl Agent {
     ///
     /// # Errors
     ///
-    /// An [`Error::MultiPage`] is returned if `seasons` would not fit in a
-    /// [`Page::with_max_limit`].
+    /// If [`MultiPageOption::Disabled`] is configured, then an [`Error::MultiPage`] is returned if
+    /// `seasons` would not fit in a [`Page::with_max_limit`].
     ///
     /// # Examples
     ///
@@ -252,8 +426,10 @@ impl Agent {
     ///
     /// # Errors
     ///
-    /// An [`Error::MultiPage`] is returned if `drivers` would not fit in a
-    /// [`Page::with_max_limit`].
+    /// If [`MultiPageOption::Disabled`] is configured, then an [`Error::MultiPage`] is returned if
+    /// `drivers` would not fit in a [`Page::with_max_limit`]. If [`MultiPageOption::Enabled`] is
+    /// configured with a `max_page_count`, then an [`Error::ExceededMaxPageCount`] is returned if
+    /// the total number of pages would exceed it.
     ///
     /// # Examples
     ///
@@ -308,8 +484,10 @@ impl Agent {
     ///
     /// # Errors
     ///
-    /// An [`Error::MultiPage`] is returned if `constructors` would not fit in a
-    /// [`Page::with_max_limit`].
+    /// If [`MultiPageOption::Disabled`] is configured, then an [`Error::MultiPage`] is returned if
+    /// `constructors` would not fit in a [`Page::with_max_limit`]. If [`MultiPageOption::Enabled`]
+    /// is configured with a `max_page_count`, then an [`Error::ExceededMaxPageCount`] is returned
+    /// if the total number of pages would exceed it.
     ///
     /// # Examples
     ///
@@ -369,8 +547,10 @@ impl Agent {
     ///
     /// # Errors
     ///
-    /// An [`Error::MultiPage`] is returned if `circuits` would not fit in a
-    /// [`Page::with_max_limit`].
+    /// If [`MultiPageOption::Disabled`] is configured, then an [`Error::MultiPage`] is returned if
+    /// `circuits` would not fit in a [`Page::with_max_limit`]. If [`MultiPageOption::Enabled`] is
+    /// configured with a `max_page_count`, then an [`Error::ExceededMaxPageCount`] is returned if
+    /// the total number of pages would exceed it.
     ///
     /// # Examples
     ///
@@ -434,8 +614,10 @@ impl Agent {
     ///
     /// # Errors
     ///
-    /// An [`Error::MultiPage`] is returned if the results would not fit in a
-    /// [`Page::with_max_limit`].
+    /// If [`MultiPageOption::Disabled`] is configured, then an [`Error::MultiPage`] is returned if
+    /// the results would not fit in a [`Page::with_max_limit`]. If [`MultiPageOption::Enabled`] is
+    /// configured with a `max_page_count`, then an [`Error::ExceededMaxPageCount`] is returned if
+    /// the total number of pages would exceed it.
     ///
     /// # Examples
     ///
@@ -518,8 +700,10 @@ impl Agent {
     ///
     /// # Errors
     ///
-    /// An [`Error::MultiPage`] is returned if the results would not fit in a
-    /// [`Page::with_max_limit`].
+    /// If [`MultiPageOption::Disabled`] is configured, then an [`Error::MultiPage`] is returned if
+    /// the results would not fit in a [`Page::with_max_limit`]. If [`MultiPageOption::Enabled`] is
+    /// configured with a `max_page_count`, then an [`Error::ExceededMaxPageCount`] is returned if
+    /// the total number of pages would exceed it.
     ///
     /// # Examples
     ///
@@ -583,10 +767,12 @@ impl Agent {
     ///
     /// # Errors
     ///
-    /// An [`Error::MultiPage`] is returned if the results would not fit in a
-    /// [`Page::with_max_limit`]. An [`Error::NotFound`] or [`Error::TooMany`] is returned if the
-    /// expected number of [`Race`]s and [`SessionResult`]s per [`Race`] are not found in the
-    /// response.
+    /// If [`MultiPageOption::Disabled`] is configured, then an [`Error::MultiPage`] is returned if
+    /// the results would not fit in a [`Page::with_max_limit`]. An [`Error::NotFound`] or
+    /// [`Error::TooMany`] is returned if the expected number of [`Race`]s and [`SessionResult`]s
+    /// per [`Race`] are not found in the response. If [`MultiPageOption::Enabled`] is configured
+    /// with a `max_page_count`, then an [`Error::ExceededMaxPageCount`] is returned if the total
+    /// number of pages would exceed it.
     ///
     /// # Examples
     ///
@@ -632,10 +818,12 @@ impl Agent {
     ///
     /// # Errors
     ///
-    /// An [`Error::MultiPage`] is returned if the results would not fit in a
-    /// [`Page::with_max_limit`]. An [`Error::NotFound`] or [`Error::TooMany`] is returned if the
-    /// expected number of [`Race`]s and [`SessionResult`]s per [`Race`] are not found in the
-    /// response.
+    /// If [`MultiPageOption::Disabled`] is configured, then an [`Error::MultiPage`] is returned if
+    /// the results would not fit in a [`Page::with_max_limit`]. An [`Error::NotFound`] or
+    /// [`Error::TooMany`] is returned if the expected number of [`Race`]s and [`SessionResult`]s
+    /// per [`Race`] are not found in the response. If [`MultiPageOption::Enabled`] is configured
+    /// with a `max_page_count`, then an [`Error::ExceededMaxPageCount`] is returned if the total
+    /// number of pages would exceed it.
     ///
     /// # Examples
     ///
@@ -694,10 +882,12 @@ impl Agent {
     ///
     /// # Errors
     ///
-    /// An [`Error::MultiPage`] is returned if the results would not fit in a
-    /// [`Page::with_max_limit`]. An [`Error::NotFound`] or [`Error::TooMany`] is returned if the
-    /// expected number of [`Race`]s and [`SessionResult`]s per [`Race`] are not found in the
-    /// response.
+    /// If [`MultiPageOption::Disabled`] is configured, then an [`Error::MultiPage`] is returned if
+    /// the results would not fit in a [`Page::with_max_limit`]. An [`Error::NotFound`] or
+    /// [`Error::TooMany`] is returned if the expected number of [`Race`]s and [`SessionResult`]s
+    /// per [`Race`] are not found in the response. If [`MultiPageOption::Enabled`] is configured
+    /// with a `max_page_count`, then an [`Error::ExceededMaxPageCount`] is returned if the total
+    /// number of pages would exceed it.
     ///
     /// # Examples
     ///
@@ -788,7 +978,10 @@ impl Agent {
     ///
     /// # Errors
     ///
-    /// An [`Error::MultiPage`] is returned if `status` would not fit in a [`Page::with_max_limit`].
+    /// If [`MultiPageOption::Disabled`] is configured, then an [`Error::MultiPage`] is returned if
+    /// `status` would not fit in a [`Page::with_max_limit`]. If [`MultiPageOption::Enabled`] is
+    /// configured with a `max_page_count`, then an [`Error::ExceededMaxPageCount`] is returned if
+    /// the total number of pages would exceed it.
     ///
     /// # Examples
     ///
@@ -820,8 +1013,10 @@ impl Agent {
     ///
     /// # Errors
     ///
-    /// An [`Error::MultiPage`] is returned if `lap_times` would not fit in a
-    /// [`Page::with_max_limit`].
+    /// If [`MultiPageOption::Disabled`] is configured, then an [`Error::MultiPage`] is returned if
+    /// `lap_times` would not fit in a [`Page::with_max_limit`]. If [`MultiPageOption::Enabled`] is
+    /// configured with a `max_page_count`, then an [`Error::ExceededMaxPageCount`] is returned if
+    /// the total number of pages would exceed it.
     ///
     /// # Examples
     ///
@@ -856,8 +1051,10 @@ impl Agent {
     ///
     /// # Errors
     ///
-    /// An [`Error::MultiPage`] is returned if `lap_times` would not fit in a
-    /// [`Page::with_max_limit`].
+    /// If [`MultiPageOption::Disabled`] is configured, then an [`Error::MultiPage`] is returned if
+    /// `lap_times` would not fit in a [`Page::with_max_limit`]. If [`MultiPageOption::Enabled`] is
+    /// configured with a `max_page_count`, then an [`Error::ExceededMaxPageCount`] is returned if
+    /// the total number of pages would exceed it.
     ///
     /// # Examples
     ///
@@ -890,8 +1087,10 @@ impl Agent {
     ///
     /// # Errors
     ///
-    /// An [`Error::MultiPage`] is returned if `payload` would not fit in a
-    /// [`Page::with_max_limit`].
+    /// If [`MultiPageOption::Disabled`] is configured, then an [`Error::MultiPage`] is returned if
+    /// `payload` would not fit in a [`Page::with_max_limit`]. If [`MultiPageOption::Enabled`] is
+    /// configured with a `max_page_count`, then an [`Error::ExceededMaxPageCount`] is returned if
+    /// the total number of pages would exceed it.
     ///
     /// # Examples
     ///
@@ -1044,7 +1243,7 @@ impl SessionResult for SprintResult {}
 impl SessionResult for RaceResult {}
 
 /// Convert a [`Response`] to [`Result<Response>`], enforcing that [`Response`] is single-page, via
-/// `response::Pagination::is_single_page`, and returning [`Error::MultiPage`] if it's not.
+/// [`Pagination::is_single_page`], and returning an [`Error::MultiPage`] if it's multi-page.
 fn verify_is_single_page(response: Response) -> Result<Response> {
     if response.pagination.is_single_page() {
         Ok(response)
@@ -1068,7 +1267,10 @@ mod tests {
         },
     };
 
-    use crate::jolpica::tests::{assets::*, util::retry_http};
+    use crate::jolpica::tests::{
+        assets::*,
+        util::{GLOBAL_JOLPICA_RATE_LIMITER, retry_http},
+    };
     use crate::tests::asserts::*;
     use shadow_asserts::assert_eq;
 
@@ -1078,6 +1280,16 @@ mod tests {
     enum LenConstraint {
         Exactly(usize),
         Minimum(usize),
+    }
+
+    impl LenConstraint {
+        /// Assert that a given length satisfies this constraint.
+        fn assert_satisfied_by(&self, len: usize) {
+            match self {
+                LenConstraint::Exactly(exact_len) => assert_eq!(len, *exact_len),
+                LenConstraint::Minimum(min_len) => assert_ge!(len, *min_len),
+            }
+        }
     }
 
     /// Call a `get_actual` function to get an actual list, and assert that this list contains every
@@ -1094,11 +1306,7 @@ mod tests {
         let actual_list = retry_http(|| get_actual()).unwrap();
         let actual_list = &actual_list;
 
-        match actual_list_len_constraint {
-            LenConstraint::Exactly(exact_len) => assert_eq!(actual_list.len(), exact_len),
-            LenConstraint::Minimum(min_len) => assert_ge!(actual_list.len(), min_len),
-        };
-
+        actual_list_len_constraint.assert_satisfied_by(actual_list.len());
         assert_false!(expected_list.is_empty());
 
         for expected in expected_list {
@@ -1187,7 +1395,20 @@ mod tests {
     }
 
     /// Shared instance of [`Agent`] for use in tests, to share a rate limiter, cache, etc.
-    static JOLPICA_SP: LazyLock<Agent> = LazyLock::new(|| Agent::default());
+    static JOLPICA_SP: LazyLock<Agent<'_>> = LazyLock::new(|| {
+        Agent::new(AgentConfigs {
+            rate_limiter: RateLimiterOption::External(&*GLOBAL_JOLPICA_RATE_LIMITER),
+            multi_page: MultiPageOption::Disabled,
+        })
+    });
+
+    /// Shared instance of [`Agent`] for use in tests, to share a rate limiter, cache, etc.
+    static JOLPICA_MP: LazyLock<Agent<'_>> = LazyLock::new(|| {
+        Agent::new(AgentConfigs {
+            rate_limiter: RateLimiterOption::External(&*GLOBAL_JOLPICA_RATE_LIMITER),
+            multi_page: MultiPageOption::Enabled(None),
+        })
+    });
 
     // Resource::SeasonList
     // --------------------
@@ -1225,13 +1446,12 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_drivers() {
+    fn get_drivers_single_page() {
+        assert_false!(DRIVERS_BY_SEASON.is_empty());
+
         // Calling [`get_drivers`] with no filters returns [`Error::MultiPage`], since there
         // have been more than 100 drivers. As such, we are testing calls with by-season filters
         // to restrict the responses to a smaller, but still plural, element count, usually ~20.
-
-        assert_false!(DRIVERS_BY_SEASON.is_empty());
-
         for (season, expected_list) in &*DRIVERS_BY_SEASON {
             assert_each_expected_in_actual(
                 || JOLPICA_SP.get_drivers(Filters::new().season(*season)),
@@ -1239,6 +1459,17 @@ mod tests {
                 LenConstraint::Minimum(22),
             );
         }
+    }
+
+    #[test]
+    #[ignore]
+    fn get_drivers_multi_page() {
+        // Multi-page support can accommodate the full list of drivers.
+        assert_each_expected_in_actual(
+            || JOLPICA_MP.get_drivers(Filters::none()),
+            &DRIVER_TABLE.as_drivers().unwrap(),
+            LenConstraint::Minimum(864),
+        );
     }
 
     #[test]
@@ -1258,6 +1489,12 @@ mod tests {
 
     #[test]
     #[ignore]
+    fn get_drivers_single_page_error_multi_page() {
+        assert!(matches!(JOLPICA_SP.get_drivers(Filters::none()), Err(Error::MultiPage)));
+    }
+
+    #[test]
+    #[ignore]
     fn get_driver_error_not_found() {
         assert_not_found(|| JOLPICA_SP.get_driver(DriverID::from("unknown")));
     }
@@ -1267,13 +1504,12 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_constructors() {
+    fn get_constructors_single_page() {
+        assert_false!(CONSTRUCTORS_BY_SEASON.is_empty());
+
         // Calling [`get_constructors`] with no filters returns [`Error::MultiPage`], since there
         // have been more than 100 constructors. As such, we are testing calls with season filters
         // to restrict the responses to a smaller, but still plural, element count, usually ~20.
-
-        assert_false!(CONSTRUCTORS_BY_SEASON.is_empty());
-
         for (season, expected_list) in &*CONSTRUCTORS_BY_SEASON {
             assert_each_expected_in_actual(
                 || JOLPICA_SP.get_constructors(Filters::new().season(*season)),
@@ -1281,6 +1517,17 @@ mod tests {
                 LenConstraint::Minimum(10),
             );
         }
+    }
+
+    #[test]
+    #[ignore]
+    fn get_constructors_multi_page() {
+        // Multi-page support can accommodate the full list of constructors.
+        assert_each_expected_in_actual(
+            || JOLPICA_MP.get_constructors(Filters::none()),
+            &CONSTRUCTOR_TABLE.as_constructors().unwrap(),
+            LenConstraint::Minimum(212),
+        );
     }
 
     #[test]
@@ -1300,6 +1547,12 @@ mod tests {
 
     #[test]
     #[ignore]
+    fn get_constructors_single_page_error_multi_page() {
+        assert!(matches!(JOLPICA_SP.get_constructors(Filters::none()), Err(Error::MultiPage)));
+    }
+
+    #[test]
+    #[ignore]
     fn get_constructor_error_not_found() {
         assert_not_found(|| JOLPICA_SP.get_constructor(ConstructorID::from("unknown")));
     }
@@ -1309,7 +1562,7 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_circuits() {
+    fn get_circuits_single_page() {
         assert_each_expected_in_actual(
             || JOLPICA_SP.get_circuits(Filters::none()),
             &CIRCUIT_TABLE.as_circuits().unwrap(),
@@ -1350,7 +1603,7 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_race_schedules() {
+    fn get_race_schedules_single_page() {
         // Calling [`get_race_schedules`] with no filters returns [`Error::MultiPage`], since there
         // have been more than 100 races. As such, we are testing calls with by-season filters to
         // restrict the responses to a smaller, but still plural, element count, usually ~20.
@@ -1381,6 +1634,17 @@ mod tests {
 
     #[test]
     #[ignore]
+    fn get_race_schedules_multi_page() {
+        // Multi-page support can accommodate the full list of race schedules.
+        assert_each_expected_in_actual(
+            || JOLPICA_MP.get_race_schedules(Filters::none()),
+            &map_schedules(RACE_TABLE_SCHEDULE.clone().into_races().unwrap()),
+            LenConstraint::Minimum(1149),
+        );
+    }
+
+    #[test]
+    #[ignore]
     fn get_race_schedule() {
         assert_each_get_eq_expected(
             |race| JOLPICA_SP.get_race_schedule(RaceID::from(race.season, race.round)),
@@ -1396,6 +1660,12 @@ mod tests {
 
     #[test]
     #[ignore]
+    fn get_race_schedules_single_page_error_multi_page() {
+        assert!(matches!(JOLPICA_SP.get_race_schedules(Filters::none()), Err(Error::MultiPage)));
+    }
+
+    #[test]
+    #[ignore]
     fn get_race_schedule_error_not_found() {
         assert_not_found(|| JOLPICA_SP.get_race_schedule(RaceID::from(1949, 1)));
     }
@@ -1405,11 +1675,21 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_qualifying_results() {
+    fn get_qualifying_results_single_page() {
         assert_each_expected_in_actual(
             || JOLPICA_SP.get_qualifying_results(Filters::new().constructor_id("red_bull".into()).season(2023)),
             &RACES_QUALIFYING_RESULTS_RED_BULL,
             LenConstraint::Exactly(22),
+        );
+    }
+
+    #[test]
+    #[ignore]
+    fn get_qualifying_results_multi_page() {
+        assert_each_expected_in_actual(
+            || JOLPICA_MP.get_qualifying_results(Filters::new().constructor_id("red_bull".into())),
+            &RACES_QUALIFYING_RESULTS_RED_BULL,
+            LenConstraint::Minimum(411),
         );
     }
 
@@ -1499,6 +1779,12 @@ mod tests {
 
     #[test]
     #[ignore]
+    fn get_qualifying_results_single_page_error_multi_page() {
+        assert!(matches!(JOLPICA_SP.get_qualifying_results(Filters::none()), Err(Error::MultiPage)));
+    }
+
+    #[test]
+    #[ignore]
     fn get_qualifying_results_for_event_error_not_found() {
         assert_not_found(|| JOLPICA_SP.get_qualifying_results_for_event(Filters::new().season(1949).round(1)));
     }
@@ -1509,6 +1795,18 @@ mod tests {
         // Using [`Filters::driver_id`] instead of `season` to avoid getting [`Error::MultiPage`],
         // with the new jolpica-f1 API lower limit, instead of the [`Error::TooMany`] being tested
         assert_too_many(|| JOLPICA_SP.get_qualifying_results_for_event(Filters::new().driver_id("de_vries".into())));
+
+        // With multi-page support enabled, we can use `season` to get [`Error::TooMany`]
+        assert_too_many(|| JOLPICA_MP.get_qualifying_results_for_event(Filters::new().season(2021)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_qualifying_result_for_events_single_page_error_multi_page() {
+        assert!(matches!(
+            JOLPICA_SP.get_qualifying_result_for_events(Filters::none().driver_id("alonso".into())),
+            Err(Error::MultiPage)
+        ));
     }
 
     #[test]
@@ -1528,6 +1826,9 @@ mod tests {
         assert_too_many(|| {
             JOLPICA_SP.get_qualifying_result_for_events(Filters::new().season(2021).constructor_id("red_bull".into()))
         });
+
+        // With multi-page support enabled, we can use `season` to get [`Error::TooMany`]
+        assert_too_many(|| JOLPICA_MP.get_qualifying_result_for_events(Filters::new().season(2021)));
     }
 
     #[test]
@@ -1640,12 +1941,26 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_race_results() {
+    fn get_race_results_single_page() {
         assert_each_expected_in_actual(
             || JOLPICA_SP.get_race_results(Filters::new().season(2023).constructor_id("red_bull".into())),
             &RACES_RACE_RESULTS_RED_BULL,
             LenConstraint::Exactly(22),
         );
+    }
+
+    #[test]
+    #[ignore]
+    fn get_race_results_multi_page() {
+        let race_results_2023 = JOLPICA_MP.get_race_results(Filters::new().season(2023)).unwrap();
+        assert_eq!(race_results_2023.len(), 22);
+
+        for round_idx in 0..22 {
+            let round = (round_idx + 1) as u32;
+            let race = &race_results_2023[round_idx];
+            assert_eq!(race.season, 2023);
+            assert_eq!(race.round, round);
+        }
     }
 
     #[test]
@@ -1678,20 +1993,50 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_race_result_for_events() {
+    fn get_race_result_for_events_single_page() {
+        let michael_2003_filter = Filters::new().season(2003).driver_id("michael_schumacher".into());
         assert_each_expected_in_actual(
-            || {
-                JOLPICA_SP
-                    .get_race_result_for_events(Filters::new().season(2003).driver_id("michael_schumacher".into()))
-            },
+            || JOLPICA_SP.get_race_result_for_events(michael_2003_filter.clone()),
             &RACES_RACE_RESULT_MICHAEL,
             LenConstraint::Exactly(16),
         );
 
+        let max_2023_filter = Filters::new().season(2023).driver_id("max_verstappen".into());
         assert_each_expected_in_actual(
-            || JOLPICA_SP.get_race_result_for_events(Filters::new().season(2023).driver_id("max_verstappen".into())),
-            &RACES_RACE_RESULT_MAX,
+            || JOLPICA_SP.get_race_result_for_events(max_2023_filter.clone()),
+            &RACES_RACE_RESULT_MAX[1..], // Only include 2023 result
             LenConstraint::Minimum(22),
+        );
+    }
+
+    #[test]
+    #[ignore]
+    fn get_race_result_for_events_multi_page() {
+        static RACE_RESULT_COUNTS_BY_DRIVER_TOTAL_AND_WINS: LazyLock<HashMap<String, (LenConstraint, LenConstraint)>> =
+            LazyLock::new(|| {
+                // @todo Getting all race results for "michael_schumacher" and "hamilton" produces
+                // unrelated parsing errors in the new jolpica-f1 API, so comment these out for now.
+                HashMap::from([
+                    // ("michael_schumacher".into(), (LenConstraint::Exactly(308), LenConstraint::Exactly(91))),
+                    // ("hamilton".into(), (LenConstraint::Minimum(374), LenConstraint::Minimum(105))),
+                    ("alonso".into(), (LenConstraint::Minimum(422), LenConstraint::Minimum(32))),
+                    ("max_verstappen".into(), (LenConstraint::Minimum(227), LenConstraint::Minimum(67))),
+                    ("leclerc".into(), (LenConstraint::Minimum(167), LenConstraint::Minimum(8))),
+                ])
+            });
+
+        for (driver_id, (total_constraint, wins_constraint)) in RACE_RESULT_COUNTS_BY_DRIVER_TOTAL_AND_WINS.iter() {
+            let total_filter = Filters::new().driver_id(driver_id.clone());
+            let wins_filter = Filters::new().driver_id(driver_id.clone()).finish_pos(1);
+
+            total_constraint.assert_satisfied_by(JOLPICA_MP.get_race_result_for_events(total_filter).unwrap().len());
+            wins_constraint.assert_satisfied_by(JOLPICA_MP.get_race_result_for_events(wins_filter).unwrap().len());
+        }
+
+        assert_each_expected_in_actual(
+            || JOLPICA_MP.get_race_result_for_events(Filters::new().driver_id("max_verstappen".into())),
+            &RACES_RACE_RESULT_MAX,
+            LenConstraint::Minimum(227),
         );
     }
 
@@ -1729,6 +2074,17 @@ mod tests {
 
     #[test]
     #[ignore]
+    fn get_race_results_single_page_error_multi_page() {
+        // @todo The `driver_id` filter is not necessary, but for now it avoids getting parsing
+        // errors produced by some race results, e.g. from "michael_schumacher" and "hamilton".
+        assert!(matches!(
+            JOLPICA_SP.get_race_results(Filters::new().driver_id("alonso".into())),
+            Err(Error::MultiPage)
+        ));
+    }
+
+    #[test]
+    #[ignore]
     fn get_race_results_empty() {
         assert_is_empty(|| JOLPICA_SP.get_race_results(Filters::new().season(1949)));
         assert_is_empty(|| JOLPICA_SP.get_race_results(Filters::new().season(2021).finish_pos(100)));
@@ -1748,6 +2104,18 @@ mod tests {
         assert_too_many(|| {
             JOLPICA_SP.get_race_results_for_event(Filters::new().season(2021).constructor_id("ferrari".into()))
         });
+
+        // With multi-page support enabled, we can use `season` to get [`Error::TooMany`]
+        assert_too_many(|| JOLPICA_MP.get_race_results_for_event(Filters::new().season(2021)));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_race_result_for_events_single_page_error_multi_page() {
+        assert!(matches!(
+            JOLPICA_SP.get_race_result_for_events(Filters::none().driver_id("alonso".into())),
+            Err(Error::MultiPage)
+        ));
     }
 
     #[test]
@@ -1765,6 +2133,9 @@ mod tests {
         assert_too_many(|| {
             JOLPICA_SP.get_race_result_for_events(Filters::new().season(2021).constructor_id("ferrari".into()))
         });
+
+        // With multi-page support enabled, we can use `season` to get [`Error::TooMany`]
+        assert_too_many(|| JOLPICA_MP.get_race_result_for_events(Filters::new().season(2021)));
     }
 
     #[test]
@@ -1786,12 +2157,26 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_statuses() {
+    fn get_statuses_single_page() {
         assert_each_expected_in_actual(
             || JOLPICA_SP.get_statuses(Filters::new().season(2022)),
             &STATUS_TABLE_2022.as_status().unwrap(),
             LenConstraint::Exactly(29),
         );
+    }
+
+    #[test]
+    #[ignore]
+    fn get_statuses_multi_page() {
+        // The [`Status::count`] field is constantly changing, so we cannot compare to assets
+        let statuses = JOLPICA_MP.get_statuses(Filters::none()).unwrap();
+        assert_eq!(statuses.len(), 136);
+    }
+
+    #[test]
+    #[ignore]
+    fn get_statuses_single_page_error_multi_page() {
+        assert!(matches!(JOLPICA_SP.get_statuses(Filters::none()), Err(Error::MultiPage)));
     }
 
     #[test]
@@ -1971,10 +2356,10 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_page_multi_page() {
-        let req = Resource::SeasonList(Filters::none());
+        let resource = Resource::SeasonList(Filters::none());
         let page = Page::with_limit(5);
 
-        let mut resp = retry_http(|| JOLPICA_SP.get_response_page(&req, page.clone())).unwrap();
+        let mut resp = retry_http(|| JOLPICA_SP.get_response_page(&resource, page.clone())).unwrap();
         assert_false!(resp.pagination.is_last_page());
 
         let mut current_offset: u32 = 0;
@@ -1997,7 +2382,8 @@ mod tests {
                 _ => (),
             }
 
-            resp = retry_http(|| JOLPICA_SP.get_response_page(&req, pagination.next_page().unwrap().into())).unwrap();
+            resp =
+                retry_http(|| JOLPICA_SP.get_response_page(&resource, pagination.next_page().unwrap().into())).unwrap();
 
             current_offset += page.limit();
         }
@@ -2010,6 +2396,61 @@ mod tests {
         assert_ge!(pagination.total, 74);
 
         let seasons = resp.table.as_seasons().unwrap();
+        assert_eq!(seasons.last().unwrap().season, 1950 + current_offset + (seasons.len() as u32) - 1);
+    }
+
+    #[test]
+    #[ignore]
+    fn get_response_multi_pages() {
+        let resource = Resource::SeasonList(Filters::none());
+        let page = Page::with_limit(5);
+
+        let responses = JOLPICA_SP
+            .get_response_multi_pages(&resource, Some(page.clone()), None)
+            .unwrap();
+
+        assert_false!(responses.first().unwrap().pagination.is_last_page());
+        assert_true!(responses.last().unwrap().pagination.is_last_page());
+        assert_ge!(responses.len(), 16); // 76 / 5
+
+        let mut current_offset: u32 = 0;
+
+        for resp in &responses {
+            let pagination = resp.pagination;
+            assert_false!(pagination.is_single_page());
+            assert_eq!(pagination.limit, page.limit());
+            assert_eq!(pagination.offset, current_offset);
+            assert_ge!(pagination.total, 76);
+
+            let seasons = resp.table.as_seasons().unwrap();
+
+            if !resp.pagination.is_last_page() {
+                assert_eq!(seasons.len(), page.limit() as usize);
+            } else {
+                assert_le!(seasons.len(), page.limit() as usize);
+            }
+
+            match current_offset {
+                0 => assert_eq!(seasons[0], *SEASON_1950),
+                25 => assert_eq!(seasons[4], *SEASON_1979),
+                50 => assert_eq!(seasons[0], *SEASON_2000),
+                70 => assert_eq!(seasons[3], *SEASON_2023),
+                _ => (),
+            }
+
+            if !resp.pagination.is_last_page() {
+                current_offset += page.limit();
+            }
+        }
+
+        let pagination = responses.last().unwrap().pagination;
+        assert_false!(pagination.is_single_page());
+        assert_true!(pagination.is_last_page());
+        assert_eq!(pagination.limit, page.limit());
+        assert_eq!(pagination.offset, current_offset);
+        assert_ge!(pagination.total, 76);
+
+        let seasons = responses.last().unwrap().table.as_seasons().unwrap();
         assert_eq!(seasons.last().unwrap().season, 1950 + current_offset + (seasons.len() as u32) - 1);
     }
 

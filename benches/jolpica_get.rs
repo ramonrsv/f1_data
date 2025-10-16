@@ -1,5 +1,6 @@
 use criterion::{BatchSize, Criterion};
 use criterion::{criterion_group, criterion_main};
+use f1_data::jolpica::agent::{AgentConfigs, MultiPageOption};
 
 use std::fs;
 use std::path::PathBuf;
@@ -20,7 +21,12 @@ static URL: LazyLock<String> = LazyLock::new(|| RESOURCE.to_url_with(Page::with_
 
 static FILENAME: &str = "benches/assets/response_2022_race_results.json";
 
-static JOLPICA_SP: LazyLock<Agent> = LazyLock::new(|| Agent::default());
+static JOLPICA_SP: LazyLock<Agent> = LazyLock::new(|| {
+    Agent::new(AgentConfigs {
+        multi_page: MultiPageOption::Disabled,
+        ..Default::default()
+    })
+});
 
 /// Duration to wait between GET calls to avoid exceeding the jolpica-f1 API rate limits.
 ///

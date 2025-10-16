@@ -1,6 +1,11 @@
+use std::sync::LazyLock;
 use std::time::Duration;
 
-use crate::{error::Result, jolpica::get::retry_on_http_error};
+use crate::{
+    error::Result,
+    jolpica::{api::JOLPICA_API_RATE_LIMIT_QUOTA, get::retry_on_http_error},
+    rate_limiter::RateLimiter,
+};
 
 #[cfg(doc)]
 use crate::jolpica;
@@ -24,3 +29,7 @@ const DEFAULT_HTTP_RETRY_SLEEP: Duration = RATE_LIMIT_SLEEP_DURATION;
 pub(crate) fn retry_http<T>(f: impl Fn() -> Result<T>) -> Result<T> {
     retry_on_http_error(f, DEFAULT_HTTP_RETRY_MAX_ATTEMPT_COUNT, DEFAULT_HTTP_RETRY_SLEEP)
 }
+
+/// Global shared rate limiter for application-wide tests making requests to the jolpica-f1 API.
+pub(crate) static GLOBAL_JOLPICA_RATE_LIMITER: LazyLock<RateLimiter> =
+    LazyLock::new(|| RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA));

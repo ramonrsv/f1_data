@@ -2879,5 +2879,9 @@ pub(crate) static RACES_RACE_RESULTS_RED_BULL: LazyLock<Vec<Race<Vec<RaceResult>
 pub(crate) static RACES_RACE_RESULT_MICHAEL: LazyLock<Vec<Race<RaceResult>>> =
     LazyLock::new(|| vec![clone_and_merge(&RACE_2003_4, &RACE_RESULT_2003_4_P1)]);
 
-pub(crate) static RACES_RACE_RESULT_MAX: LazyLock<Vec<Race<RaceResult>>> =
-    LazyLock::new(|| vec![clone_and_merge(&RACE_2023_4, &RACE_RESULT_2023_4_P2)]);
+pub(crate) static RACES_RACE_RESULT_MAX: LazyLock<Vec<Race<RaceResult>>> = LazyLock::new(|| {
+    vec![
+        clone_and_merge(&RACE_2021_12, &RACE_RESULT_2021_12_P1),
+        clone_and_merge(&RACE_2023_4, &RACE_RESULT_2023_4_P2),
+    ]
+});

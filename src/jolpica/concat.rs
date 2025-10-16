@@ -215,14 +215,12 @@ fn concat_races(races: Vec<Race>) -> Result<Vec<Race>> {
 mod tests {
     use std::sync::LazyLock;
 
-    use crate::{
-        jolpica::{
-            api::{JOLPICA_API_BASE_URL, JOLPICA_API_RATE_LIMIT_QUOTA},
-            get::{get_response_multi_pages, get_response_page},
-            resource::{Filters, Page, Resource},
-            response::Pagination,
-        },
-        rate_limiter::RateLimiter,
+    use crate::jolpica::{
+        api::JOLPICA_API_BASE_URL,
+        get::{get_response_multi_pages, get_response_page},
+        resource::{Filters, Page, Resource},
+        response::Pagination,
+        tests::util::GLOBAL_JOLPICA_RATE_LIMITER,
     };
 
     use crate::jolpica::tests::assets::*;
@@ -234,8 +232,6 @@ mod tests {
     const fn make_pagination(limit: u32, offset: u32, total: u32) -> Pagination {
         Pagination { limit, offset, total }
     }
-
-    static RATE_LIMITER: LazyLock<RateLimiter> = LazyLock::new(|| RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA));
 
     const RESPONSE_NONE: LazyLock<Response> = LazyLock::new(|| Response {
         xmlns: "".into(),
@@ -521,7 +517,7 @@ mod tests {
             &Resource::SeasonList(Filters::none()),
             None,
             None,
-            Some(&RATE_LIMITER),
+            Some(&*GLOBAL_JOLPICA_RATE_LIMITER),
         )
         .unwrap();
 
@@ -545,7 +541,7 @@ mod tests {
     #[ignore]
     fn concat_responses_races_race_results_get_response_multi_pages() {
         let get_race_results = |page| {
-            RATE_LIMITER.wait_until_ready();
+            GLOBAL_JOLPICA_RATE_LIMITER.wait_until_ready();
             get_response_page(JOLPICA_API_BASE_URL, &Resource::RaceResults(Filters::new().season(2019)), page).unwrap()
         };
 

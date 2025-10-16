@@ -1,8 +1,8 @@
 //! This module contains tests for known bugs and issues, and the associated workarounds.
 //!
-//! This partly serves as a collection of @todo items to investigate and potentially push for fixes
-//! in the jolpica-f1 API. If and when any of these tests start failing, it may indicate that
-//! the underlying issue has been fixed, and the associated workaround can be removed.
+//! This partly serves as a collection of @todo items to investigate and or fix in the crate, or
+//! potentially push for fixes in the jolpica-f1 API. If any of these tests start failing, it may
+//! indicate that the underlying issue has been fixed, and the associated workaround can be removed.
 
 mod tests {
     use std::sync::LazyLock;
@@ -22,7 +22,7 @@ mod tests {
     use shadow_asserts::assert_eq;
 
     /// Shared instance of [`Agent`] for use in tests, to share a rate limiter, cache, etc.
-    static JOLPICA_SP: LazyLock<Agent> = LazyLock::new(|| Agent::default());
+    static JOLPICA_MP: LazyLock<Agent<'_>> = LazyLock::new(|| Agent::default());
 
     #[test]
     fn race_result_buggy_time() {
@@ -40,7 +40,7 @@ mod tests {
         // I don't understand what this is. For now, as a workaround, those values are being parsed
         // as None for the race time field. If/when this test fails, we can investigate further.
         assert_eq!(
-            JOLPICA_SP
+            JOLPICA_MP
                 .get_race_result(Filters::new().season(2023).round(3).finish_pos(15))
                 .unwrap()
                 .race_result(),
@@ -62,7 +62,7 @@ mod tests {
     #[ignore]
     fn get_qualifying_result_2023_4_p3() {
         assert_eq!(
-            JOLPICA_SP
+            JOLPICA_MP
                 .get_qualifying_result(Filters::new().season(2023).round(4).driver_id("perez".into()))
                 .unwrap()
                 .qualifying_result(),
@@ -76,7 +76,7 @@ mod tests {
         // @todo [`Filters::qualifying_pos`] appears to not be functional in the new jolpica-f1 API
         // If/when this test begins to fail, and we can add tests filtering by `qualifying_pos`
         assert!(matches!(
-            JOLPICA_SP.get_qualifying_result(Filters::new().season(2023).round(4).qualifying_pos(1)),
+            JOLPICA_MP.get_qualifying_result(Filters::new().season(2023).round(4).qualifying_pos(1)),
             Err(Error::TooMany)
         ));
     }
@@ -90,8 +90,32 @@ mod tests {
         assert_eq!(RACE_RESULT_2023_4_P20.position_text, Position::R);
 
         assert!(matches!(
-            JOLPICA_SP.get_race_result(Filters::new().season(2023).round(4).finish_pos(20)),
+            JOLPICA_MP.get_race_result(Filters::new().season(2023).round(4).finish_pos(20)),
             Err(Error::NotFound)
+        ));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_race_result_for_events_michael_schumacher() {
+        // @todo Getting all race results for "michael_schumacher" produces the following error:
+        //     Http(Json(Error("Invalid duration: \"1:34\"", ...
+        assert!(matches!(
+            JOLPICA_MP.get_race_result_for_events(Filters::new().driver_id("michael_schumacher".into())),
+            // @todo This should be Error::Parse, but currently is Error::Http(Json(Error(...)))
+            Err(Error::Http(_))
+        ));
+    }
+
+    #[test]
+    #[ignore]
+    fn get_race_result_for_events_hamilton() {
+        // @todo Getting all race results for "hamilton" produces the following error:
+        //     Http(Json(Error("Non-delta 'time: 2:19:35.060' must match 'millis: 8375059'", ...
+        assert!(matches!(
+            JOLPICA_MP.get_race_result_for_events(Filters::new().driver_id("hamilton".into())),
+            // @todo This should be Error::Parse, but currently is Error::Http(Json(Error(...)))
+            Err(Error::Http(_))
         ));
     }
 }
