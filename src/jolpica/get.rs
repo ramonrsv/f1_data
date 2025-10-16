@@ -198,8 +198,6 @@ mod tests {
     use std::sync::LazyLock;
     use std::time::Duration;
 
-    use more_asserts::{assert_ge, assert_le, assert_lt};
-
     use crate::{
         error::Error,
         jolpica::{
@@ -209,8 +207,11 @@ mod tests {
         rate_limiter::RateLimiter,
     };
 
-    use super::*;
     use crate::jolpica::tests::{assets::*, util::retry_http};
+    use crate::tests::asserts::*;
+    use shadow_asserts::assert_eq;
+
+    use super::*;
 
     static RATE_LIMITER: LazyLock<RateLimiter> = LazyLock::new(|| RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA));
 
@@ -235,7 +236,7 @@ mod tests {
         assert_eq!(seasons.len(), 50);
         assert_eq!(seasons.first().unwrap().season, 1950);
         assert_eq!(seasons.last().unwrap().season, 1999);
-        assert!(!resp.pagination.is_last_page());
+        assert_false!(resp.pagination.is_last_page());
 
         let resp = retry_http(|| {
             rate_limited_get_response_page(
@@ -249,7 +250,7 @@ mod tests {
         let seasons = resp.table.as_seasons().unwrap();
         assert_le!(seasons.len(), 50);
         assert_eq!(seasons.first().unwrap().season, 2000);
-        assert!(resp.pagination.is_last_page());
+        assert_true!(resp.pagination.is_last_page());
 
         let resp = retry_http(|| {
             rate_limited_get_response_page(
@@ -265,7 +266,7 @@ mod tests {
         let drivers = resp.table.as_drivers().unwrap();
         assert_eq!(drivers.len(), 1);
         assert_eq!(drivers.first().unwrap().given_name, "Charles");
-        assert!(resp.pagination.is_last_page());
+        assert_true!(resp.pagination.is_last_page());
     }
 
     #[test]
@@ -277,8 +278,8 @@ mod tests {
         .unwrap();
 
         let pagination = resp.pagination;
-        assert!(!pagination.is_single_page());
-        assert!(!pagination.is_last_page());
+        assert_false!(pagination.is_single_page());
+        assert_false!(pagination.is_last_page());
         assert_eq!(pagination.limit, JOLPICA_API_PAGINATION.default_limit);
         assert_eq!(pagination.offset, JOLPICA_API_PAGINATION.default_offset);
         assert_ge!(pagination.total, 76);
@@ -301,8 +302,8 @@ mod tests {
         .unwrap();
 
         let pagination = resp.pagination;
-        assert!(pagination.is_single_page());
-        assert!(pagination.is_last_page());
+        assert_true!(pagination.is_single_page());
+        assert_true!(pagination.is_last_page());
         assert_eq!(pagination.limit, JOLPICA_API_PAGINATION.max_limit);
         assert_eq!(pagination.offset, JOLPICA_API_PAGINATION.default_offset);
         assert_ge!(pagination.total, 76);
@@ -323,16 +324,16 @@ mod tests {
 
         let mut resp =
             retry_http(|| rate_limited_get_response_page(JOLPICA_API_BASE_URL, &req, Some(page.clone()))).unwrap();
-        assert!(!resp.pagination.is_last_page());
+        assert_false!(resp.pagination.is_last_page());
 
         let mut current_offset: u32 = 0;
 
         while !resp.pagination.is_last_page() {
             let pagination = resp.pagination;
-            assert!(!pagination.is_single_page());
+            assert_false!(pagination.is_single_page());
             assert_eq!(pagination.limit, page.limit());
             assert_eq!(pagination.offset, current_offset);
-            assert!(pagination.total >= 76);
+            assert_ge!(pagination.total, 76);
 
             let seasons = resp.table.as_seasons().unwrap();
             assert_eq!(seasons.len(), page.limit() as usize);
@@ -354,11 +355,11 @@ mod tests {
         }
 
         let pagination = resp.pagination;
-        assert!(!pagination.is_single_page());
-        assert!(pagination.is_last_page());
+        assert_false!(pagination.is_single_page());
+        assert_true!(pagination.is_last_page());
         assert_eq!(pagination.limit, page.limit());
         assert_eq!(pagination.offset, current_offset);
-        assert!(pagination.total >= 76);
+        assert_ge!(pagination.total, 76);
 
         let seasons = resp.table.as_seasons().unwrap();
         assert_eq!(seasons.last().unwrap().season, 1950 + current_offset + (seasons.len() as u32) - 1);
@@ -383,15 +384,15 @@ mod tests {
             super::get_response_multi_pages(JOLPICA_API_BASE_URL, &req, Some(page.clone()), None, Some(&RATE_LIMITER))
                 .unwrap();
 
-        assert!(!responses.first().unwrap().pagination.is_last_page());
-        assert!(responses.last().unwrap().pagination.is_last_page());
+        assert_false!(responses.first().unwrap().pagination.is_last_page());
+        assert_true!(responses.last().unwrap().pagination.is_last_page());
         assert_ge!(responses.len(), 16); // 76 / 5
 
         let mut current_offset: u32 = 0;
 
         for resp in &responses {
             let pagination = resp.pagination;
-            assert!(!pagination.is_single_page());
+            assert_false!(pagination.is_single_page());
             assert_eq!(pagination.limit, page.limit());
             assert_eq!(pagination.offset, current_offset);
             assert_ge!(pagination.total, 76);
@@ -418,8 +419,8 @@ mod tests {
         }
 
         let pagination = responses.last().unwrap().pagination;
-        assert!(!pagination.is_single_page());
-        assert!(pagination.is_last_page());
+        assert_false!(pagination.is_single_page());
+        assert_true!(pagination.is_last_page());
         assert_eq!(pagination.limit, page.limit());
         assert_eq!(pagination.offset, current_offset);
         assert_ge!(pagination.total, 76);

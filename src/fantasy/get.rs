@@ -45,12 +45,13 @@ fn into<T: Into<U>, U>(t: T) -> U {
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_eq;
+    use crate::tests::asserts::*;
+    use shadow_asserts::assert_eq;
 
     #[test]
     fn get_season_prices() {
         let season_prices_2023 = super::get_season_prices(2023).unwrap();
-        assert!(season_prices_2023.rounds.len() >= 13);
+        assert_ge!(season_prices_2023.rounds.len(), 13);
 
         for (idx, round) in season_prices_2023.rounds.iter().enumerate() {
             assert_eq!(round.round, idx as u32 + 1);
@@ -59,17 +60,17 @@ mod tests {
             assert_eq!(round.constructors.len(), 10);
 
             for driver in &round.drivers {
-                assert!(driver.price > 0.0);
+                assert_gt!(driver.price, 0.0);
             }
 
             for constructor in &round.constructors {
-                assert!(constructor.price > 0.0);
+                assert_gt!(constructor.price, 0.0);
             }
         }
     }
 
     #[test]
     fn get_season_prices_err() {
-        assert!(super::get_season_prices(1949).is_err());
+        assert_true!(super::get_season_prices(1949).is_err());
     }
 }

@@ -32,8 +32,9 @@ mod tests {
     use std::thread;
     use std::time::{Duration, Instant};
 
-    use more_asserts::{assert_ge, assert_lt};
     use nonzero_ext::nonzero;
+
+    use crate::tests::asserts::*;
 
     use super::*;
 

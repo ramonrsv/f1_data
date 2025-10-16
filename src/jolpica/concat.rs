@@ -225,8 +225,11 @@ mod tests {
         rate_limiter::RateLimiter,
     };
 
-    use super::*;
     use crate::jolpica::tests::assets::*;
+    use crate::tests::asserts::*;
+    use shadow_asserts::assert_eq;
+
+    use super::*;
 
     const fn make_pagination(limit: u32, offset: u32, total: u32) -> Pagination {
         Pagination { limit, offset, total }
@@ -529,7 +532,7 @@ mod tests {
 
         let response = concat_response_multi_pages(responses, PageVerify::ALL).unwrap();
         assert_eq!(response.as_seasons().unwrap().len(), 76);
-        assert!(response.pagination.is_last_page());
+        assert_true!(response.pagination.is_last_page());
         assert_eq!(response.pagination.offset, 0);
         assert_eq!(response.pagination.limit, 90);
         assert_eq!(response.pagination.total, 76);

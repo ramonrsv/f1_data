@@ -96,3 +96,6 @@ pub mod rate_limiter;
 
 #[cfg(feature = "fantasy")]
 pub mod fantasy;
+
+#[cfg(test)]
+pub(crate) mod tests;

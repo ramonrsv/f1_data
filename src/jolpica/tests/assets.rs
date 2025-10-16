@@ -1,15 +1,16 @@
 use std::collections::HashMap;
+use std::sync::LazyLock;
 
 use const_format::formatcp;
 use ordered_float::OrderedFloat;
-use std::sync::LazyLock;
 use url::Url;
 
-use crate::jolpica::response::*;
-
-use crate::jolpica::time::{
-    Date, DateTime, QualifyingTime, RaceTime, duration_m_s_ms, duration_millis, duration_s_ms,
-    macros::{date, time},
+use crate::jolpica::{
+    response::*,
+    time::{
+        Date, DateTime, QualifyingTime, RaceTime, duration_m_s_ms, duration_millis, duration_s_ms,
+        macros::{date, time},
+    },
 };
 
 // https://api.jolpi.ca/ergast/f1/seasons/

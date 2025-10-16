@@ -7,8 +7,6 @@
 mod tests {
     use std::sync::LazyLock;
 
-    use pretty_assertions::assert_eq;
-
     use crate::{
         error::Error,
         jolpica::{
@@ -20,13 +18,15 @@ mod tests {
     };
 
     use crate::jolpica::tests::assets::*;
+    use crate::tests::asserts::*;
+    use shadow_asserts::assert_eq;
 
     /// Shared instance of [`Agent`] for use in tests, to share a rate limiter, cache, etc.
     static JOLPICA: LazyLock<Agent> = LazyLock::new(|| Agent::default());
 
     #[test]
     fn race_result_buggy_time() {
-        assert!(RACE_RESULT_2023_3_P15.time.is_none());
+        assert_true!(RACE_RESULT_2023_3_P15.time.is_none());
         assert_eq!(serde_json::from_str::<RaceResult>(RACE_RESULT_2023_3_P15_STR).unwrap(), *RACE_RESULT_2023_3_P15);
     }
 
@@ -72,7 +72,7 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn qualifying_pos_filter() {
+    fn get_qualifying_result_by_qualifying_pos_filter() {
         // @todo [`Filters::qualifying_pos`] appears to not be functional in the new jolpica-f1 API
         // If/when this test begins to fail, and we can add tests filtering by `qualifying_pos`
         assert!(matches!(
@@ -83,7 +83,7 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn finish_pos_filter_for_non_finishing() {
+    fn get_race_result_by_finish_pos_filter_for_non_finishing() {
         // @todo Counterintuitively, non-finishing race results cannot be filtered by .finish_pos,
         // even though .position would be set. Is it only meant to filter by Position::Finished(_)?
         assert_eq!(RACE_RESULT_2023_4_P20.position, 20);

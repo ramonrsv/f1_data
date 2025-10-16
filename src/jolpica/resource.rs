@@ -872,7 +872,8 @@ impl From<Pagination> for Page {
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_eq;
+    use crate::tests::asserts::*;
+    use shadow_asserts::assert_eq;
 
     use super::*;
 
@@ -1108,7 +1109,7 @@ mod tests {
     #[test]
     fn filters() {
         let filters = Filters::none();
-        assert!(
+        assert_true!(
             filters.season.is_none()
                 && filters.round.is_none()
                 && filters.driver_id.is_none()
@@ -1130,7 +1131,7 @@ mod tests {
         assert_eq!(filters.driver_id, Some("alonso".into()));
         assert_eq!(filters.circuit_id, Some("spa".into()));
 
-        assert!(
+        assert_true!(
             filters.season.is_none()
                 && filters.round.is_none()
                 && filters.constructor_id.is_none()
@@ -1146,7 +1147,7 @@ mod tests {
         assert_eq!(filters.driver_id, Some("alonso".into()));
         assert_eq!(filters.circuit_id, Some("spa".into()));
 
-        assert!(
+        assert_true!(
             filters.season.is_none()
                 && filters.round.is_none()
                 && filters.constructor_id.is_none()
@@ -1192,7 +1193,7 @@ mod tests {
         let filters = LapTimeFilters::new(2023, 4);
         assert_eq!(filters.season, 2023);
         assert_eq!(filters.round, 4);
-        assert!(filters.lap.is_none() && filters.driver_id.is_none());
+        assert_true!(filters.lap.is_none() && filters.driver_id.is_none());
 
         let filters = LapTimeFilters {
             lap: Some(1),
@@ -1201,7 +1202,7 @@ mod tests {
         assert_eq!(filters.season, 2023);
         assert_eq!(filters.round, 4);
         assert_eq!(filters.lap, Some(1));
-        assert!(filters.driver_id.is_none());
+        assert_true!(filters.driver_id.is_none());
 
         assert_eq!(
             LapTimeFilters {
@@ -1219,7 +1220,7 @@ mod tests {
         let filters = PitStopFilters::new(2023, 4);
         assert_eq!(filters.season, 2023);
         assert_eq!(filters.round, 4);
-        assert!(filters.lap.is_none() && filters.driver_id.is_none() && filters.pit_stop.is_none());
+        assert_true!(filters.lap.is_none() && filters.driver_id.is_none() && filters.pit_stop.is_none());
 
         let filters = PitStopFilters {
             lap: Some(1),
@@ -1228,7 +1229,7 @@ mod tests {
         assert_eq!(filters.season, 2023);
         assert_eq!(filters.round, 4);
         assert_eq!(filters.lap, Some(1));
-        assert!(filters.driver_id.is_none() && filters.pit_stop.is_none());
+        assert_true!(filters.driver_id.is_none() && filters.pit_stop.is_none());
 
         assert_eq!(
             PitStopFilters {
@@ -1253,7 +1254,7 @@ mod tests {
             formatted_pairs = Filters::none().to_formatted_pairs();
         }
 
-        assert!(!formatted_pairs.is_empty());
+        assert_false!(formatted_pairs.is_empty());
         assert_eq!(formatted_pairs[0].0, "");
     }
 

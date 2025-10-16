@@ -43,9 +43,12 @@ pub struct Constructor {
 
 #[cfg(test)]
 mod tests {
-    use const_format::formatcp;
-    use pretty_assertions::assert_eq;
     use std::sync::LazyLock;
+
+    use const_format::formatcp;
+
+    use crate::tests::asserts::*;
+    use shadow_asserts::assert_eq;
 
     use super::*;
 

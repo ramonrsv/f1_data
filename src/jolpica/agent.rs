@@ -1056,23 +1056,23 @@ fn verify_is_single_page(response: Response) -> Result<Response> {
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
+    use std::sync::LazyLock;
     use std::time::{Duration, Instant};
 
-    use more_asserts::{assert_ge, assert_lt};
-    use pretty_assertions::assert_eq;
-    use std::sync::LazyLock;
-
-    use crate::jolpica::api::JOLPICA_API_PAGINATION;
     use crate::{
         id::{RoundID, SeasonID},
         jolpica::{
+            api::JOLPICA_API_PAGINATION,
             resource::{Filters, LapTimeFilters, PitStopFilters, Resource},
             response::*,
         },
     };
 
-    use super::*;
     use crate::jolpica::tests::{assets::*, util::retry_http};
+    use crate::tests::asserts::*;
+    use shadow_asserts::assert_eq;
+
+    use super::*;
 
     /// Represents a constraint on the length of a list, e.g. a minimum or exact length.
     enum LenConstraint {
@@ -1099,7 +1099,7 @@ mod tests {
             LenConstraint::Minimum(min_len) => assert_ge!(actual_list.len(), min_len),
         };
 
-        assert!(!expected_list.is_empty());
+        assert_false!(expected_list.is_empty());
 
         for expected in expected_list {
             assert!(
@@ -1115,7 +1115,7 @@ mod tests {
         G: Fn(&T) -> Result<T>,
         T: PartialEq + core::fmt::Debug,
     {
-        assert!(!expected_list.is_empty());
+        assert_false!(expected_list.is_empty());
 
         for expected in expected_list {
             assert_eq!(&retry_http(|| get(expected)).unwrap(), expected);
@@ -1173,18 +1173,16 @@ mod tests {
     /// Call a `get` function and assert that the returned [`Result<Vec<T>>`] is [`Ok`], and that
     /// held sequence value is empty.
     fn assert_is_empty<G: Fn() -> Result<Vec<T>>, T>(get: G) {
-        assert!(retry_http(|| get()).unwrap().is_empty());
+        assert_true!(retry_http(|| get()).unwrap().is_empty());
     }
 
     /// Call a `get` function and assert that the returned [`Result`] is [`Err(Error::NotFound)`].
     fn assert_not_found<G: Fn() -> Result<T>, T>(get: G) {
-        // @todo: Consider using `pretty_assertions::assert_matches!` macro when it stabilizes.
         assert!(matches!(retry_http(|| get()), Err(Error::NotFound)));
     }
 
     /// Call a `get` function and assert that the returned [`Result`] is [`Err(Error::TooMany)`].
     fn assert_too_many<G: Fn() -> Result<T>, T>(get: G) {
-        // @todo: Consider using `pretty_assertions::assert_matches!` macro when it stabilizes.
         assert!(matches!(retry_http(|| get()), Err(Error::TooMany)));
     }
 
@@ -1232,7 +1230,7 @@ mod tests {
         // have been more than 100 drivers. As such, we are testing calls with by-season filters
         // to restrict the responses to a smaller, but still plural, element count, usually ~20.
 
-        assert!(!DRIVERS_BY_SEASON.is_empty());
+        assert_false!(DRIVERS_BY_SEASON.is_empty());
 
         for (season, expected_list) in &*DRIVERS_BY_SEASON {
             assert_each_expected_in_actual(
@@ -1274,7 +1272,7 @@ mod tests {
         // have been more than 100 constructors. As such, we are testing calls with season filters
         // to restrict the responses to a smaller, but still plural, element count, usually ~20.
 
-        assert!(!CONSTRUCTORS_BY_SEASON.is_empty());
+        assert_false!(CONSTRUCTORS_BY_SEASON.is_empty());
 
         for (season, expected_list) in &*CONSTRUCTORS_BY_SEASON {
             assert_each_expected_in_actual(
@@ -1370,7 +1368,7 @@ mod tests {
             ])
         });
 
-        assert!(!RACE_SCHEDULES_BY_SEASON.is_empty());
+        assert_false!(RACE_SCHEDULES_BY_SEASON.is_empty());
 
         for (season, expected_list) in &*RACE_SCHEDULES_BY_SEASON {
             assert_each_expected_in_actual(
@@ -1825,12 +1823,12 @@ mod tests {
             assert_eq!(leclerc.number, current_lap);
             assert_eq!(max.number, current_lap);
 
-            assert!(leclerc.position <= 3);
+            assert_le!(leclerc.position, 3);
 
             if current_lap == 11 {
                 assert_eq!(max.position, 7);
             } else {
-                assert!(max.position <= 3);
+                assert_le!(max.position, 3);
             }
 
             current_lap += 1;
@@ -1877,7 +1875,7 @@ mod tests {
         let actual_laps = actual.payload.as_laps().unwrap();
         let expected_laps = expected.payload.as_laps().unwrap();
 
-        assert!(actual_laps.len() >= 2);
+        assert_ge!(actual_laps.len(), 2);
         assert_eq!(expected_laps.len(), 2);
 
         assert_eq!(actual_laps[0].timings[..2], expected_laps[0].timings[..]);
@@ -1922,8 +1920,8 @@ mod tests {
         let resp = retry_http(|| JOLPICA.get_response(&Resource::SeasonList(Filters::new().season(1950)))).unwrap();
 
         let pagination = resp.pagination;
-        assert!(pagination.is_single_page());
-        assert!(pagination.is_last_page());
+        assert_true!(pagination.is_single_page());
+        assert_true!(pagination.is_last_page());
         // `get_response` always uses the maximum pagination limit, even for single-page responses
         assert_eq!(pagination.limit, JOLPICA_API_PAGINATION.max_limit);
         assert_eq!(pagination.offset, JOLPICA_API_PAGINATION.default_offset);
@@ -1940,8 +1938,8 @@ mod tests {
         let resp = retry_http(|| JOLPICA.get_response(&Resource::SeasonList(Filters::none()))).unwrap();
 
         let pagination = resp.pagination;
-        assert!(pagination.is_single_page());
-        assert!(pagination.is_last_page());
+        assert_true!(pagination.is_single_page());
+        assert_true!(pagination.is_last_page());
         assert_eq!(pagination.limit, JOLPICA_API_PAGINATION.max_limit);
         assert_eq!(pagination.offset, JOLPICA_API_PAGINATION.default_offset);
         assert_ge!(pagination.total, 74);
@@ -1970,16 +1968,16 @@ mod tests {
         let page = Page::with_limit(5);
 
         let mut resp = retry_http(|| JOLPICA.get_response_page(&req, page.clone())).unwrap();
-        assert!(!resp.pagination.is_last_page());
+        assert_false!(resp.pagination.is_last_page());
 
         let mut current_offset: u32 = 0;
 
         while !resp.pagination.is_last_page() {
             let pagination = resp.pagination;
-            assert!(!pagination.is_single_page());
+            assert_false!(pagination.is_single_page());
             assert_eq!(pagination.limit, page.limit());
             assert_eq!(pagination.offset, current_offset);
-            assert!(pagination.total >= 74);
+            assert_ge!(pagination.total, 74);
 
             let seasons = resp.table.as_seasons().unwrap();
             assert_eq!(seasons.len(), page.limit() as usize);
@@ -1998,11 +1996,11 @@ mod tests {
         }
 
         let pagination = resp.pagination;
-        assert!(!pagination.is_single_page());
-        assert!(pagination.is_last_page());
+        assert_false!(pagination.is_single_page());
+        assert_true!(pagination.is_last_page());
         assert_eq!(pagination.limit, page.limit());
         assert_eq!(pagination.offset, current_offset);
-        assert!(pagination.total >= 74);
+        assert_ge!(pagination.total, 74);
 
         let seasons = resp.table.as_seasons().unwrap();
         assert_eq!(seasons.last().unwrap().season, 1950 + current_offset + (seasons.len() as u32) - 1);

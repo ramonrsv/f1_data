@@ -1333,45 +1333,48 @@ fn into_iter<T: IntoIterator>(t: T) -> T::IntoIter {
 
 #[cfg(test)]
 mod tests {
-    use const_format::formatcp;
-    use pretty_assertions::{assert_eq, assert_ne};
     use std::sync::LazyLock;
 
-    use super::*;
+    use const_format::formatcp;
+
     use crate::jolpica::tests::assets::*;
+    use crate::tests::asserts::*;
+    use shadow_asserts::{assert_eq, assert_ne};
+
+    use super::*;
 
     #[test]
     fn season_table() {
         let table: Table = serde_json::from_str(SEASON_TABLE_STR).unwrap();
-        assert!(!table.as_seasons().unwrap().is_empty());
+        assert_false!(table.as_seasons().unwrap().is_empty());
         assert_eq!(table, *SEASON_TABLE);
     }
 
     #[test]
     fn driver_table() {
         let table: Table = serde_json::from_str(DRIVER_TABLE_STR).unwrap();
-        assert!(!table.as_drivers().unwrap().is_empty());
+        assert_false!(table.as_drivers().unwrap().is_empty());
         assert_eq!(table, *DRIVER_TABLE);
     }
 
     #[test]
     fn constructor_table() {
         let table: Table = serde_json::from_str(CONSTRUCTOR_TABLE_STR).unwrap();
-        assert!(!table.as_constructors().unwrap().is_empty());
+        assert_false!(table.as_constructors().unwrap().is_empty());
         assert_eq!(table, *CONSTRUCTOR_TABLE);
     }
 
     #[test]
     fn circuit_table() {
         let table: Table = serde_json::from_str(CIRCUIT_TABLE_STR).unwrap();
-        assert!(!table.as_circuits().unwrap().is_empty());
+        assert_false!(table.as_circuits().unwrap().is_empty());
         assert_eq!(table, *CIRCUIT_TABLE);
     }
 
     #[test]
     fn race_table_schedule() {
         let table: Table = serde_json::from_str(RACE_TABLE_SCHEDULE_STR).unwrap();
-        assert!(!table.as_races().unwrap().is_empty());
+        assert_false!(table.as_races().unwrap().is_empty());
         assert_eq!(table, *RACE_TABLE_SCHEDULE);
     }
 
@@ -1393,25 +1396,25 @@ mod tests {
     fn qualifying_results() {
         {
             let race: Race = serde_json::from_str(RACE_2003_4_QUALIFYING_RESULTS_STR).unwrap();
-            assert!(!race.payload.as_qualifying_results().unwrap().is_empty());
+            assert_false!(race.payload.as_qualifying_results().unwrap().is_empty());
             assert_eq!(race, *RACE_2003_4_QUALIFYING_RESULTS);
         }
 
         {
             let race: Race = serde_json::from_str(RACE_2023_4_QUALIFYING_RESULTS_STR).unwrap();
-            assert!(!race.payload.as_qualifying_results().unwrap().is_empty());
+            assert_false!(race.payload.as_qualifying_results().unwrap().is_empty());
             assert_eq!(race, *RACE_2023_4_QUALIFYING_RESULTS);
         }
 
         {
             let race: Race = serde_json::from_str(RACE_2023_10_QUALIFYING_RESULTS_STR).unwrap();
-            assert!(!race.payload.as_qualifying_results().unwrap().is_empty());
+            assert_false!(race.payload.as_qualifying_results().unwrap().is_empty());
             assert_eq!(race, *RACE_2023_10_QUALIFYING_RESULTS);
         }
 
         {
             let race: Race = serde_json::from_str(RACE_2023_12_QUALIFYING_RESULTS_STR).unwrap();
-            assert!(!race.payload.as_qualifying_results().unwrap().is_empty());
+            assert_false!(race.payload.as_qualifying_results().unwrap().is_empty());
             assert_eq!(race, *RACE_2023_12_QUALIFYING_RESULTS);
         }
     }
@@ -1426,7 +1429,7 @@ mod tests {
     #[test]
     fn sprint_results() {
         let race: Race = serde_json::from_str(RACE_2023_4_SPRINT_RESULTS_STR).unwrap();
-        assert!(!race.payload.as_sprint_results().unwrap().is_empty());
+        assert_false!(race.payload.as_sprint_results().unwrap().is_empty());
         assert_eq!(race, *RACE_2023_4_SPRINT_RESULTS);
     }
 
@@ -1453,30 +1456,30 @@ mod tests {
     #[test]
     fn race_results() {
         let race: Race = serde_json::from_str(RACE_1963_10_RACE_RESULTS_STR).unwrap();
-        assert!(!race.payload.as_race_results().unwrap().is_empty());
+        assert_false!(race.payload.as_race_results().unwrap().is_empty());
         assert_eq!(race, *RACE_1963_10_RACE_RESULTS);
 
         let race: Race = serde_json::from_str(RACE_2003_4_RACE_RESULTS_STR).unwrap();
-        assert!(!race.payload.as_race_results().unwrap().is_empty());
+        assert_false!(race.payload.as_race_results().unwrap().is_empty());
         assert_eq!(race, *RACE_2003_4_RACE_RESULTS);
 
         let race: Race = serde_json::from_str(RACE_2021_12_RACE_RESULTS_STR).unwrap();
-        assert!(!race.payload.as_race_results().unwrap().is_empty());
+        assert_false!(race.payload.as_race_results().unwrap().is_empty());
         assert_eq!(race, *RACE_2021_12_RACE_RESULTS);
 
         let race: Race = serde_json::from_str(RACE_2023_3_RACE_RESULTS_STR).unwrap();
-        assert!(!race.payload.as_race_results().unwrap().is_empty());
+        assert_false!(race.payload.as_race_results().unwrap().is_empty());
         assert_eq!(race, *RACE_2023_3_RACE_RESULTS);
 
         let race: Race = serde_json::from_str(RACE_2023_4_RACE_RESULTS_STR).unwrap();
-        assert!(!race.payload.as_race_results().unwrap().is_empty());
+        assert_false!(race.payload.as_race_results().unwrap().is_empty());
         assert_eq!(race, *RACE_2023_4_RACE_RESULTS);
     }
 
     #[test]
     fn finishing_status() {
         let table: Table = serde_json::from_str(STATUS_TABLE_2022_STR).unwrap();
-        assert!(!table.as_status().unwrap().is_empty());
+        assert_false!(table.as_status().unwrap().is_empty());
         assert_eq!(table, *STATUS_TABLE_2022);
     }
 
@@ -1503,8 +1506,8 @@ mod tests {
         let race: Race = serde_json::from_str(RACE_2023_4_LAPS_STR).unwrap();
 
         let laps = race.payload.as_laps().unwrap();
-        assert!(!laps.is_empty());
-        laps.iter().for_each(|lap| assert!(!lap.timings.is_empty()));
+        assert_false!(laps.is_empty());
+        laps.iter().for_each(|lap| assert_false!(lap.timings.is_empty()));
 
         assert_eq!(race, *RACE_2023_4_LAPS);
     }
@@ -1520,13 +1523,13 @@ mod tests {
     #[test]
     fn pit_stops() {
         let race: Race = serde_json::from_str(RACE_2023_4_PIT_STOPS_STR).unwrap();
-        assert!(!race.payload.as_pit_stops().unwrap().is_empty());
+        assert_false!(race.payload.as_pit_stops().unwrap().is_empty());
         assert_eq!(race, *RACE_2023_4_PIT_STOPS);
     }
 
     #[test]
     fn pagination_is_last_page() {
-        assert!(
+        assert_true!(
             Pagination {
                 limit: 30,
                 offset: 0,
@@ -1535,7 +1538,7 @@ mod tests {
             .is_last_page()
         );
 
-        assert!(
+        assert_true!(
             Pagination {
                 limit: 10,
                 offset: 5,
@@ -1544,8 +1547,8 @@ mod tests {
             .is_last_page()
         );
 
-        assert!(
-            !Pagination {
+        assert_false!(
+            Pagination {
                 limit: 10,
                 offset: 4,
                 total: 15
@@ -1556,7 +1559,7 @@ mod tests {
 
     #[test]
     fn pagination_is_single_page() {
-        assert!(
+        assert_true!(
             Pagination {
                 limit: 30,
                 offset: 0,
@@ -1565,8 +1568,8 @@ mod tests {
             .is_single_page()
         );
 
-        assert!(
-            !Pagination {
+        assert_false!(
+            Pagination {
                 limit: 10,
                 offset: 5,
                 total: 15
@@ -1592,7 +1595,7 @@ mod tests {
             }
         );
 
-        assert!(
+        assert_true!(
             Pagination {
                 limit: 10,
                 offset: 10,
@@ -1689,13 +1692,13 @@ mod tests {
     fn race_info_as_hash_key() {
         let mut map = indexmap::IndexMap::new();
 
-        assert!(map.insert(RACE_2003_4.to_info(), RACE_2003_4.clone()).is_none());
-        assert!(map.contains_key(&RACE_2003_4.to_info()));
-        assert!(!map.contains_key(&RACE_2023_4.to_info()));
+        assert_true!(map.insert(RACE_2003_4.to_info(), RACE_2003_4.clone()).is_none());
+        assert_true!(map.contains_key(&RACE_2003_4.to_info()));
+        assert_false!(map.contains_key(&RACE_2023_4.to_info()));
 
-        assert!(map.insert(RACE_2023_4.to_info(), RACE_2023_4.clone()).is_none());
-        assert!(map.contains_key(&RACE_2003_4.to_info()));
-        assert!(map.contains_key(&RACE_2023_4.to_info()));
+        assert_true!(map.insert(RACE_2023_4.to_info(), RACE_2023_4.clone()).is_none());
+        assert_true!(map.contains_key(&RACE_2003_4.to_info()));
+        assert_true!(map.contains_key(&RACE_2023_4.to_info()));
 
         assert_ne!(*RACE_2003_4, *RACE_2023_4);
         assert_ne!(&RACE_2003_4.to_info(), &RACE_2023_4.to_info());
@@ -1723,7 +1726,7 @@ mod tests {
         impl std::error::Error for DummyError {}
 
         let into = from.clone().try_map::<Infallible, _, _>(|_| Err(DummyError));
-        assert!(into.is_err());
+        assert_true!(into.is_err());
     }
 
     #[test]
@@ -1757,7 +1760,7 @@ mod tests {
         assert_eq!(p.unwrap().as_qualifying_results().unwrap()[0], *QUALIFYING_RESULT_2023_4_P1);
 
         let p = serde_json::from_str::<Payload>(BAD_STR);
-        assert!(p.unwrap_err().to_string().contains("missing field `number`"));
+        assert_true!(p.unwrap_err().to_string().contains("missing field `number`"));
     }
 
     #[test]
@@ -1839,7 +1842,7 @@ mod tests {
 
         let pos = Position::Finished(10);
         assert!(matches!(pos, Position::Finished(_)));
-        assert!(!matches!(pos, Position::E));
+        assert_false!(matches!(pos, Position::E));
 
         match pos {
             Position::Finished(pos) => assert_eq!(pos, 10),
@@ -1861,7 +1864,7 @@ mod tests {
         };
         assert_eq!(pos, 10);
 
-        assert!(serde_json::from_str::<Position>("\"unknown\"").is_err());
+        assert_true!(serde_json::from_str::<Position>("\"unknown\"").is_err());
     }
 
     // Response tests

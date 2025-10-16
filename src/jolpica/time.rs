@@ -316,11 +316,12 @@ impl<'de> Deserialize<'de> for RaceTime {
 mod tests {
     use std::panic::catch_unwind;
 
-    use pretty_assertions::assert_eq;
+    use crate::jolpica::tests::assets::*;
+    use crate::tests::asserts::*;
+    use shadow_asserts::assert_eq;
 
     use super::macros::*;
     use super::*;
-    use crate::jolpica::tests::assets::*;
 
     const MIN_IN_HOUR: i64 = 60;
     const SEC_IN_MIN: i64 = 60;
@@ -400,7 +401,7 @@ mod tests {
         let bad_strings = vec!["0123", "abc", "1.23", ""];
 
         for bad_str in bad_strings {
-            assert!(catch_unwind(|| super::parse_subsecond_into_milli(bad_str)).is_err());
+            assert_true!(catch_unwind(|| super::parse_subsecond_into_milli(bad_str)).is_err());
         }
     }
 
@@ -434,7 +435,7 @@ mod tests {
         let bad_strings = vec!["12:00:0Z", "25:00:00Z", "12:00Z"];
 
         for bad_str in bad_strings {
-            assert!(super::parse_time(bad_str).is_err());
+            assert_true!(super::parse_time(bad_str).is_err());
         }
     }
 
@@ -479,7 +480,7 @@ mod tests {
         ]);
 
         for bad_time_str in bad_strings {
-            assert!(super::parse_time(bad_time_str).is_err());
+            assert_true!(super::parse_time(bad_time_str).is_err());
         }
     }
 
@@ -516,7 +517,7 @@ mod tests {
         ]);
 
         for bad_time_str in bad_strings {
-            assert!(super::parse_delta(bad_time_str).is_err());
+            assert_true!(super::parse_delta(bad_time_str).is_err());
         }
     }
 
@@ -536,7 +537,7 @@ mod tests {
             time!(11:30:00)
         );
 
-        assert!(serde_json::from_str::<Proxy>(r#"{}"#).unwrap().time.is_none());
+        assert_true!(serde_json::from_str::<Proxy>(r#"{}"#).unwrap().time.is_none());
     }
 
     #[test]
@@ -549,7 +550,7 @@ mod tests {
 
         assert_eq!(serde_json::from_str::<Proxy>(r#"{"time": "11:30:00"}"#).unwrap().time, time!(11:30:00));
 
-        assert!(serde_json::from_str::<Proxy>(r#"{}"#).is_err());
+        assert_true!(serde_json::from_str::<Proxy>(r#"{}"#).is_err());
     }
 
     #[test]
@@ -577,7 +578,7 @@ mod tests {
         .unwrap();
 
         assert_eq!(dt.date, date!(2021 - 08 - 27));
-        assert!(dt.time.is_none());
+        assert_true!(dt.time.is_none());
 
         let dt: DateTime = serde_json::from_str(
             r#"{
@@ -587,7 +588,7 @@ mod tests {
         .unwrap();
 
         assert_eq!(dt.date, date!(2022 - 04 - 22));
-        assert!(dt.time.is_some());
+        assert_true!(dt.time.is_some());
         assert_eq!(dt.time.unwrap(), time!(11:30:00));
     }
 
@@ -596,8 +597,8 @@ mod tests {
         let quali = QualifyingTime::Time(super::duration_m_s_ms(1, 23, 456));
 
         assert!(matches!(quali, QualifyingTime::Time(_)));
-        assert!(quali.has_time());
-        assert!(!quali.no_time_set());
+        assert_true!(quali.has_time());
+        assert_false!(quali.no_time_set());
 
         let cloned_lap_time = quali.time().clone();
 
@@ -613,8 +614,8 @@ mod tests {
         let quali = QualifyingTime::NoTimeSet;
 
         assert!(matches!(quali, QualifyingTime::NoTimeSet));
-        assert!(!quali.has_time());
-        assert!(quali.no_time_set());
+        assert_false!(quali.has_time());
+        assert_true!(quali.no_time_set());
 
         let _ = quali.time();
     }
@@ -623,33 +624,33 @@ mod tests {
     fn qualifying_time_deserialize() {
         {
             let quali = serde_json::from_str::<QualifyingTime>(r#""1:23.456""#).unwrap();
-            assert!(quali.has_time());
-            assert!(!quali.no_time_set());
+            assert_true!(quali.has_time());
+            assert_false!(quali.no_time_set());
             assert_eq!(quali.time(), &super::duration_m_s_ms(1, 23, 456));
         }
 
         {
             let quali = serde_json::from_str::<QualifyingTime>(r#""""#).unwrap();
-            assert!(!quali.has_time());
-            assert!(quali.no_time_set());
+            assert_false!(quali.has_time());
+            assert_true!(quali.no_time_set());
             assert!(matches!(quali, QualifyingTime::NoTimeSet));
         }
     }
 
     #[test]
     fn qualifying_time_deserialize_err() {
-        assert!(serde_json::from_str::<QualifyingTime>("1").is_err());
+        assert_true!(serde_json::from_str::<QualifyingTime>("1").is_err());
     }
 
     #[test]
     fn race_time() {
         let p1 = RaceTime::lead(super::duration_millis(5562436));
-        assert!(p1.is_lead());
+        assert_true!(p1.is_lead());
         assert_eq!(p1.total(), &super::duration_hms_ms(1, 32, 42, 436));
         assert_eq!(p1.delta(), &Duration::ZERO);
 
         let p2 = RaceTime::with_delta(super::duration_millis(5564573), super::duration_m_s_ms(0, 2, 137));
-        assert!(!p2.is_lead());
+        assert_false!(p2.is_lead());
         assert_eq!(p2.total(), &super::duration_hms_ms(1, 32, 42 + 2, 436 + 137));
         assert_eq!(p2.delta(), &super::duration_m_s_ms(0, 2, 137));
 
@@ -681,7 +682,7 @@ mod tests {
                 .map(|race_time_str| serde_json::from_str::<RaceTime>(race_time_str).unwrap())
                 .collect();
 
-            assert!(!deserialized_race_times.is_empty());
+            assert_false!(deserialized_race_times.is_empty());
             assert_eq!(deserialized_race_times.len(), race_times.len());
 
             for (des_race_time, ref_race_time) in deserialized_race_times.iter().zip(race_times.iter()) {
@@ -698,18 +699,18 @@ mod tests {
     #[test]
     fn race_time_validate_assets() {
         let validate_race_times = |race_times: &[RaceTime]| {
-            assert!(race_times.len() >= 2);
+            assert_ge!(race_times.len(), 2);
 
             let lead = race_times.first().unwrap();
             let others = &race_times[1..];
 
-            assert!(lead.is_lead());
+            assert_true!(lead.is_lead());
             assert_eq!(lead.delta(), &Duration::ZERO);
 
             for other in others.iter() {
-                assert!(!other.is_lead());
-                assert!(other.delta() > &Duration::ZERO);
-                assert!(other.total().clone() > lead.total().clone());
+                assert_false!(other.is_lead());
+                assert_gt!(other.delta(), &Duration::ZERO);
+                assert_gt!(other.total().clone(), lead.total().clone());
                 assert_eq!(other.total().clone() - lead.total().clone(), other.delta().clone());
             }
         };
