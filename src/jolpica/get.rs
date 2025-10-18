@@ -80,11 +80,15 @@ use crate::jolpica::{agent::Agent, response::Pagination};
 /// assert!(resp.pagination.is_last_page());
 /// ```
 pub fn get_response_page(base_url: &str, resource: &Resource, page: Option<Page>) -> Result<Response> {
-    ureq::get(resource.to_url_with_base_and_opt_page(base_url, page).as_str())
-        .call()?
-        .into_body()
-        .read_json()
-        .map_err(Into::into)
+    let url = resource.to_url_with_base_and_opt_page(base_url, page);
+    let json_str = ureq::get(url.as_str()).call()?.into_body().read_to_string()?;
+
+    // Use `serde_json::from_str::<Resp..>(.read_to_string())` instead of `.read_json::<Response>()`
+    // to get better error messages, e.g. to get an [`Error::Parse(serde_json::Error)`] instead of
+    // an [`Error::Http(ureq::Error)`] when there are problems parsing the JSON response. Benchmarks
+    // also show that this method is slightly more performant - not that it would be significant,
+    // since network latency and rate limiting take orders of magnitude longer than JSON parsing.
+    serde_json::from_str::<Response>(json_str.as_str()).map_err(Into::into)
 }
 
 /// Performs GET requests to the jolpica-f1 API for all pages of the specified [`Resource`].

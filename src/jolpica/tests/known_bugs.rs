@@ -102,8 +102,7 @@ mod tests {
         //     Http(Json(Error("Invalid duration: \"1:34\"", ...
         assert!(matches!(
             JOLPICA_MP.get_race_result_for_events(Filters::new().driver_id("michael_schumacher".into())),
-            // @todo This should be Error::Parse, but currently is Error::Http(Json(Error(...)))
-            Err(Error::Http(_))
+            Err(Error::Parse(_))
         ));
     }
 
@@ -114,8 +113,7 @@ mod tests {
         //     Http(Json(Error("Non-delta 'time: 2:19:35.060' must match 'millis: 8375059'", ...
         assert!(matches!(
             JOLPICA_MP.get_race_result_for_events(Filters::new().driver_id("hamilton".into())),
-            // @todo This should be Error::Parse, but currently is Error::Http(Json(Error(...)))
-            Err(Error::Http(_))
+            Err(Error::Parse(_))
         ));
     }
 }
