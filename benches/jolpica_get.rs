@@ -1,18 +1,20 @@
 use criterion::{BatchSize, Criterion};
 use criterion::{criterion_group, criterion_main};
-use f1_data::jolpica::agent::{AgentConfigs, MultiPageOption};
 
 use std::fs;
 use std::path::PathBuf;
-use std::time::Duration;
-
-use serde_json;
 use std::sync::LazyLock;
 
-use f1_data::jolpica::{
-    agent::Agent,
-    resource::{Filters, Page, Resource},
-    response::Response,
+use serde_json;
+
+use f1_data::{
+    jolpica::{
+        agent::{Agent, AgentConfigs, MultiPageOption},
+        api::JOLPICA_API_RATE_LIMIT_QUOTA,
+        resource::{Filters, Page, Resource},
+        response::Response,
+    },
+    rate_limiter::RateLimiter,
 };
 
 static FILTERS: LazyLock<Filters> = LazyLock::new(|| Filters::new().season(2022).round(1));
@@ -28,14 +30,11 @@ static JOLPICA_SP: LazyLock<Agent> = LazyLock::new(|| {
     })
 });
 
-/// Duration to wait between GET calls to avoid exceeding the jolpica-f1 API rate limits.
-///
-/// This is meant to to be used in crude rate limiting since [`Agent`]'s limiting is not available.
-/// It is a direct copy of `f1_data::jolpica::tests::util::RATE_LIMIT_DURATION`, which is private.
+/// Used to rate limit GET requests in benchmarks to avoid exceeding the jolpica-f1 API rate limits.
 ///
 /// Waiting is done as part of the `setup` setup in [`criterion::Bencher::iter_batched`], so the
 /// time spent waiting is not measured as part of the benchmark, which is the desired behavior.
-static RATE_LIMIT_DURATION: Duration = Duration::from_secs(8);
+static RATE_LIMITER: LazyLock<RateLimiter> = LazyLock::new(|| RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA));
 
 /// Sample size for GET benchmarks, to keep the total time reasonable given the rate limit waits.
 static GET_CALL_SAMPLE_SIZE: usize = 20;
@@ -48,7 +47,7 @@ fn bench_get_race_results(c: &mut Criterion) {
 
     group.bench_function("get_race_results", |b| {
         b.iter_batched(
-            || std::thread::sleep(RATE_LIMIT_DURATION),
+            || RATE_LIMITER.wait_until_ready(),
             |_| JOLPICA_SP.get_race_results(FILTERS.clone()).unwrap(),
             BatchSize::SmallInput,
         )
@@ -66,7 +65,7 @@ fn bench_process_ureq_response(c: &mut Criterion) {
     group.sample_size(GET_CALL_SAMPLE_SIZE);
 
     let rate_limited_call = || {
-        std::thread::sleep(RATE_LIMIT_DURATION);
+        RATE_LIMITER.wait_until_ready();
         ureq::get(&URL.to_string()).call().unwrap()
     };
 
@@ -115,7 +114,7 @@ fn bench_read_json_from_file_vs_http(c: &mut Criterion) {
 
     group.bench_function("from_http", |b| {
         b.iter_batched(
-            || std::thread::sleep(RATE_LIMIT_DURATION),
+            || RATE_LIMITER.wait_until_ready(),
             |_| ureq::get(&url).call().unwrap().body_mut().read_to_string().unwrap(),
             BatchSize::SmallInput,
         )
