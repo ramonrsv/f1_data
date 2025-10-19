@@ -69,6 +69,7 @@ pub struct PageVerify: u32 {
 ///     None,
 ///     None,
 ///     None,
+///     None,
 /// )
 /// .unwrap();
 ///
@@ -220,7 +221,7 @@ mod tests {
         get::{get_response_multi_pages, get_response_page},
         resource::{Filters, Page, Resource},
         response::Pagination,
-        tests::util::GLOBAL_JOLPICA_RATE_LIMITER,
+        tests::util::{DEFAULT_HTTP_RETRIES, GLOBAL_JOLPICA_RATE_LIMITER},
     };
 
     use crate::jolpica::tests::assets::*;
@@ -518,6 +519,7 @@ mod tests {
             None,
             None,
             Some(&*GLOBAL_JOLPICA_RATE_LIMITER),
+            Some(DEFAULT_HTTP_RETRIES),
         )
         .unwrap();
 

@@ -4,6 +4,7 @@ use crate::{
         resource::{Page, Resource},
         response::Response,
     },
+    rate_limiter::RateLimiter,
 };
 
 #[cfg(doc)]
@@ -134,6 +135,7 @@ pub fn get_response_page(base_url: &str, resource: &Resource, page: Option<Page>
 ///     Some(Page::with_limit(50)),
 ///     Some(10),
 ///     Some(&rate_limiter),
+///     Some(2),
 /// )
 /// .unwrap();
 ///
@@ -154,16 +156,15 @@ pub fn get_response_multi_pages(
     resource: &Resource,
     initial_page: Option<Page>,
     max_page_count: Option<usize>,
-    rate_limiter: Option<&crate::rate_limiter::RateLimiter>,
+    rate_limiter: Option<&RateLimiter>,
+    http_retries: Option<usize>,
 ) -> Result<Vec<Response>> {
-    let rate_limiter_wait_until_ready = || {
-        if let Some(limiter) = rate_limiter {
-            limiter.wait_until_ready();
-        }
-    };
+    let mut responses = vec![retry_on_http_error(
+        || get_response_page(base_url, resource, initial_page),
+        rate_limiter,
+        http_retries,
+    )?];
 
-    rate_limiter_wait_until_ready();
-    let mut responses = vec![get_response_page(base_url, resource, initial_page)?];
     let mut pages = vec![responses.last().unwrap().pagination];
 
     while let Some(next_page) = pages.last().unwrap().next_page() {
@@ -173,31 +174,61 @@ pub fn get_response_multi_pages(
     if let Some(max_page_count) = max_page_count
         && pages.len() > max_page_count
     {
-        return Err(Error::ExceededMaxPageCount(max_page_count));
+        return Err(Error::ExceededMaxPageCount((pages.len(), max_page_count)));
     }
 
     for page in &pages[1..] {
-        rate_limiter_wait_until_ready();
-        responses.push(get_response_page(base_url, resource, Some((*page).into()))?);
+        responses.push(retry_on_http_error(
+            || get_response_page(base_url, resource, Some((*page).into())),
+            rate_limiter,
+            http_retries,
+        )?);
     }
 
     Ok(responses)
 }
 
 /// Call the provided function, retrying on HTTP errors, and forwarding anything else.
-/// `max_attempt_count` and `retry_sleep` are used to control the retry behaviour.
+///
+/// The function `f` is unconditionally called at least once. If it returns [`Ok`], any error that
+/// isn't [`Error::Http`], or if `max_retries` is [`None`] or [`Some(0)`], then the result is
+/// returned as-is. Otherwise, if it returns an [`Error::Http`] error, it calls the function again
+/// up to `max_retries` times, returning the first [`Ok`] result or the first [`Error`] that isn't
+/// [`Error::Http`]. If all attempts result in [`Error::Http`], then an [`Error::HttpRetries`] is
+/// returned, holding the number of retries attempted and the last encountered [`ureq::Error`].
+/// If a `rate_limiter` is provided, it is used to wait before each attempt, including the first.
 pub fn retry_on_http_error<T>(
     f: impl Fn() -> Result<T>,
-    max_attempt_count: usize,
-    retry_sleep: std::time::Duration,
+    rate_limiter: Option<&RateLimiter>,
+    max_retries: Option<usize>,
 ) -> Result<T> {
-    for _ in 0..=max_attempt_count {
-        match f() {
-            Err(Error::Http(_)) => std::thread::sleep(retry_sleep),
-            other => return other,
+    let max_retries = max_retries.unwrap_or(0);
+
+    let rate_limited_call = || {
+        if let Some(limiter) = rate_limiter {
+            limiter.wait_until_ready();
+        }
+        f()
+    };
+
+    let mut result = rate_limited_call();
+
+    if max_retries == 0 || !matches!(result, Err(Error::Http(_))) {
+        return result;
+    }
+
+    for _ in 0..=max_retries {
+        result = rate_limited_call();
+
+        if !matches!(result, Err(Error::Http(_))) {
+            return result;
         }
     }
-    panic!("Retried {max_attempt_count} times on HTTP errors, giving up");
+
+    let Err(Error::Http(ureq_err)) = result else {
+        unreachable!()
+    };
+    Err(Error::HttpRetries((max_retries, ureq_err)))
 }
 
 #[cfg(test)]
@@ -214,27 +245,31 @@ mod tests {
         rate_limiter::RateLimiter,
     };
 
-    use crate::jolpica::tests::{assets::*, util::retry_http};
+    use crate::jolpica::tests::{
+        assets::*,
+        util::{DEFAULT_HTTP_RETRIES, retry_http},
+    };
     use crate::tests::asserts::*;
     use shadow_asserts::assert_eq;
 
     use super::*;
 
-    fn rate_limited_get_response_page(base_url: &str, resource: &Resource, page: Option<Page>) -> Result<Response> {
-        GLOBAL_JOLPICA_RATE_LIMITER.wait_until_ready();
-        super::get_response_page(base_url, resource, page)
+    fn get_response_rate_limited_with_http_retries(
+        base_url: &str,
+        resource: &Resource,
+        page: Option<Page>,
+    ) -> Result<Response> {
+        retry_http(|| super::get_response_page(base_url, resource, page))
     }
 
     #[test]
     #[ignore]
     fn get_response_page() {
-        let resp = retry_http(|| {
-            rate_limited_get_response_page(
-                JOLPICA_API_BASE_URL,
-                &Resource::SeasonList(Filters::none()),
-                Some(Page::with_limit(50)),
-            )
-        })
+        let resp = get_response_rate_limited_with_http_retries(
+            JOLPICA_API_BASE_URL,
+            &Resource::SeasonList(Filters::none()),
+            Some(Page::with_limit(50)),
+        )
         .unwrap();
 
         let seasons = resp.table.as_seasons().unwrap();
@@ -243,13 +278,11 @@ mod tests {
         assert_eq!(seasons.last().unwrap().season, 1999);
         assert_false!(resp.pagination.is_last_page());
 
-        let resp = retry_http(|| {
-            rate_limited_get_response_page(
-                JOLPICA_API_BASE_URL,
-                &Resource::SeasonList(Filters::none()),
-                Some(resp.pagination.next_page().unwrap().into()),
-            )
-        })
+        let resp = get_response_rate_limited_with_http_retries(
+            JOLPICA_API_BASE_URL,
+            &Resource::SeasonList(Filters::none()),
+            Some(resp.pagination.next_page().unwrap().into()),
+        )
         .unwrap();
 
         let seasons = resp.table.as_seasons().unwrap();
@@ -257,13 +290,11 @@ mod tests {
         assert_eq!(seasons.first().unwrap().season, 2000);
         assert_true!(resp.pagination.is_last_page());
 
-        let resp = retry_http(|| {
-            rate_limited_get_response_page(
-                JOLPICA_API_BASE_URL,
-                &Resource::DriverInfo(Filters::new().driver_id("leclerc".into())),
-                None,
-            )
-        })
+        let resp = get_response_rate_limited_with_http_retries(
+            JOLPICA_API_BASE_URL,
+            &Resource::DriverInfo(Filters::new().driver_id("leclerc".into())),
+            None,
+        )
         .unwrap();
 
         assert_eq!(resp.pagination.limit, JOLPICA_API_PAGINATION.default_limit);
@@ -277,9 +308,11 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_page_multi_default() {
-        let resp = retry_http(|| {
-            rate_limited_get_response_page(JOLPICA_API_BASE_URL, &Resource::SeasonList(Filters::none()), None)
-        })
+        let resp = get_response_rate_limited_with_http_retries(
+            JOLPICA_API_BASE_URL,
+            &Resource::SeasonList(Filters::none()),
+            None,
+        )
         .unwrap();
 
         let pagination = resp.pagination;
@@ -297,13 +330,11 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_page_single_max_limit() {
-        let resp = retry_http(|| {
-            rate_limited_get_response_page(
-                JOLPICA_API_BASE_URL,
-                &Resource::SeasonList(Filters::none()),
-                Some(Page::with_max_limit()),
-            )
-        })
+        let resp = get_response_rate_limited_with_http_retries(
+            JOLPICA_API_BASE_URL,
+            &Resource::SeasonList(Filters::none()),
+            Some(Page::with_max_limit()),
+        )
         .unwrap();
 
         let pagination = resp.pagination;
@@ -328,7 +359,7 @@ mod tests {
         let page = Page::with_limit(5);
 
         let mut resp =
-            retry_http(|| rate_limited_get_response_page(JOLPICA_API_BASE_URL, &resource, Some(page.clone()))).unwrap();
+            get_response_rate_limited_with_http_retries(JOLPICA_API_BASE_URL, &resource, Some(page.clone())).unwrap();
         assert_false!(resp.pagination.is_last_page());
 
         let mut current_offset: u32 = 0;
@@ -351,13 +382,11 @@ mod tests {
                 _ => (),
             }
 
-            resp = retry_http(|| {
-                rate_limited_get_response_page(
-                    JOLPICA_API_BASE_URL,
-                    &resource,
-                    Some(pagination.next_page().unwrap().into()),
-                )
-            })
+            resp = get_response_rate_limited_with_http_retries(
+                JOLPICA_API_BASE_URL,
+                &resource,
+                Some(pagination.next_page().unwrap().into()),
+            )
             .unwrap();
 
             current_offset += page.limit();
@@ -395,6 +424,7 @@ mod tests {
             Some(page.clone()),
             None,
             Some(&*GLOBAL_JOLPICA_RATE_LIMITER),
+            Some(DEFAULT_HTTP_RETRIES),
         )
         .unwrap();
 
@@ -458,6 +488,7 @@ mod tests {
             Some(Page::with_limit(20)),
             None,
             Some(&rate_limiter),
+            None,
         );
         let elapsed = start.elapsed();
         assert_eq!(_responses.unwrap().len(), 4);
@@ -475,6 +506,7 @@ mod tests {
             Some(Page::with_limit(20)),
             None,
             Some(&rate_limiter),
+            None,
         );
         let elapsed = start.elapsed();
         assert_eq!(_responses.unwrap().len(), 4);
@@ -497,9 +529,11 @@ mod tests {
                 &req,
                 Some(Page::with_limit(5)),
                 Some(10),
-                Some(&rate_limiter)
+                Some(&rate_limiter),
+                None
             ),
-            Err(Error::ExceededMaxPageCount(10))
+            // 76 / 5 -> 16 pages > 10 max
+            Err(Error::ExceededMaxPageCount((16, 10)))
         ));
         let elapsed = start.elapsed();
 

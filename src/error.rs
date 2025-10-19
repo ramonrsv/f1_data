@@ -38,6 +38,7 @@ pub enum Error {
     #[cfg(feature = "fantasy")]
     YamlParse(serde_yaml::Error),
 
+    HttpRetries((usize /* retries */, ureq::Error)),
     /// A request by a method supporting only single-page responses resulted in a multi-page one.
     MultiPage,
     /// A request resulted in a response that did not contain the expected [`Table`] variant.
@@ -49,7 +50,7 @@ pub enum Error {
     /// A request resulted in a response that contained more than the expected number of elements.
     TooMany,
     /// A request for multiple pages would or has exceeded the maximum allowed number of pages.
-    ExceededMaxPageCount(usize),
+    ExceededMaxPageCount((usize /* actual */, usize /* max */)),
     /// A request to merge multiple [`Response`]s contained inconsistent [`Response::as_info`].
     BadResponseInfo(String),
     /// A request to merge multiple [`Response`]s contained invalid pagination, as per the

@@ -27,6 +27,18 @@ pub struct AgentConfigs<'a> {
     pub rate_limiter: RateLimiterOption<'a>,
     /// Configuration for handling multi-page responses from the jolpica-f1 API.
     pub multi_page: MultiPageOption,
+
+    /// Configuration to enable retrying GET calls if they return [`Error::Http`].
+    ///
+    /// If [`Some(n)`] where `n > 0`, and if any GET requests made to the jolpica-f1 API return
+    /// [`Error::Http`], then the call will be repeated until [`Ok`] or some non-HTTP error is
+    /// returned, up to `n` times. If all attempts result in [`Error::Http`], then an
+    /// [`Error::HttpRetries`] is returned. If [`None`] or [`Some(0)`], no retries are performed.
+    ///
+    /// **Note:**: If enabled, the maximum number of retries applies to each individual GET request
+    /// made, including each one made as part of handling multi-page responses, so the total number
+    /// of retries may exceed this configured value.
+    pub http_retries: Option<usize>,
 }
 
 impl Default for AgentConfigs<'_> {
@@ -35,10 +47,12 @@ impl Default for AgentConfigs<'_> {
     /// The default settings are:
     ///  - Enabled rate limiting [`RateLimiterOption::Internal`] with [`JOLPICA_API_RATE_LIMIT`]
     ///  - Multi-page response handling [`MultiPageOption::Enabled`] with no max page count limit
+    ///  - Retries on HTTP errors enabled with `2` maximum retries per individual GET request
     fn default() -> Self {
         Self {
             rate_limiter: RateLimiterOption::Internal(RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA)),
             multi_page: MultiPageOption::Enabled(None),
+            http_retries: Some(2),
         }
     }
 }
@@ -179,11 +193,11 @@ impl<'a> Agent<'a> {
     /// assert!(resp.pagination.is_last_page());
     /// ```
     pub fn get_response_page(&self, resource: &Resource, page: Page) -> Result<Response> {
-        if let Some(rate_limiter) = self.configs.rate_limiter.get() {
-            rate_limiter.wait_until_ready();
-        }
-
-        get::get_response_page(JOLPICA_API_BASE_URL, resource, Some(page))
+        get::retry_on_http_error(
+            || get::get_response_page(JOLPICA_API_BASE_URL, resource, Some(page)),
+            self.configs.rate_limiter.get(),
+            self.configs.http_retries,
+        )
     }
 
     /// Performs GET requests to the jolpica-f1 API for all pages of the specified [`Resource`],
@@ -247,6 +261,7 @@ impl<'a> Agent<'a> {
             initial_page,
             max_page_count,
             self.configs.rate_limiter.get(),
+            self.configs.http_retries,
         )
     }
 
@@ -1269,7 +1284,7 @@ mod tests {
 
     use crate::jolpica::tests::{
         assets::*,
-        util::{GLOBAL_JOLPICA_RATE_LIMITER, retry_http},
+        util::{DEFAULT_HTTP_RETRIES, GLOBAL_JOLPICA_RATE_LIMITER},
     };
     use crate::tests::asserts::*;
     use shadow_asserts::assert_eq;
@@ -1303,7 +1318,7 @@ mod tests {
         G: Fn() -> Result<Vec<T>>,
         T: PartialEq + core::fmt::Debug,
     {
-        let actual_list = retry_http(|| get_actual()).unwrap();
+        let actual_list = get_actual().unwrap();
         let actual_list = &actual_list;
 
         actual_list_len_constraint.assert_satisfied_by(actual_list.len());
@@ -1326,7 +1341,7 @@ mod tests {
         assert_false!(expected_list.is_empty());
 
         for expected in expected_list {
-            assert_eq!(&retry_http(|| get(expected)).unwrap(), expected);
+            assert_eq!(&get(expected).unwrap(), expected);
         }
     }
 
@@ -1352,7 +1367,7 @@ mod tests {
         G: Fn() -> Result<Race<Vec<T>>>,
         T: PayloadInnerList + PartialEq + Clone + core::fmt::Debug,
     {
-        let actual = retry_http(|| get_actual()).unwrap();
+        let actual = get_actual().unwrap();
 
         assert_eq!(actual.as_info(), expected.as_info());
 
@@ -1373,7 +1388,7 @@ mod tests {
         T: PayloadInnerList + Clone + PartialEq + core::fmt::Debug,
     {
         assert_each_get_eq_expected(
-            |result| retry_http(|| get(add_result_filter(result, race_filters_from(race)))).map(|race| race.payload),
+            |result| get(add_result_filter(result, race_filters_from(race))).map(|race| race.payload),
             &race.clone().map(|p| T::try_into_inner_from(p).unwrap()).payload,
         );
     }
@@ -1381,17 +1396,17 @@ mod tests {
     /// Call a `get` function and assert that the returned [`Result<Vec<T>>`] is [`Ok`], and that
     /// held sequence value is empty.
     fn assert_is_empty<G: Fn() -> Result<Vec<T>>, T>(get: G) {
-        assert_true!(retry_http(|| get()).unwrap().is_empty());
+        assert_true!(get().unwrap().is_empty());
     }
 
     /// Call a `get` function and assert that the returned [`Result`] is [`Err(Error::NotFound)`].
     fn assert_not_found<G: Fn() -> Result<T>, T>(get: G) {
-        assert!(matches!(retry_http(|| get()), Err(Error::NotFound)));
+        assert!(matches!(get(), Err(Error::NotFound)));
     }
 
     /// Call a `get` function and assert that the returned [`Result`] is [`Err(Error::TooMany)`].
     fn assert_too_many<G: Fn() -> Result<T>, T>(get: G) {
-        assert!(matches!(retry_http(|| get()), Err(Error::TooMany)));
+        assert!(matches!(get(), Err(Error::TooMany)));
     }
 
     /// Shared instance of [`Agent`] for use in tests, to share a rate limiter, cache, etc.
@@ -1399,6 +1414,7 @@ mod tests {
         Agent::new(AgentConfigs {
             rate_limiter: RateLimiterOption::External(&*GLOBAL_JOLPICA_RATE_LIMITER),
             multi_page: MultiPageOption::Disabled,
+            http_retries: Some(DEFAULT_HTTP_RETRIES),
         })
     });
 
@@ -1407,6 +1423,7 @@ mod tests {
         Agent::new(AgentConfigs {
             rate_limiter: RateLimiterOption::External(&*GLOBAL_JOLPICA_RATE_LIMITER),
             multi_page: MultiPageOption::Enabled(None),
+            http_retries: Some(DEFAULT_HTTP_RETRIES),
         })
     });
 
@@ -2198,8 +2215,11 @@ mod tests {
     #[ignore]
     fn get_driver_laps() {
         let race_id = RaceID::from(2023, 4);
-        let leclerc_laps = retry_http(|| JOLPICA_SP.get_driver_laps(race_id, &DriverID::from("leclerc"))).unwrap();
-        let max_laps = retry_http(|| JOLPICA_SP.get_driver_laps(race_id, &DriverID::from("max_verstappen"))).unwrap();
+        let driver_id_leclerc = DriverID::from("leclerc");
+        let driver_id_max = DriverID::from("max_verstappen");
+
+        let leclerc_laps = JOLPICA_SP.get_driver_laps(race_id, &driver_id_leclerc).unwrap();
+        let max_laps = JOLPICA_SP.get_driver_laps(race_id, &driver_id_max).unwrap();
 
         assert_eq!(leclerc_laps.len(), 51);
         assert_eq!(max_laps.len(), 51);
@@ -2254,10 +2274,9 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_page_lap_times_race_2023_4() {
-        let resp = retry_http(|| {
-            JOLPICA_SP.get_response_page(&Resource::LapTimes(LapTimeFilters::new(2023, 4)), Page::default())
-        })
-        .unwrap();
+        let resp = JOLPICA_SP
+            .get_response_page(&Resource::LapTimes(LapTimeFilters::new(2023, 4)), Page::default())
+            .unwrap();
 
         let actual = verify_has_one_race_and_extract(resp).unwrap();
         let expected = &RACE_2023_4_LAPS;
@@ -2296,7 +2315,9 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_pit_stops_race_2023_4() {
-        let resp = retry_http(|| JOLPICA_SP.get_response(&Resource::PitStops(PitStopFilters::new(2023, 4)))).unwrap();
+        let resp = JOLPICA_SP
+            .get_response(&Resource::PitStops(PitStopFilters::new(2023, 4)))
+            .unwrap();
         let race = verify_has_one_race_and_extract(resp).unwrap();
 
         assert_eq!(race.as_info(), RACE_2023_4_PIT_STOPS.as_info());
@@ -2309,7 +2330,9 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_single_element() {
-        let resp = retry_http(|| JOLPICA_SP.get_response(&Resource::SeasonList(Filters::new().season(1950)))).unwrap();
+        let resp = JOLPICA_SP
+            .get_response(&Resource::SeasonList(Filters::new().season(1950)))
+            .unwrap();
 
         let pagination = resp.pagination;
         assert_true!(pagination.is_single_page());
@@ -2327,7 +2350,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_single_page() {
-        let resp = retry_http(|| JOLPICA_SP.get_response(&Resource::SeasonList(Filters::none()))).unwrap();
+        let resp = JOLPICA_SP.get_response(&Resource::SeasonList(Filters::none())).unwrap();
 
         let pagination = resp.pagination;
         assert_true!(pagination.is_single_page());
@@ -2346,10 +2369,10 @@ mod tests {
     #[test]
     #[ignore]
     fn get_response_multi_page_error() {
-        let resp = retry_http(|| JOLPICA_SP.get_response(&Resource::DriverInfo(Filters::none())));
+        let resp = JOLPICA_SP.get_response(&Resource::DriverInfo(Filters::none()));
         assert!(matches!(resp, Err(Error::MultiPage)));
 
-        let resp = retry_http(|| JOLPICA_SP.get_response(&Resource::LapTimes(LapTimeFilters::new(2023, 1))));
+        let resp = JOLPICA_SP.get_response(&Resource::LapTimes(LapTimeFilters::new(2023, 1)));
         assert!(matches!(resp, Err(Error::MultiPage)));
     }
 
@@ -2359,7 +2382,7 @@ mod tests {
         let resource = Resource::SeasonList(Filters::none());
         let page = Page::with_limit(5);
 
-        let mut resp = retry_http(|| JOLPICA_SP.get_response_page(&resource, page.clone())).unwrap();
+        let mut resp = JOLPICA_SP.get_response_page(&resource, page.clone()).unwrap();
         assert_false!(resp.pagination.is_last_page());
 
         let mut current_offset: u32 = 0;
@@ -2382,8 +2405,9 @@ mod tests {
                 _ => (),
             }
 
-            resp =
-                retry_http(|| JOLPICA_SP.get_response_page(&resource, pagination.next_page().unwrap().into())).unwrap();
+            resp = JOLPICA_SP
+                .get_response_page(&resource, pagination.next_page().unwrap().into())
+                .unwrap();
 
             current_offset += page.limit();
         }
