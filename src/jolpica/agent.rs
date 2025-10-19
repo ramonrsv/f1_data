@@ -23,8 +23,12 @@ use crate::jolpica::{
 /// Options to configure the behavior of an [`Agent`], e.g. rate limiting, multi-page handling, etc.
 #[derive(Debug)]
 pub struct AgentConfigs<'a> {
-    /// Configuration for rate limiting of GET requests to the jolpica-f1 API.
-    pub rate_limiter: RateLimiterOption<'a>,
+    /// Configuration for the base URL at which to make requests to the jolpica-f1 API.
+    ///
+    /// This should almost always be left as the default value of [`JOLPICA_API_BASE_URL`], but it
+    /// can be overridden, for example, to point to a local instance of the jolpica-f1 API server.
+    pub base_url: String,
+
     /// Configuration for handling multi-page responses from the jolpica-f1 API.
     pub multi_page: MultiPageOption,
 
@@ -39,20 +43,25 @@ pub struct AgentConfigs<'a> {
     /// made, including each one made as part of handling multi-page responses, so the total number
     /// of retries may exceed this configured value.
     pub http_retries: Option<usize>,
+
+    /// Configuration for rate limiting of GET requests to the jolpica-f1 API.
+    pub rate_limiter: RateLimiterOption<'a>,
 }
 
 impl Default for AgentConfigs<'_> {
     /// Creates a new [`AgentConfigs`] with default settings.
     ///
     /// The default settings are:
-    ///  - Enabled rate limiting [`RateLimiterOption::Internal`] with [`JOLPICA_API_RATE_LIMIT`]
+    ///  - Base URL set to [`JOLPICA_API_BASE_URL`]
     ///  - Multi-page response handling [`MultiPageOption::Enabled`] with no max page count limit
     ///  - Retries on HTTP errors enabled with `2` maximum retries per individual GET request
+    ///  - Enabled rate limiting [`RateLimiterOption::Internal`] with [`JOLPICA_API_RATE_LIMIT`]
     fn default() -> Self {
         Self {
-            rate_limiter: RateLimiterOption::Internal(RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA)),
+            base_url: JOLPICA_API_BASE_URL.to_string(),
             multi_page: MultiPageOption::Enabled(None),
             http_retries: Some(2),
+            rate_limiter: RateLimiterOption::Internal(RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA)),
         }
     }
 }
@@ -194,7 +203,7 @@ impl<'a> Agent<'a> {
     /// ```
     pub fn get_response_page(&self, resource: &Resource, page: Page) -> Result<Response> {
         get::retry_on_http_error(
-            || get::get_response_page(JOLPICA_API_BASE_URL, resource, Some(page)),
+            || get::get_response_page(&self.configs.base_url, resource, Some(page)),
             self.configs.rate_limiter.get(),
             self.configs.http_retries,
         )
@@ -256,7 +265,7 @@ impl<'a> Agent<'a> {
         max_page_count: Option<usize>,
     ) -> Result<Vec<Response>> {
         get::get_response_multi_pages(
-            JOLPICA_API_BASE_URL,
+            &self.configs.base_url,
             resource,
             initial_page,
             max_page_count,
@@ -1284,7 +1293,7 @@ mod tests {
 
     use crate::jolpica::tests::{
         assets::*,
-        util::{DEFAULT_HTTP_RETRIES, GLOBAL_JOLPICA_RATE_LIMITER},
+        util::{GLOBAL_JOLPICA_RATE_LIMITER, TESTS_DEFAULT_HTTP_RETRIES},
     };
     use crate::tests::asserts::*;
     use shadow_asserts::assert_eq;
@@ -1412,18 +1421,20 @@ mod tests {
     /// Shared instance of [`Agent`] for use in tests, to share a rate limiter, cache, etc.
     static JOLPICA_SP: LazyLock<Agent<'_>> = LazyLock::new(|| {
         Agent::new(AgentConfigs {
-            rate_limiter: RateLimiterOption::External(&*GLOBAL_JOLPICA_RATE_LIMITER),
+            base_url: JOLPICA_API_BASE_URL.to_string(),
             multi_page: MultiPageOption::Disabled,
-            http_retries: Some(DEFAULT_HTTP_RETRIES),
+            http_retries: Some(TESTS_DEFAULT_HTTP_RETRIES),
+            rate_limiter: RateLimiterOption::External(&*GLOBAL_JOLPICA_RATE_LIMITER),
         })
     });
 
     /// Shared instance of [`Agent`] for use in tests, to share a rate limiter, cache, etc.
     static JOLPICA_MP: LazyLock<Agent<'_>> = LazyLock::new(|| {
         Agent::new(AgentConfigs {
-            rate_limiter: RateLimiterOption::External(&*GLOBAL_JOLPICA_RATE_LIMITER),
+            base_url: JOLPICA_API_BASE_URL.to_string(),
             multi_page: MultiPageOption::Enabled(None),
-            http_retries: Some(DEFAULT_HTTP_RETRIES),
+            http_retries: Some(TESTS_DEFAULT_HTTP_RETRIES),
+            rate_limiter: RateLimiterOption::External(&*GLOBAL_JOLPICA_RATE_LIMITER),
         })
     });
 
@@ -2476,6 +2487,23 @@ mod tests {
 
         let seasons = responses.last().unwrap().table.as_seasons().unwrap();
         assert_eq!(seasons.last().unwrap().season, 1950 + current_offset + (seasons.len() as u32) - 1);
+    }
+
+    #[test]
+    #[ignore]
+    fn get_response_error_wrong_base_url() {
+        let jolpica = Agent::new(AgentConfigs {
+            base_url: "http://nonexistent.local".into(),
+            http_retries: None,
+            rate_limiter: RateLimiterOption::None,
+            ..Default::default()
+        });
+
+        let resource = Resource::SeasonList(Filters::none());
+
+        assert!(matches!(jolpica.get_response_page(&resource, Page::default()), Err(Error::Http(_))));
+        assert!(matches!(jolpica.get_response_multi_pages(&resource, None, None), Err(Error::Http(_))));
+        assert!(matches!(jolpica.get_response(&resource), Err(Error::Http(_))));
     }
 
     // Rate limiting

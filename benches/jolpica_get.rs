@@ -24,8 +24,10 @@ static URL: LazyLock<String> = LazyLock::new(|| RESOURCE.to_url_with(Page::with_
 static FILENAME: &str = "benches/assets/response_2022_race_results.json";
 
 static JOLPICA_SP: LazyLock<Agent> = LazyLock::new(|| {
+    // Multi-page requests and HTTP retries would interfere with benchmarking individual calls.
     Agent::new(AgentConfigs {
         multi_page: MultiPageOption::Disabled,
+        http_retries: None,
         ..Default::default()
     })
 });

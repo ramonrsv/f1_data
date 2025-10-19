@@ -14,9 +14,9 @@ pub(crate) static GLOBAL_JOLPICA_RATE_LIMITER: LazyLock<RateLimiter> =
     LazyLock::new(|| RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA));
 
 /// Default maximum number of attempts to retry on HTTP errors, for [`retry_on_http_error`].
-pub(crate) const DEFAULT_HTTP_RETRIES: usize = 3;
+pub(crate) const TESTS_DEFAULT_HTTP_RETRIES: usize = 3;
 
 /// Forward to [`retry_on_http_error`] with default retry parameters and rate limiter.
 pub(crate) fn retry_http<T>(f: impl Fn() -> Result<T>) -> Result<T> {
-    retry_on_http_error(f, Some(&*GLOBAL_JOLPICA_RATE_LIMITER), Some(DEFAULT_HTTP_RETRIES))
+    retry_on_http_error(f, Some(&*GLOBAL_JOLPICA_RATE_LIMITER), Some(TESTS_DEFAULT_HTTP_RETRIES))
 }

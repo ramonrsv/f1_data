@@ -1,8 +1,6 @@
 # TODO
 
 - [ ] Look into replacing **Note:** with [^note]:
-- [ ] Add support to jolpica::JolpicaF1 to automatically make and merge multiple GET requests for
-      multi-page responses, likely supporting a maximum number of allowed auto-requests, etc.
 - [ ] Add support to jolpica::JolpicaF1 to use jolpica-f1 database dumps as a source. May also need
       to add jolpica::Resource functionality for
       https://github.com/jolpica/jolpica-f1/blob/main/docs/dumps.md#endpoint, and to
@@ -15,7 +13,12 @@
 - [ ] Use [github-action-benchmark](https://github.com/benchmark-action/github-action-benchmark) to
       track benchmark results in CI.
 - [ ] Once auto-merging multi-page responses is supported, verify /examples/validate_jolpica
-- [ ] Add options to jolpica::Agent, e.g. base URL, auto-merging toggle, rate limiting, etc.
 - [ ] Look into using `newtype` idiom for ID types, and into implementing `From<>` for common
       sources, e.g. `&str` and `u32`. Consider using https://docs.rs/derive_more/latest/derive_more/
 - [ ] Clean up and improve the `get_*` and `into_*` lap timings and pit stops interface.
+- [ ] Rename `get_session_result(s)_for_event(s)`, maybe into:
+      `get_event_session_results` - many results, one event
+      `get_individual_session_results` - one result, many events
+- [ ] Refactor `get` to introduce a `Request` that holds all the configurations and has
+      `get_page` and `get_multi_pages` methods, similar to `ureq::Request`.
+- [ ] Introduce `::HtpRetries` to clarify HTTP retries configs; `Option<uszie>` can be confusing.

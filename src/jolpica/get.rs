@@ -247,7 +247,7 @@ mod tests {
 
     use crate::jolpica::tests::{
         assets::*,
-        util::{DEFAULT_HTTP_RETRIES, retry_http},
+        util::{TESTS_DEFAULT_HTTP_RETRIES, retry_http},
     };
     use crate::tests::asserts::*;
     use shadow_asserts::assert_eq;
@@ -424,7 +424,7 @@ mod tests {
             Some(page.clone()),
             None,
             Some(&*GLOBAL_JOLPICA_RATE_LIMITER),
-            Some(DEFAULT_HTTP_RETRIES),
+            Some(TESTS_DEFAULT_HTTP_RETRIES),
         )
         .unwrap();
 

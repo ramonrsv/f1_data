@@ -221,7 +221,7 @@ mod tests {
         get::{get_response_multi_pages, get_response_page},
         resource::{Filters, Page, Resource},
         response::Pagination,
-        tests::util::{DEFAULT_HTTP_RETRIES, GLOBAL_JOLPICA_RATE_LIMITER},
+        tests::util::{GLOBAL_JOLPICA_RATE_LIMITER, TESTS_DEFAULT_HTTP_RETRIES},
     };
 
     use crate::jolpica::tests::assets::*;
@@ -519,7 +519,7 @@ mod tests {
             None,
             None,
             Some(&*GLOBAL_JOLPICA_RATE_LIMITER),
-            Some(DEFAULT_HTTP_RETRIES),
+            Some(TESTS_DEFAULT_HTTP_RETRIES),
         )
         .unwrap();
 
