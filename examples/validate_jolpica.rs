@@ -13,7 +13,7 @@ use f1_data::{
     jolpica::{
         agent::{self, Agent},
         resource::{Filters, PitStopFilters},
-        response::{QualifyingResult, RaceResult, SprintResult},
+        response::{QualifyingResult, RaceResult, Schedule, SprintResult},
     },
 };
 
@@ -148,6 +148,8 @@ trait SessionResult {
     fn position(&self) -> u32;
     fn add_pos_filter(filters: Filters, pos: u32) -> Filters;
     fn number(&self) -> u32;
+    fn first_available_season() -> SeasonID;
+    fn is_session_in_event_schedule(schedule: &Schedule) -> bool;
 }
 
 impl SessionResult for QualifyingResult {
@@ -169,6 +171,14 @@ impl SessionResult for QualifyingResult {
 
     fn number(&self) -> u32 {
         self.number
+    }
+
+    fn first_available_season() -> SeasonID {
+        1994
+    }
+
+    fn is_session_in_event_schedule(schedule: &Schedule) -> bool {
+        schedule.qualifying.is_some()
     }
 }
 
@@ -192,6 +202,14 @@ impl SessionResult for SprintResult {
     fn number(&self) -> u32 {
         self.number
     }
+
+    fn first_available_season() -> SeasonID {
+        2021
+    }
+
+    fn is_session_in_event_schedule(schedule: &Schedule) -> bool {
+        schedule.sprint.is_some()
+    }
 }
 
 impl SessionResult for RaceResult {
@@ -213,6 +231,14 @@ impl SessionResult for RaceResult {
 
     fn number(&self) -> u32 {
         self.number
+    }
+
+    fn first_available_season() -> SeasonID {
+        1950
+    }
+
+    fn is_session_in_event_schedule(_: &Schedule) -> bool {
+        true
     }
 }
 
@@ -252,6 +278,11 @@ where
     for race in races {
         section_sub_header(&format!("round: {}", race.round));
 
+        if !T::is_session_in_event_schedule(race.schedule()) {
+            debug!("session not in event schedule, skipping");
+            continue;
+        }
+
         let round_filters = Filters::new().season(race.season).round(race.round);
 
         let race_res = JOLPICA_MP.get_session_results_for_event::<T>(round_filters.clone());
@@ -259,7 +290,7 @@ where
         if let Ok(race_res) = race_res {
             count("result", race_res.payload.len());
         } else {
-            error!("{}, R{} - get_session_results_for_event failed", race.season, race.round);
+            error!("{}, R{} - get_session_results_for_event::<{}> failed", race.season, race.round, T::name());
             log_error(race_res);
 
             validate_granular_session_results_for_round::<T>(race.season, race.round);
@@ -286,7 +317,13 @@ where
 
     let seasons = JOLPICA_MP.get_seasons(Filters::none())?;
 
-    for season in seasons {
+    'season_loop: for season in seasons {
+        // These results are only available starting from a certain season, so skip prior seasons.
+        // Still check one before the first available one, to validate handling of NotFound errors.
+        if season.season < (T::first_available_season() - 1) {
+            continue 'season_loop;
+        }
+
         section_sub_header(&format!("season: {}", season.season));
 
         let races = JOLPICA_MP.get_session_results::<T>(Filters::new().season(season.season));
@@ -310,7 +347,7 @@ where
                 }
             }
         } else {
-            let msg = format!("{} - get_session_results failed", season.season);
+            let msg = format!("{} - get_session_results::<{}> failed", season.season, T::name());
 
             error!("{msg}");
             log_error(races);
