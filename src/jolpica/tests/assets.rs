@@ -105,6 +105,16 @@ pub(crate) static SEASON_TABLE: LazyLock<Table> = LazyLock::new(|| Table::Season
 // ---------------------------------------
 
 // Optional fields are missing: ["permanentNumber", "code"]
+pub(crate) const DRIVER_FANGIO_STR: &str = r#"{
+    "driverId": "fangio",
+    "url": "http://en.wikipedia.org/wiki/Juan_Manuel_Fangio",
+    "givenName": "Juan",
+    "familyName": "Fangio",
+    "dateOfBirth": "1911-06-24",
+    "nationality": "Argentine"
+  }"#;
+
+// Optional fields are missing: ["permanentNumber", "code"]
 pub(crate) const DRIVER_HAILWOOD_STR: &str = r#"{
     "driverId": "hailwood",
     "url": "http://en.wikipedia.org/wiki/Mike_Hailwood",
@@ -264,6 +274,17 @@ pub(crate) const DRIVER_RUSSELL_STR: &str = r#"{
     "dateOfBirth": "1998-02-15",
     "nationality": "British"
   }"#;
+
+pub(crate) static DRIVER_FANGIO: LazyLock<Driver> = LazyLock::new(|| Driver {
+    driver_id: "fangio".into(),
+    permanent_number: None,
+    code: None,
+    url: Url::parse("http://en.wikipedia.org/wiki/Juan_Manuel_Fangio").unwrap(),
+    given_name: "Juan".to_string(),
+    family_name: "Fangio".to_string(),
+    date_of_birth: date!(1911 - 06 - 24),
+    nationality: "Argentine".to_string(),
+});
 
 pub(crate) static DRIVER_HAILWOOD: LazyLock<Driver> = LazyLock::new(|| Driver {
     driver_id: "hailwood".into(),
@@ -434,6 +455,7 @@ pub(crate) const DRIVER_TABLE_STR: &str = formatcp!(
     r#"{{
     "DriverTable": {{
         "Drivers": [
+            {DRIVER_FANGIO_STR},
             {DRIVER_HAILWOOD_STR},
             {DRIVER_ABATE_STR},
             {DRIVER_MICHAEL_STR},
@@ -455,6 +477,7 @@ pub(crate) const DRIVER_TABLE_STR: &str = formatcp!(
 
 pub(crate) static DRIVER_TABLE: LazyLock<Table> = LazyLock::new(|| Table::Drivers {
     drivers: vec![
+        DRIVER_FANGIO.clone(),
         DRIVER_HAILWOOD.clone(),
         DRIVER_ABATE.clone(),
         DRIVER_MICHAEL.clone(),
@@ -475,6 +498,13 @@ pub(crate) static DRIVER_TABLE: LazyLock<Table> = LazyLock::new(|| Table::Driver
 
 // https://api.jolpi.ca/ergast/f1/constructors/
 // --------------------------------------------
+
+pub(crate) const CONSTRUCTOR_ALFA_ROMEO_STR: &str = r#"{
+    "constructorId": "alfa",
+    "url": "http://en.wikipedia.org/wiki/Alfa_Romeo_in_Formula_One",
+    "name": "Alfa Romeo",
+    "nationality": "Swiss"
+  }"#;
 
 pub(crate) const CONSTRUCTOR_LOLA_STR: &str = r#"{
     "constructorId": "lola",
@@ -538,6 +568,13 @@ pub(crate) const CONSTRUCTOR_ASTON_MARTIN_STR: &str = r#"{
     "name": "Aston Martin",
     "nationality": "British"
   }"#;
+
+pub(crate) static CONSTRUCTOR_ALFA_ROMEO: LazyLock<Constructor> = LazyLock::new(|| Constructor {
+    constructor_id: "alfa".into(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Alfa_Romeo_in_Formula_One").unwrap(),
+    name: "Alfa Romeo".to_string(),
+    nationality: "Swiss".to_string(),
+});
 
 pub(crate) static CONSTRUCTOR_LOLA: LazyLock<Constructor> = LazyLock::new(|| Constructor {
     constructor_id: "lola".into(),
@@ -606,6 +643,7 @@ pub(crate) const CONSTRUCTOR_TABLE_STR: &str = formatcp!(
     r#"{{
     "ConstructorTable": {{
         "Constructors": [
+            {CONSTRUCTOR_ALFA_ROMEO_STR},
             {CONSTRUCTOR_LOLA_STR},
             {CONSTRUCTOR_MCLAREN_STR},
             {CONSTRUCTOR_FERRARI_STR},
@@ -621,6 +659,7 @@ pub(crate) const CONSTRUCTOR_TABLE_STR: &str = formatcp!(
 
 pub(crate) static CONSTRUCTOR_TABLE: LazyLock<Table> = LazyLock::new(|| Table::Constructors {
     constructors: vec![
+        CONSTRUCTOR_ALFA_ROMEO.clone(),
         CONSTRUCTOR_LOLA.clone(),
         CONSTRUCTOR_MCLAREN.clone(),
         CONSTRUCTOR_FERRARI.clone(),
@@ -645,6 +684,18 @@ pub(crate) const CIRCUIT_GEORGE_STR: &str = r#"{
       "long": "27.8736",
       "locality": "Eastern Cape Province",
       "country": "South Africa"
+    }
+  }"#;
+
+pub(crate) const CIRCUIT_MAGNY_COURS_STR: &str = r#"{
+    "circuitId": "magny_cours",
+    "url": "https://en.wikipedia.org/wiki/Circuit_de_Nevers_Magny-Cours",
+    "circuitName": "Circuit de Nevers Magny-Cours",
+    "Location": {
+      "lat": "46.8642",
+      "long": "3.16361",
+      "locality": "Magny Cours",
+      "country": "France"
     }
   }"#;
 
@@ -732,6 +783,18 @@ pub(crate) static CIRCUIT_GEORGE: LazyLock<Circuit> = LazyLock::new(|| Circuit {
     },
 });
 
+pub(crate) static CIRCUIT_MAGNY_COURS: LazyLock<Circuit> = LazyLock::new(|| Circuit {
+    circuit_id: "magny_cours".into(),
+    url: Url::parse("https://en.wikipedia.org/wiki/Circuit_de_Nevers_Magny-Cours").unwrap(),
+    circuit_name: "Circuit de Nevers Magny-Cours".to_string(),
+    location: Location {
+        lat: OrderedFloat(46.8642),
+        long: OrderedFloat(3.16361),
+        locality: "Magny Cours".to_string(),
+        country: "France".to_string(),
+    },
+});
+
 pub(crate) static CIRCUIT_ALBERT_PARK: LazyLock<Circuit> = LazyLock::new(|| Circuit {
     circuit_id: "albert_park".into(),
     url: Url::parse("https://en.wikipedia.org/wiki/Albert_Park_Circuit").unwrap(),
@@ -809,6 +872,7 @@ pub(crate) const CIRCUIT_TABLE_STR: &str = formatcp!(
     "CircuitTable": {{
         "Circuits": [
             {CIRCUIT_GEORGE_STR},
+            {CIRCUIT_MAGNY_COURS_STR},
             {CIRCUIT_ALBERT_PARK_STR},
             {CIRCUIT_SPA_STR},
             {CIRCUIT_SILVERSTONE_STR},
@@ -822,6 +886,7 @@ pub(crate) const CIRCUIT_TABLE_STR: &str = formatcp!(
 pub(crate) static CIRCUIT_TABLE: LazyLock<Table> = LazyLock::new(|| Table::Circuits {
     circuits: vec![
         CIRCUIT_GEORGE.clone(),
+        CIRCUIT_MAGNY_COURS.clone(),
         CIRCUIT_ALBERT_PARK.clone(),
         CIRCUIT_SPA.clone(),
         CIRCUIT_SILVERSTONE.clone(),
@@ -845,6 +910,17 @@ pub(crate) const RACE_1950_1_STR: &str = formatcp!(
   "#
 );
 
+pub(crate) const RACE_1950_5_STR: &str = formatcp!(
+    r#"
+    "season": "1950",
+    "round": "5",
+    "url": "https://en.wikipedia.org/wiki/1950_Belgian_Grand_Prix",
+    "raceName": "Belgian Grand Prix",
+    "Circuit": {CIRCUIT_SPA_STR},
+    "date": "1950-06-18"
+  "#
+);
+
 pub(crate) const RACE_1963_10_STR: &str = formatcp!(
     r#"
     "season": "1963",
@@ -853,6 +929,17 @@ pub(crate) const RACE_1963_10_STR: &str = formatcp!(
     "raceName": "South African Grand Prix",
     "Circuit": {CIRCUIT_GEORGE_STR},
     "date": "1963-12-28"
+  "#
+);
+
+pub(crate) const RACE_1998_8_STR: &str = formatcp!(
+    r#"
+    "season": "1998",
+    "round": "8",
+    "url": "https://en.wikipedia.org/wiki/1998_French_Grand_Prix",
+    "raceName": "French Grand Prix",
+    "Circuit": {CIRCUIT_MAGNY_COURS_STR},
+    "date": "1998-06-28"
   "#
 );
 
@@ -1016,6 +1103,16 @@ pub(crate) const RACE_1950_1: LazyLock<Race> = LazyLock::new(|| Race {
     ..RACE_NONE.clone()
 });
 
+pub(crate) const RACE_1950_5: LazyLock<Race> = LazyLock::new(|| Race {
+    season: 1950,
+    round: 5,
+    url: Url::parse("https://en.wikipedia.org/wiki/1950_Belgian_Grand_Prix").unwrap(),
+    race_name: "Belgian Grand Prix".to_string(),
+    circuit: CIRCUIT_SPA.clone(),
+    date: date!(1950 - 06 - 18),
+    ..RACE_NONE.clone()
+});
+
 pub(crate) const RACE_1963_10: LazyLock<Race> = LazyLock::new(|| Race {
     season: 1963,
     round: 10,
@@ -1023,6 +1120,16 @@ pub(crate) const RACE_1963_10: LazyLock<Race> = LazyLock::new(|| Race {
     race_name: "South African Grand Prix".to_string(),
     circuit: CIRCUIT_GEORGE.clone(),
     date: date!(1963 - 12 - 28),
+    ..RACE_NONE.clone()
+});
+
+pub(crate) const RACE_1998_8: LazyLock<Race> = LazyLock::new(|| Race {
+    season: 1998,
+    round: 8,
+    url: Url::parse("https://en.wikipedia.org/wiki/1998_French_Grand_Prix").unwrap(),
+    race_name: "French Grand Prix".to_string(),
+    circuit: CIRCUIT_MAGNY_COURS.clone(),
+    date: date!(1998 - 06 - 28),
     ..RACE_NONE.clone()
 });
 
@@ -1861,6 +1968,8 @@ pub(crate) const RACE_TIME_1950_4_P1: LazyLock<RaceTime> = LazyLock::new(|| Race
 pub(crate) const RACE_TIME_1950_4_P2: LazyLock<RaceTime> =
     LazyLock::new(|| RaceTime::with_delta(duration_millis(7374100), duration_millis(400)));
 
+pub(crate) const RACE_TIME_1950_5_P1: LazyLock<RaceTime> = LazyLock::new(|| RaceTime::lead(duration_millis(10046000)));
+
 pub(crate) const RACE_TIME_2003_4_P1: LazyLock<RaceTime> = LazyLock::new(|| RaceTime::lead(duration_millis(5292058)));
 
 pub(crate) const RACE_TIME_2003_4_P2: LazyLock<RaceTime> =
@@ -2111,6 +2220,25 @@ pub(crate) static RACE_2024_5_SPRINT_RESULTS: LazyLock<Race> = LazyLock::new(|| 
 // https://api.jolpi.ca/ergast/f1/results/
 // ---------------------------------------
 
+// @todo Buggy "Time" field in Jolpi-ca F1 for this entry, should be "2:47:26"
+pub(crate) const RACE_RESULT_1950_5_P1_STR: &str = formatcp!(
+    r#"{{
+    "number": "10",
+    "position": "1",
+    "positionText": "1",
+    "points": "8",
+    "Driver": {DRIVER_FANGIO_STR},
+    "Constructor": {CONSTRUCTOR_ALFA_ROMEO_STR},
+    "grid": "2",
+    "laps": "35",
+    "status": "Finished",
+    "Time": {{
+        "millis": "10046000",
+        "time": "2:47"
+    }}
+  }}"#
+);
+
 pub(crate) const RACE_RESULT_1963_10_P23_STR: &str = formatcp!(
     r#"{{
     "number": "None",
@@ -2122,6 +2250,26 @@ pub(crate) const RACE_RESULT_1963_10_P23_STR: &str = formatcp!(
     "grid": "0",
     "laps": "0",
     "status": "Withdrew"
+  }}"#
+);
+
+// @todo Buggy "Time" field in Jolpi-ca F1 for this entry, should be "1:34:45.026"
+// @todo The 'millis' field is incorrect by 26 milliseconds, it should be "5685026"
+pub(crate) const RACE_RESULT_1998_8_P1_STR: &str = formatcp!(
+    r#"{{
+    "number": "3",
+    "position": "1",
+    "positionText": "1",
+    "points": "10",
+    "Driver": {DRIVER_MICHAEL_STR},
+    "Constructor": {CONSTRUCTOR_FERRARI_STR},
+    "grid": "2",
+    "laps": "71",
+    "status": "Finished",
+    "Time": {{
+        "millis": "5685000",
+        "time": "1:34"
+    }}
   }}"#
 );
 
@@ -2235,31 +2383,31 @@ pub(crate) const RACE_RESULT_2021_12_P10_STR: &str = formatcp!(
 // @todo Buggy "Time" field with "+-" in Jolpi-ca F1 for this entry
 pub(crate) const RACE_RESULT_2023_3_P15_STR: &str = formatcp!(
     r#"{{
-        "number": "21",
-        "position": "15",
-        "positionText": "15",
-        "points": "0",
-        "Driver": {DRIVER_DE_VRIES_STR},
-        "Constructor": {CONSTRUCTOR_ALPHA_TAURI_STR},
-        "grid": "15",
-        "laps": "56",
-        "status": "Finished",
+    "number": "21",
+    "position": "15",
+    "positionText": "15",
+    "points": "0",
+    "Driver": {DRIVER_DE_VRIES_STR},
+    "Constructor": {CONSTRUCTOR_ALPHA_TAURI_STR},
+    "grid": "15",
+    "laps": "56",
+    "status": "Finished",
+    "Time": {{
+        "millis": "7005713",
+        "time": "+-1:24:07.342"
+    }},
+    "FastestLap": {{
+        "rank": "10",
+        "lap": "50",
         "Time": {{
-            "millis": "7005713",
-            "time": "+-1:24:07.342"
+            "time": "1:21.183"
         }},
-        "FastestLap": {{
-            "rank": "10",
-            "lap": "50",
-            "Time": {{
-                "time": "1:21.183"
-            }},
-            "AverageSpeed": {{
-                "units": "kph",
-                "speed": "234.049"
-            }}
+        "AverageSpeed": {{
+            "units": "kph",
+            "speed": "234.049"
         }}
-      }}"#
+    }}
+  }}"#
 );
 
 pub(crate) const RACE_RESULT_2023_4_P1_STR: &str = formatcp!(
@@ -2339,6 +2487,20 @@ pub(crate) const RACE_RESULT_2023_4_P20_STR: &str = formatcp!(
   }}"#
 );
 
+pub(crate) const RACE_RESULT_1950_5_P1: LazyLock<RaceResult> = LazyLock::new(|| RaceResult {
+    number: 10,
+    position: 1,
+    position_text: Position::Finished(1),
+    points: 8.0,
+    driver: DRIVER_FANGIO.clone(),
+    constructor: CONSTRUCTOR_ALFA_ROMEO.clone(),
+    grid: 2,
+    laps: 35,
+    status: "Finished".to_string(),
+    time: Some(RACE_TIME_1950_5_P1.clone()),
+    fastest_lap: None,
+});
+
 pub(crate) const RACE_RESULT_1963_10_P23: LazyLock<RaceResult> = LazyLock::new(|| RaceResult {
     number: RaceResult::NO_NUMBER,
     position: 23,
@@ -2350,6 +2512,24 @@ pub(crate) const RACE_RESULT_1963_10_P23: LazyLock<RaceResult> = LazyLock::new(|
     laps: 0,
     status: "Withdrew".to_string(),
     time: None,
+    fastest_lap: None,
+});
+
+// @todo Buggy "Time" field in Jolpi-ca F1 for this entry, should be "1:34:45.026"
+// @todo The 'millis' field is incorrect by 26 milliseconds, it should be "5685026"
+// This asset is temporarily changed to the wrong value in order to allow the tests to pass.
+pub(crate) const RACE_RESULT_1998_8_P1: LazyLock<RaceResult> = LazyLock::new(|| RaceResult {
+    number: 3,
+    position: 1,
+    position_text: Position::Finished(1),
+    points: 10.0,
+    driver: DRIVER_MICHAEL.clone(),
+    constructor: CONSTRUCTOR_FERRARI.clone(),
+    grid: 2,
+    laps: 71,
+    status: "Finished".to_string(),
+    // Buggy in Jolpi-ca F1, should be duration_millis(5685026)
+    time: Some(RaceTime::lead(duration_millis(5685000))),
     fastest_lap: None,
 });
 
@@ -2540,6 +2720,20 @@ pub(crate) const RACE_RESULT_2023_4_P20: LazyLock<RaceResult> = LazyLock::new(||
     }),
 });
 
+pub(crate) const RACE_1950_5_RACE_RESULTS_STR: &str = formatcp!(
+    r#"{{
+    {RACE_1950_5_STR},
+    "Results": [
+        {RACE_RESULT_1950_5_P1_STR}
+    ]
+  }}"#
+);
+
+pub(crate) static RACE_1950_5_RACE_RESULTS: LazyLock<Race> = LazyLock::new(|| Race {
+    payload: Payload::RaceResults(vec![RACE_RESULT_1950_5_P1.clone()]),
+    ..RACE_1950_5.clone()
+});
+
 pub(crate) const RACE_1963_10_RACE_RESULTS_STR: &str = formatcp!(
     r#"{{
     {RACE_1963_10_STR},
@@ -2552,6 +2746,20 @@ pub(crate) const RACE_1963_10_RACE_RESULTS_STR: &str = formatcp!(
 pub(crate) static RACE_1963_10_RACE_RESULTS: LazyLock<Race> = LazyLock::new(|| Race {
     payload: Payload::RaceResults(vec![RACE_RESULT_1963_10_P23.clone()]),
     ..RACE_1963_10.clone()
+});
+
+pub(crate) const RACE_1998_8_RACE_RESULTS_STR: &str = formatcp!(
+    r#"{{
+    {RACE_1998_8_STR},
+    "Results": [
+        {RACE_RESULT_1998_8_P1_STR}
+    ]
+  }}"#
+);
+
+pub(crate) static RACE_1998_8_RACE_RESULTS: LazyLock<Race> = LazyLock::new(|| Race {
+    payload: Payload::RaceResults(vec![RACE_RESULT_1998_8_P1.clone()]),
+    ..RACE_1998_8.clone()
 });
 
 pub(crate) const RACE_2003_4_RACE_RESULTS_STR: &str = formatcp!(

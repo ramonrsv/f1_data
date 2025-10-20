@@ -10,8 +10,8 @@ use crate::{
     error::{Error, Result},
     id::{CircuitID, ConstructorID, DriverID, RoundID, SeasonID, StatusID},
     jolpica::time::{
-        Date, DateTime, Duration, QualifyingTime, RaceTime, Time, deserialize_duration, deserialize_optional_time,
-        deserialize_time,
+        Date, DateTime, Duration, QualifyingTime, RaceTime, Time, deserialize_buggy_race_time, deserialize_duration,
+        deserialize_optional_time, deserialize_time,
     },
 };
 
@@ -1046,37 +1046,6 @@ pub struct RaceResult {
     pub fastest_lap: Option<FastestLap>,
 }
 
-/// Workaround for a bug in the jolpica-f1 API where some race times seem to be buggy.
-///
-/// For example, 2023, R3, P13+, non-lapped cars have 'millis' that are lower than P12, and the
-/// 'time', expected as a "+hh:mm:ss.sss" string, is instead something like "+-1:24:07.342" for P15.
-/// See `crate::jolpica::tests::known_bugs` for more details and associated tests.
-///
-/// To handle this issue, we manually deserialize an [`Option<RaceTime>`], returning [`None`] if we
-/// detect a leading `"+-"` in the time string, and otherwise parsing a [`RaceTime`] as normal.
-fn deserialize_buggy_race_time<'de, D>(deserializer: D) -> std::result::Result<Option<RaceTime>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[serde_as]
-    #[derive(Deserialize)]
-    struct Proxy {
-        time: String,
-    }
-
-    let in_str = serde_json::Value::deserialize(deserializer)?.to_string();
-
-    if let Ok(proxy) = serde_json::from_str::<Proxy>(in_str.as_str())
-        && proxy.time.starts_with("+-")
-    {
-        Ok(None)
-    } else {
-        serde_json::from_str::<RaceTime>(in_str.as_str())
-            .map(Some)
-            .map_err(serde::de::Error::custom)
-    }
-}
-
 impl RaceResult {
     /// Represents that no car number was assigned to a race result, set in [`RaceResult::number`].
     /// This only happened for a few entries in two races in the 1960s. As such, it's not worth the
@@ -1461,9 +1430,17 @@ mod tests {
 
     #[test]
     fn race_results() {
+        let race: Race = serde_json::from_str(RACE_1950_5_RACE_RESULTS_STR).unwrap();
+        assert_false!(race.payload.as_race_results().unwrap().is_empty());
+        assert_eq!(race, *RACE_1950_5_RACE_RESULTS);
+
         let race: Race = serde_json::from_str(RACE_1963_10_RACE_RESULTS_STR).unwrap();
         assert_false!(race.payload.as_race_results().unwrap().is_empty());
         assert_eq!(race, *RACE_1963_10_RACE_RESULTS);
+
+        let race: Race = serde_json::from_str(RACE_1998_8_RACE_RESULTS_STR).unwrap();
+        assert_false!(race.payload.as_race_results().unwrap().is_empty());
+        assert_eq!(race, *RACE_1998_8_RACE_RESULTS);
 
         let race: Race = serde_json::from_str(RACE_2003_4_RACE_RESULTS_STR).unwrap();
         assert_false!(race.payload.as_race_results().unwrap().is_empty());

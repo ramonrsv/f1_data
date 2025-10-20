@@ -312,6 +312,60 @@ impl<'de> Deserialize<'de> for RaceTime {
     }
 }
 
+/// Workaround for sever issues/bugs in some race times from the jolpica-f1 API.
+///
+/// For example, 2023, R3, P13+, non-lapped cars have 'millis' that are lower than P12, and the
+/// 'time', expected as a "+hh:mm:ss.sss" string, is instead something like "+-1:24:07.342" for P15.
+/// To handle this issue, we manually deserialize an [`Option<RaceTime>`], returning [`None`] if we
+/// detect a leading `"+-"` in the time string, and otherwise parsing a [`RaceTime`] as normal.
+///
+/// For example, 1950, R5, P1, the 'time' should be "2:47:26" but is instead "2:47". It seems that
+/// the seconds component is missing, although the 'millis' is correct and contains the seconds.
+/// To handle this issue, we use a regex to detect the "hh:mm" format, verify that it matches
+/// the 'millis' to within 60s, and construct a [`RaceTime::lead`] from the 'millis' value.
+///
+/// See `crate::jolpica::tests::known_bugs` for more details and associated tests.
+pub(crate) fn deserialize_buggy_race_time<'de, D>(deserializer: D) -> Result<Option<RaceTime>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[serde_as]
+    #[derive(Deserialize)]
+    struct Proxy {
+        millis: String,
+        time: String,
+    }
+
+    const FORMAT_REGEX_STR: &str = r"^(\d{1,2}):(\d{1,2})$";
+    static RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(FORMAT_REGEX_STR).unwrap());
+
+    let in_str = serde_json::Value::deserialize(deserializer)?.to_string();
+    let proxy = serde_json::from_str::<Proxy>(in_str.as_str()).map_err(serde::de::Error::custom)?;
+    let millis = parse_integer(&proxy.millis);
+
+    if proxy.time.starts_with("+-") {
+        Ok(None)
+    } else if let Some(matches) = RE.captures(&proxy.time) {
+        let hours = parse_integer(&matches[1]);
+        let minutes = parse_integer(&matches[2]);
+
+        let millis_from_delta = (hours * 3600 + minutes * 60) * 1000;
+
+        if (millis - millis_from_delta).abs() > (60 * 1000) {
+            return Err(serde::de::Error::custom(format!(
+                "Buggy delta 'time: {}' does not match 'millis: {}' to within 60s",
+                proxy.time, proxy.millis
+            )));
+        }
+
+        Ok(Some(RaceTime::lead(Duration::milliseconds(millis))))
+    } else {
+        serde_json::from_str::<RaceTime>(in_str.as_str())
+            .map(Some)
+            .map_err(serde::de::Error::custom)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::panic::catch_unwind;

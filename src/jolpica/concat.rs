@@ -275,14 +275,14 @@ mod tests {
     static RESPONSES_DRIVERS: LazyLock<Vec<Response>> = LazyLock::new(|| {
         vec![
             Response {
-                pagination: make_pagination(5, 0, 15),
+                pagination: make_pagination(5, 0, 16),
                 table: Table::Drivers {
                     drivers: DRIVER_TABLE.as_drivers().unwrap()[0..5].to_vec(),
                 },
                 ..RESPONSE_NONE.clone()
             },
             Response {
-                pagination: make_pagination(3, 5, 15),
+                pagination: make_pagination(3, 5, 16),
                 table: Table::Drivers {
                     drivers: DRIVER_TABLE.as_drivers().unwrap()[5..8].to_vec(),
                 },
@@ -290,9 +290,9 @@ mod tests {
             },
             Response {
                 // `limit` purposely goes > `total` to test that case
-                pagination: make_pagination(30, 8, 15),
+                pagination: make_pagination(30, 8, 16),
                 table: Table::Drivers {
-                    drivers: DRIVER_TABLE.as_drivers().unwrap()[8..15].to_vec(),
+                    drivers: DRIVER_TABLE.as_drivers().unwrap()[8..16].to_vec(),
                 },
                 ..RESPONSE_NONE.clone()
             },
@@ -411,10 +411,10 @@ mod tests {
     fn concat_responses_drivers() {
         let response = concat_response_multi_pages(RESPONSES_DRIVERS.clone(), PageVerify::ALL).unwrap();
         assert_eq!(response.as_info(), RESPONSE_NONE.as_info());
-        assert_eq!(response.as_drivers().unwrap().len(), 15);
+        assert_eq!(response.as_drivers().unwrap().len(), 16);
         assert_eq!(response.as_drivers().unwrap(), &DRIVER_TABLE.as_drivers().unwrap()[..]);
         // Note the accumulated `limit` > `total` to test that case
-        assert_eq!(response.pagination, make_pagination(38, 0, 15));
+        assert_eq!(response.pagination, make_pagination(38, 0, 16));
 
         let response = concat_response_multi_pages(
             RESPONSES_DRIVERS[..2].to_vec(),
@@ -424,7 +424,7 @@ mod tests {
         assert_eq!(response.as_info(), RESPONSE_NONE.as_info());
         assert_eq!(response.as_drivers().unwrap().len(), 8);
         assert_eq!(response.as_drivers().unwrap(), &DRIVER_TABLE.as_drivers().unwrap()[..8]);
-        assert_eq!(response.pagination, make_pagination(8, 0, 15));
+        assert_eq!(response.pagination, make_pagination(8, 0, 16));
 
         let response = concat_response_multi_pages(
             vec![RESPONSES_DRIVERS[0].clone()],
@@ -434,7 +434,7 @@ mod tests {
         assert_eq!(response.as_info(), RESPONSE_NONE.as_info());
         assert_eq!(response.as_drivers().unwrap().len(), 5);
         assert_eq!(response.as_drivers().unwrap(), &DRIVER_TABLE.as_drivers().unwrap()[..5]);
-        assert_eq!(response.pagination, make_pagination(5, 0, 15));
+        assert_eq!(response.pagination, make_pagination(5, 0, 16));
     }
 
     #[test]
