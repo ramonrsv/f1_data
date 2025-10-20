@@ -1896,6 +1896,12 @@ mod tests {
             &RACE_2023_4_SPRINT_RESULTS,
             LenConstraint::Exactly(20),
         );
+
+        assert_each_expected_session_result_in_actual_event(
+            || JOLPICA_SP.get_sprint_results_for_event(race_filters(2024, 5)),
+            &RACE_2024_5_SPRINT_RESULTS,
+            LenConstraint::Exactly(20),
+        );
     }
 
     #[test]
@@ -1915,6 +1921,12 @@ mod tests {
             |filters| JOLPICA_SP.get_sprint_result(filters),
             |result, filters| filters.sprint_pos(result.position),
             &RACE_2023_4_SPRINT_RESULTS,
+        );
+
+        assert_each_get_eq_expected_session_result(
+            |filters| JOLPICA_SP.get_sprint_result(filters),
+            |result, filters| filters.sprint_pos(result.position),
+            &RACE_2024_5_SPRINT_RESULTS,
         );
     }
 
@@ -2009,6 +2021,12 @@ mod tests {
         assert_each_expected_session_result_in_actual_event(
             || JOLPICA_SP.get_race_results_for_event(race_filters(2021, 12)),
             &RACE_2021_12_RACE_RESULTS,
+            LenConstraint::Exactly(20),
+        );
+
+        assert_each_expected_session_result_in_actual_event(
+            || JOLPICA_SP.get_race_results_for_event(race_filters(2023, 3)),
+            &RACE_2023_3_RACE_RESULTS,
             LenConstraint::Exactly(20),
         );
 

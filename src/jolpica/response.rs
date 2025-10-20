@@ -980,7 +980,9 @@ pub struct SprintResult {
     #[serde_as(as = "DisplayFromStr")]
     pub laps: u32,
     pub status: String,
-    #[serde(rename = "Time")]
+    // @todo If and when the API bug is fixed, this can be changed back to:
+    // #[serde(rename = "Time")]
+    #[serde(rename = "Time", default, deserialize_with = "deserialize_buggy_race_time")]
     pub time: Option<RaceTime>,
     #[serde(rename = "FastestLap")]
     pub fastest_lap: Option<FastestLap>,
@@ -1431,6 +1433,10 @@ mod tests {
         let race: Race = serde_json::from_str(RACE_2023_4_SPRINT_RESULTS_STR).unwrap();
         assert_false!(race.payload.as_sprint_results().unwrap().is_empty());
         assert_eq!(race, *RACE_2023_4_SPRINT_RESULTS);
+
+        let race: Race = serde_json::from_str(RACE_2024_5_SPRINT_RESULTS_STR).unwrap();
+        assert_false!(race.payload.as_sprint_results().unwrap().is_empty());
+        assert_eq!(race, *RACE_2024_5_SPRINT_RESULTS);
     }
 
     #[test]

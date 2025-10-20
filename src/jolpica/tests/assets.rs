@@ -532,6 +532,13 @@ pub(crate) const CONSTRUCTOR_MERCEDES_STR: &str = r#"{
     "nationality": "German"
   }"#;
 
+pub(crate) const CONSTRUCTOR_ASTON_MARTIN_STR: &str = r#"{
+    "constructorId": "aston_martin",
+    "url": "http://en.wikipedia.org/wiki/Aston_Martin_in_Formula_One",
+    "name": "Aston Martin",
+    "nationality": "British"
+  }"#;
+
 pub(crate) static CONSTRUCTOR_LOLA: LazyLock<Constructor> = LazyLock::new(|| Constructor {
     constructor_id: "lola".into(),
     url: Url::parse("http://en.wikipedia.org/wiki/MasterCard_Lola").unwrap(),
@@ -588,6 +595,13 @@ pub(crate) static CONSTRUCTOR_MERCEDES: LazyLock<Constructor> = LazyLock::new(||
     nationality: "German".to_string(),
 });
 
+pub(crate) static CONSTRUCTOR_ASTON_MARTIN: LazyLock<Constructor> = LazyLock::new(|| Constructor {
+    constructor_id: "aston_martin".into(),
+    url: Url::parse("http://en.wikipedia.org/wiki/Aston_Martin_in_Formula_One").unwrap(),
+    name: "Aston Martin".to_string(),
+    nationality: "British".to_string(),
+});
+
 pub(crate) const CONSTRUCTOR_TABLE_STR: &str = formatcp!(
     r#"{{
     "ConstructorTable": {{
@@ -599,7 +613,8 @@ pub(crate) const CONSTRUCTOR_TABLE_STR: &str = formatcp!(
             {CONSTRUCTOR_MINARDI_STR},
             {CONSTRUCTOR_ALPHA_TAURI_STR},
             {CONSTRUCTOR_RED_BULL_STR},
-            {CONSTRUCTOR_MERCEDES_STR}
+            {CONSTRUCTOR_MERCEDES_STR},
+            {CONSTRUCTOR_ASTON_MARTIN_STR}
         ]
     }}}}"#
 );
@@ -614,6 +629,7 @@ pub(crate) static CONSTRUCTOR_TABLE: LazyLock<Table> = LazyLock::new(|| Table::C
         CONSTRUCTOR_ALPHA_TAURI.clone(),
         CONSTRUCTOR_RED_BULL.clone(),
         CONSTRUCTOR_MERCEDES.clone(),
+        CONSTRUCTOR_ASTON_MARTIN.clone(),
     ],
 });
 
@@ -692,6 +708,18 @@ pub(crate) const CIRCUIT_BAKU_STR: &str = r#"{
     }
   }"#;
 
+pub(crate) const CIRCUIT_SHANGHAI_STR: &str = r#"{
+    "circuitId": "shanghai",
+    "url": "https://en.wikipedia.org/wiki/Shanghai_International_Circuit",
+    "circuitName": "Shanghai International Circuit",
+    "Location": {
+      "lat": "31.3389",
+      "long": "121.22",
+      "locality": "Shanghai",
+      "country": "China"
+    }
+  }"#;
+
 pub(crate) static CIRCUIT_GEORGE: LazyLock<Circuit> = LazyLock::new(|| Circuit {
     circuit_id: "george".into(),
     url: Url::parse("https://en.wikipedia.org/wiki/Prince_George_Circuit").unwrap(),
@@ -764,6 +792,18 @@ pub(crate) static CIRCUIT_BAKU: LazyLock<Circuit> = LazyLock::new(|| Circuit {
     },
 });
 
+pub(crate) static CIRCUIT_SHANGHAI: LazyLock<Circuit> = LazyLock::new(|| Circuit {
+    circuit_id: "shanghai".into(),
+    url: Url::parse("https://en.wikipedia.org/wiki/Shanghai_International_Circuit").unwrap(),
+    circuit_name: "Shanghai International Circuit".to_string(),
+    location: Location {
+        lat: OrderedFloat(31.3389),
+        long: OrderedFloat(121.22),
+        locality: "Shanghai".to_string(),
+        country: "China".to_string(),
+    },
+});
+
 pub(crate) const CIRCUIT_TABLE_STR: &str = formatcp!(
     r#"{{
     "CircuitTable": {{
@@ -773,7 +813,8 @@ pub(crate) const CIRCUIT_TABLE_STR: &str = formatcp!(
             {CIRCUIT_SPA_STR},
             {CIRCUIT_SILVERSTONE_STR},
             {CIRCUIT_IMOLA_STR},
-            {CIRCUIT_BAKU_STR}
+            {CIRCUIT_BAKU_STR},
+            {CIRCUIT_SHANGHAI_STR}
         ]
     }}}}"#
 );
@@ -786,6 +827,7 @@ pub(crate) static CIRCUIT_TABLE: LazyLock<Table> = LazyLock::new(|| Table::Circu
         CIRCUIT_SILVERSTONE.clone(),
         CIRCUIT_IMOLA.clone(),
         CIRCUIT_BAKU.clone(),
+        CIRCUIT_SHANGHAI.clone(),
     ],
 });
 
@@ -918,6 +960,18 @@ pub(crate) const RACE_2023_12_STR: &str = formatcp!(
     "Circuit": {CIRCUIT_SPA_STR},
     "date": "2023-07-30",
     "time": "13:00:00Z"
+  "#
+);
+
+pub(crate) const RACE_2024_5_STR: &str = formatcp!(
+    r#"
+    "season": "2024",
+    "round": "5",
+    "url": "https://en.wikipedia.org/wiki/2024_Chinese_Grand_Prix",
+    "raceName": "Chinese Grand Prix",
+    "Circuit": {CIRCUIT_SHANGHAI_STR},
+    "date": "2024-04-21",
+    "time": "07:00:00Z"
   "#
 );
 
@@ -1067,6 +1121,17 @@ pub(crate) const RACE_2023_12: LazyLock<Race> = LazyLock::new(|| Race {
     circuit: CIRCUIT_SPA.clone(),
     date: date!(2023 - 07 - 30),
     time: Some(time!(13:00:00)),
+    ..RACE_NONE.clone()
+});
+
+pub(crate) const RACE_2024_5: LazyLock<Race> = LazyLock::new(|| Race {
+    season: 2024,
+    round: 5,
+    url: Url::parse("https://en.wikipedia.org/wiki/2024_Chinese_Grand_Prix").unwrap(),
+    race_name: "Chinese Grand Prix".to_string(),
+    circuit: CIRCUIT_SHANGHAI.clone(),
+    date: date!(2024 - 04 - 21),
+    time: Some(time!(07:00:00)),
     ..RACE_NONE.clone()
 });
 
@@ -1930,6 +1995,32 @@ pub(crate) const SPRINT_RESULT_2023_4_P3_STR: &str = formatcp!(
   }}"#
 );
 
+// @todo Buggy "Time" field with "+-" in Jolpi-ca F1 for this entry
+pub(crate) const SPRINT_RESULT_2024_5_P20_STR: &str = formatcp!(
+    r#"{{
+    "number": "14",
+    "position": "20",
+    "positionText": "20",
+    "points": "0",
+    "Driver": {DRIVER_ALONSO_STR},
+    "Constructor": {CONSTRUCTOR_ASTON_MARTIN_STR},
+    "grid": "3",
+    "laps": "17",
+    "status": "Retired",
+    "Time": {{
+        "millis": "1779513",
+        "time": "+-1:57:34.853"
+    }},
+    "FastestLap": {{
+        "rank": "3",
+        "lap": "3",
+        "Time": {{
+            "time": "1:40.537"
+        }}
+    }}
+  }}"#
+);
+
 pub(crate) const SPRINT_RESULT_2023_4_P1: LazyLock<SprintResult> = LazyLock::new(|| SprintResult {
     number: 11,
     position: 1,
@@ -1968,6 +2059,26 @@ pub(crate) const SPRINT_RESULT_2023_4_P3: LazyLock<SprintResult> = LazyLock::new
     }),
 });
 
+// @todo Buggy "Time" field with "+-" in Jolpi-ca F1 for this entry, parsed as [`None`] for now
+pub(crate) const SPRINT_RESULT_2024_5_P20: LazyLock<SprintResult> = LazyLock::new(|| SprintResult {
+    number: 14,
+    position: 20,
+    position_text: Position::Finished(20),
+    points: 0.0,
+    driver: DRIVER_ALONSO.clone(),
+    constructor: CONSTRUCTOR_ASTON_MARTIN.clone(),
+    grid: 3,
+    laps: 17,
+    status: "Retired".to_string(),
+    time: None, // Buggy in Jolpi-ca F1
+    fastest_lap: Some(FastestLap {
+        rank: Some(3),
+        lap: 3,
+        time: duration_m_s_ms(1, 40, 537),
+        average_speed: None,
+    }),
+});
+
 pub(crate) const RACE_2023_4_SPRINT_RESULTS_STR: &str = formatcp!(
     r#"{{
     {RACE_2023_4_STR},
@@ -1981,6 +2092,20 @@ pub(crate) const RACE_2023_4_SPRINT_RESULTS_STR: &str = formatcp!(
 pub(crate) static RACE_2023_4_SPRINT_RESULTS: LazyLock<Race> = LazyLock::new(|| Race {
     payload: Payload::SprintResults(vec![SPRINT_RESULT_2023_4_P1.clone(), SPRINT_RESULT_2023_4_P3.clone()]),
     ..RACE_2023_4.clone()
+});
+
+pub(crate) const RACE_2024_5_SPRINT_RESULTS_STR: &str = formatcp!(
+    r#"{{
+    {RACE_2024_5_STR},
+    "SprintResults": [
+        {SPRINT_RESULT_2024_5_P20_STR}
+    ]
+  }}"#
+);
+
+pub(crate) static RACE_2024_5_SPRINT_RESULTS: LazyLock<Race> = LazyLock::new(|| Race {
+    payload: Payload::SprintResults(vec![SPRINT_RESULT_2024_5_P20.clone()]),
+    ..RACE_2024_5.clone()
 });
 
 // https://api.jolpi.ca/ergast/f1/results/
@@ -2107,7 +2232,7 @@ pub(crate) const RACE_RESULT_2021_12_P10_STR: &str = formatcp!(
   }}"#
 );
 
-// @todo Buggy "Time" field in Jolpi-ca F1 for this entry
+// @todo Buggy "Time" field with "+-" in Jolpi-ca F1 for this entry
 pub(crate) const RACE_RESULT_2023_3_P15_STR: &str = formatcp!(
     r#"{{
         "number": "21",
@@ -2326,7 +2451,7 @@ pub(crate) const RACE_RESULT_2021_12_P10: LazyLock<RaceResult> = LazyLock::new(|
     fastest_lap: None,
 });
 
-// @todo Buggy "Time" field in Jolpi-ca F1 for this entry
+// @todo Buggy "Time" field with "+-" in Jolpi-ca F1 for this entry, parsed as [`None`] for now
 pub(crate) const RACE_RESULT_2023_3_P15: LazyLock<RaceResult> = LazyLock::new(|| RaceResult {
     number: 21,
     position: 15,
