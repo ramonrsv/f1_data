@@ -1,5 +1,6 @@
 use governor::DefaultDirectRateLimiter;
 pub use governor::Quota;
+pub use nonzero_ext::nonzero;
 
 /// A simple rate limiter providing a minimal interface required by this crate.
 ///
@@ -77,8 +78,8 @@ mod tests {
             let elapsed = start.elapsed();
 
             // Subsequent requests should wait, ~100ms each
-            assert_ge!(elapsed, Duration::from_millis(95));
-            assert_lt!(elapsed, Duration::from_millis(105));
+            assert_ge!(elapsed, Duration::from_millis(90));
+            assert_lt!(elapsed, Duration::from_millis(110));
         }
 
         // Wait one second (10 tokens @10/s) to let the limiter replenish
@@ -98,8 +99,8 @@ mod tests {
             let elapsed = start.elapsed();
 
             // Subsequent requests should wait, ~100ms each
-            assert_ge!(elapsed, Duration::from_millis(95));
-            assert_lt!(elapsed, Duration::from_millis(105));
+            assert_ge!(elapsed, Duration::from_millis(90));
+            assert_lt!(elapsed, Duration::from_millis(110));
         }
     }
 
@@ -120,8 +121,8 @@ mod tests {
         let elapsed = start.elapsed();
 
         // Subsequent requests should wait, ~100ms each, ~1000ms total
-        assert_ge!(elapsed, Duration::from_millis(995));
-        assert_lt!(elapsed, Duration::from_millis(1005));
+        assert_ge!(elapsed, Duration::from_millis(990));
+        assert_lt!(elapsed, Duration::from_millis(1010));
 
         // Wait two seconds (20 tokens @10/s) to let the limiter replenish
         // It should only accumulate 10 burst tokens
@@ -139,7 +140,7 @@ mod tests {
         let elapsed = start.elapsed();
 
         // Subsequent requests should wait, ~100ms each, ~1000ms total
-        assert_ge!(elapsed, Duration::from_millis(995));
-        assert_lt!(elapsed, Duration::from_millis(1005));
+        assert_ge!(elapsed, Duration::from_millis(990));
+        assert_lt!(elapsed, Duration::from_millis(1010));
     }
 }

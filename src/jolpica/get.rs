@@ -217,7 +217,7 @@ pub fn retry_on_http_error<T>(
         return result;
     }
 
-    for _ in 0..=max_retries {
+    for _ in 0..max_retries {
         result = rate_limited_call();
 
         if !matches!(result, Err(Error::Http(_))) {
@@ -233,6 +233,7 @@ pub fn retry_on_http_error<T>(
 
 #[cfg(test)]
 mod tests {
+    use std::cell::RefCell;
     use std::time::Duration;
 
     use crate::{
@@ -242,7 +243,7 @@ mod tests {
             resource::Filters,
             tests::util::GLOBAL_JOLPICA_RATE_LIMITER,
         },
-        rate_limiter::RateLimiter,
+        rate_limiter::{Quota, RateLimiter, nonzero},
     };
 
     use crate::jolpica::tests::{
@@ -539,5 +540,112 @@ mod tests {
 
         // Only the first request should have been made
         assert_lt!(elapsed, Duration::from_millis(600));
+    }
+
+    // Helper function to create a closure that counts how many times it has been called.
+    // The counter is reset to zero whenever this function is called to make a new closure.
+    fn make_counter_f<T>(count: &RefCell<u32>, f: impl Fn() -> Result<T>) -> impl Fn() -> Result<T> {
+        *count.borrow_mut() = 0;
+
+        move || {
+            *count.borrow_mut() += 1;
+            f()
+        }
+    }
+
+    #[test]
+    fn counter_closure() {
+        let count = RefCell::<u32>::new(0);
+        let f = make_counter_f(&count, || Ok(()));
+
+        assert_eq!(*count.borrow(), 0);
+        let _unused = f();
+        assert_eq!(*count.borrow(), 1);
+        let _unused = f();
+        assert_eq!(*count.borrow(), 2);
+
+        let f = make_counter_f(&count, || Ok(()));
+        assert_eq!(*count.borrow(), 0);
+        let _unused = f();
+        assert_eq!(*count.borrow(), 1);
+    }
+
+    #[test]
+    fn retry_on_http_error() {
+        let count = RefCell::<u32>::new(0);
+
+        let f_ok = || Ok(42);
+        let f_err_http = || Err(Error::Http(ureq::Error::ConnectionFailed));
+        let f_err_non_http = || Err(Error::NotFound);
+
+        // let compiler deduce the type of the closures
+        let _unused: Result<u32> = f_err_http();
+        let _unused: Result<u32> = f_err_non_http();
+
+        // No retries, forwards everything
+        let result = super::retry_on_http_error(make_counter_f(&count, f_ok), None, None);
+        assert_eq!(result.unwrap(), 42);
+        assert_eq!(*count.borrow(), 1);
+
+        let result = super::retry_on_http_error(make_counter_f(&count, f_err_http), None, None);
+        assert!(matches!(result, Err(Error::Http(_))));
+        assert_eq!(*count.borrow(), 1);
+
+        let result = super::retry_on_http_error(make_counter_f(&count, f_err_non_http), None, Some(0));
+        assert!(matches!(result, Err(Error::NotFound)));
+        assert_eq!(*count.borrow(), 1);
+
+        // Succeeds on first try
+        let result = super::retry_on_http_error(make_counter_f(&count, f_ok), None, Some(3));
+        assert_true!(result.is_ok());
+        assert_eq!(result.unwrap(), 42);
+        assert_eq!(*count.borrow(), 1);
+
+        // Fails with non-HTTP error
+        let result = super::retry_on_http_error(make_counter_f(&count, f_err_non_http), None, Some(3));
+        assert!(matches!(result, Err(Error::NotFound)));
+        assert_eq!(*count.borrow(), 1);
+
+        // Fails twice with HTTP error, then succeeds
+        let result = super::retry_on_http_error(
+            make_counter_f(&count, || if *count.borrow() < 3 { f_err_http() } else { f_ok() }),
+            None,
+            Some(3),
+        );
+        assert_eq!(result.unwrap(), 42);
+        assert_eq!(*count.borrow(), 3);
+
+        // Fails twice with HTTP error, then with non-HTTP error
+        let result = super::retry_on_http_error(
+            make_counter_f(&count, || {
+                if *count.borrow() < 3 {
+                    f_err_http()
+                } else {
+                    f_err_non_http()
+                }
+            }),
+            None,
+            Some(3),
+        );
+        assert!(matches!(result, Err(Error::NotFound)));
+        assert_eq!(*count.borrow(), 3);
+
+        // Fails with HTTP error exceeding max retries
+        let result = super::retry_on_http_error(make_counter_f(&count, f_err_http), None, Some(3));
+        assert!(matches!(result, Err(Error::HttpRetries((3, _)))));
+        assert_eq!(*count.borrow(), 4);
+
+        // Rate limiting, 100ms per call
+        let rate_limiter = RateLimiter::new(Quota::per_second(nonzero!(10u32)).allow_burst(nonzero!(1u32)));
+        rate_limiter.wait_until_ready(); // Clear the starting burst cell
+
+        let start = std::time::Instant::now();
+        let result = super::retry_on_http_error(make_counter_f(&count, f_err_http), Some(&rate_limiter), Some(3));
+        let elapsed = start.elapsed();
+
+        assert!(matches!(result, Err(Error::HttpRetries((3, _)))));
+        assert_eq!(*count.borrow(), 4);
+        assert_ge!(elapsed, Duration::from_millis(100 * 4));
+        assert_lt!(elapsed, Duration::from_millis(100 * 5));
     }
 }

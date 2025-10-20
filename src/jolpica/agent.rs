@@ -2524,6 +2524,23 @@ mod tests {
         assert!(matches!(jolpica.get_response(&resource), Err(Error::Http(_))));
     }
 
+    #[test]
+    #[ignore]
+    fn get_response_error_http_retries() {
+        let jolpica = Agent::new(AgentConfigs {
+            base_url: "http://nonexistent.local".into(),
+            http_retries: Some(1),
+            rate_limiter: RateLimiterOption::None,
+            ..Default::default()
+        });
+
+        let resource = Resource::SeasonList(Filters::none());
+
+        assert!(matches!(jolpica.get_response_page(&resource, Page::default()), Err(Error::HttpRetries((1, _)))));
+        assert!(matches!(jolpica.get_response_multi_pages(&resource, None, None), Err(Error::HttpRetries((1, _)))));
+        assert!(matches!(jolpica.get_response(&resource), Err(Error::HttpRetries((1, _)))));
+    }
+
     // Rate limiting
     // -------------
 
