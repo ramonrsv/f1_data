@@ -214,12 +214,21 @@ mod tests {
         ));
     }
 
-    // @todo Getting all race results for "hamilton" produces the following error:
-    //     Http(Json(Error("Non-delta 'time: 2:19:35.060' must match 'millis: 8375059'", ...
+    // @todo 2020, R9, P1 "hamilton" has incorrect 'millis', off by 1ms, it should be 8375060
+    // This causes a parsing error as it find that the 'time' and 'millis' do not match.
+    #[test]
+    fn race_result_2020_9_p1() {
+        let result = serde_json::from_str::<RaceResult>(RACE_RESULT_2020_9_P1_STR);
+        assert!(matches!(result, Err(serde_json::Error { .. })));
+
+        let err_msg = format!("{}", result.unwrap_err());
+        assert!(err_msg.contains("Non-delta 'time: 2:19:35.060' must match 'millis: 8375059'"));
+    }
+
     #[test]
     #[ignore]
-    fn get_race_result_for_events_hamilton() {
-        let result = JOLPICA_MP.get_race_result_for_events(Filters::new().driver_id("hamilton".into()));
+    fn get_race_result_2020_9_p1() {
+        let result = JOLPICA_MP.get_race_result(Filters::new().season(2020).round(9).finish_pos(1));
         assert!(matches!(result, Err(Error::Parse(_))));
 
         let err_msg = format!("{}", result.unwrap_err());

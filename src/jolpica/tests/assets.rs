@@ -747,6 +747,18 @@ pub(crate) const CIRCUIT_IMOLA_STR: &str = r#"{
     }
   }"#;
 
+pub(crate) const CIRCUIT_MUGELLO_STR: &str = r#"{
+    "circuitId": "mugello",
+    "url": "https://en.wikipedia.org/wiki/Mugello_Circuit",
+    "circuitName": "Autodromo Internazionale del Mugello",
+    "Location": {
+      "lat": "43.9975",
+      "long": "11.3719",
+      "locality": "Mugello",
+      "country": "Italy"
+    }
+  }"#;
+
 pub(crate) const CIRCUIT_BAKU_STR: &str = r#"{
     "circuitId": "baku",
     "url": "https://en.wikipedia.org/wiki/Baku_City_Circuit",
@@ -843,6 +855,18 @@ pub(crate) static CIRCUIT_IMOLA: LazyLock<Circuit> = LazyLock::new(|| Circuit {
     },
 });
 
+pub(crate) static CIRCUIT_MUGELLO: LazyLock<Circuit> = LazyLock::new(|| Circuit {
+    circuit_id: "mugello".into(),
+    url: Url::parse("https://en.wikipedia.org/wiki/Mugello_Circuit").unwrap(),
+    circuit_name: "Autodromo Internazionale del Mugello".to_string(),
+    location: Location {
+        lat: OrderedFloat(43.9975),
+        long: OrderedFloat(11.3719),
+        locality: "Mugello".to_string(),
+        country: "Italy".to_string(),
+    },
+});
+
 pub(crate) static CIRCUIT_BAKU: LazyLock<Circuit> = LazyLock::new(|| Circuit {
     circuit_id: "baku".into(),
     url: Url::parse("https://en.wikipedia.org/wiki/Baku_City_Circuit").unwrap(),
@@ -877,6 +901,7 @@ pub(crate) const CIRCUIT_TABLE_STR: &str = formatcp!(
             {CIRCUIT_SPA_STR},
             {CIRCUIT_SILVERSTONE_STR},
             {CIRCUIT_IMOLA_STR},
+            {CIRCUIT_MUGELLO_STR},
             {CIRCUIT_BAKU_STR},
             {CIRCUIT_SHANGHAI_STR}
         ]
@@ -891,6 +916,7 @@ pub(crate) static CIRCUIT_TABLE: LazyLock<Table> = LazyLock::new(|| Table::Circu
         CIRCUIT_SPA.clone(),
         CIRCUIT_SILVERSTONE.clone(),
         CIRCUIT_IMOLA.clone(),
+        CIRCUIT_MUGELLO.clone(),
         CIRCUIT_BAKU.clone(),
         CIRCUIT_SHANGHAI.clone(),
     ],
@@ -974,6 +1000,18 @@ pub(crate) const RACE_2020_4_STR: &str = formatcp!(
     "raceName": "British Grand Prix",
     "Circuit": {CIRCUIT_SILVERSTONE_STR},
     "date": "2020-08-02",
+    "time": "13:10:00Z"
+  "#
+);
+
+pub(crate) const RACE_2020_9_STR: &str = formatcp!(
+    r#"
+    "season": "2020",
+    "round": "9",
+    "url": "https://en.wikipedia.org/wiki/2020_Tuscan_Grand_Prix",
+    "raceName": "Tuscan Grand Prix",
+    "Circuit": {CIRCUIT_MUGELLO_STR},
+    "date": "2020-09-13",
     "time": "13:10:00Z"
   "#
 );
@@ -1161,6 +1199,17 @@ pub(crate) const RACE_2020_4: LazyLock<Race> = LazyLock::new(|| Race {
     race_name: "British Grand Prix".to_string(),
     circuit: CIRCUIT_SILVERSTONE.clone(),
     date: date!(2020 - 08 - 02),
+    time: Some(time!(13:10:00)),
+    ..RACE_NONE.clone()
+});
+
+pub(crate) const RACE_2020_9: LazyLock<Race> = LazyLock::new(|| Race {
+    season: 2020,
+    round: 9,
+    url: Url::parse("https://en.wikipedia.org/wiki/2020_Tuscan_Grand_Prix").unwrap(),
+    race_name: "Tuscan Grand Prix".to_string(),
+    circuit: CIRCUIT_MUGELLO.clone(),
+    date: date!(2020 - 09 - 13),
     time: Some(time!(13:10:00)),
     ..RACE_NONE.clone()
 });
@@ -2255,6 +2304,7 @@ pub(crate) const RACE_RESULT_1963_10_P23_STR: &str = formatcp!(
 
 // @todo Buggy "Time" field in Jolpi-ca F1 for this entry, should be "1:34:45.026"
 // @todo The 'millis' field is incorrect by 26 milliseconds, it should be "5685026"
+// This asset is temporarily changed to the wrong value in order to allow the tests to pass.
 pub(crate) const RACE_RESULT_1998_8_P1_STR: &str = formatcp!(
     r#"{{
     "number": "3",
@@ -2314,6 +2364,38 @@ pub(crate) const RACE_RESULT_2003_4_P19_STR: &str = formatcp!(
     "grid": "18",
     "laps": "23",
     "status": "Fuel rig"
+  }}"#
+);
+
+// @todo jolpica-f1 API has incorrect 'millis' 8375059, off by 1ms, it should be 8375060
+// which would match the correct 'time' of "2:19:35.060". This causes a parsing error as it finds
+// that the 'time' and 'millis' do not match. There is currently no workaround for this issue.
+pub(crate) const RACE_RESULT_2020_9_P1_STR: &str = formatcp!(
+    r#"{{
+    "number": "44",
+    "position": "1",
+    "positionText": "1",
+    "points": "26",
+    "Driver": {DRIVER_HAMILTON_STR},
+    "Constructor": {CONSTRUCTOR_MERCEDES_STR},
+    "grid": "1",
+    "laps": "59",
+    "status": "Finished",
+    "Time": {{
+        "millis": "8375059",
+        "time": "2:19:35.060"
+    }},
+    "FastestLap": {{
+        "rank": "1",
+        "lap": "58",
+        "Time": {{
+            "time": "1:18.833"
+        }},
+        "AverageSpeed": {{
+            "units": "kph",
+            "speed": "239.518"
+        }}
+    }}
   }}"#
 );
 
@@ -2575,6 +2657,30 @@ pub(crate) const RACE_RESULT_2003_4_P19: LazyLock<RaceResult> = LazyLock::new(||
     fastest_lap: None,
 });
 
+// @todo jolpica-f1 API has incorrect 'millis' 8375059, off by 1ms, it should be 8375060
+// which would match the correct 'time' of "2:19:35.060". This asset has the correct value.
+pub(crate) const RACE_RESULT_2020_9_P1: LazyLock<RaceResult> = LazyLock::new(|| RaceResult {
+    number: 44,
+    position: 1,
+    position_text: Position::Finished(1),
+    points: 26.0,
+    driver: DRIVER_HAMILTON.clone(),
+    constructor: CONSTRUCTOR_MERCEDES.clone(),
+    grid: 1,
+    laps: 59,
+    status: "Finished".to_string(),
+    time: Some(RaceTime::lead(duration_millis(8375060))),
+    fastest_lap: Some(FastestLap {
+        rank: Some(1),
+        lap: 58,
+        time: duration_m_s_ms(1, 18, 833),
+        average_speed: Some(AverageSpeed {
+            units: SpeedUnits::Kph,
+            speed: 239.518,
+        }),
+    }),
+});
+
 pub(crate) const RACE_RESULT_2021_12_P1: LazyLock<RaceResult> = LazyLock::new(|| RaceResult {
     number: 33,
     position: 1,
@@ -2780,6 +2886,20 @@ pub(crate) static RACE_2003_4_RACE_RESULTS: LazyLock<Race> = LazyLock::new(|| Ra
         RACE_RESULT_2003_4_P19.clone(),
     ]),
     ..RACE_2003_4.clone()
+});
+
+pub(crate) const RACE_2020_9_RACE_RESULTS_STR: &str = formatcp!(
+    r#"{{
+    {RACE_2020_9_STR},
+    "Results": [
+        {RACE_RESULT_2020_9_P1_STR}
+    ]
+  }}"#
+);
+
+pub(crate) static RACE_2020_9_RACE_RESULTS: LazyLock<Race> = LazyLock::new(|| Race {
+    payload: Payload::RaceResults(vec![RACE_RESULT_2020_9_P1.clone()]),
+    ..RACE_2020_9.clone()
 });
 
 pub(crate) const RACE_2021_12_RACE_RESULTS_STR: &str = formatcp!(
