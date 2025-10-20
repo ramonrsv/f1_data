@@ -42,6 +42,10 @@ mod tests {
     //
     // "hh:mm" issue, for example:
     //   - 1950, R5, P1, the 'time' should be "2:47:26" but is instead "2:47". 'millis' is correct
+    //
+    // 2020, R9, P1 issue:
+    //   - 2020, R9, P1 race result has incorrect 'millis', off by 1ms, it should be 8375060.
+    //     This causes a parsing error as it finds that the 'time' and 'millis' do not match.
 
     #[derive(Deserialize, PartialEq, Clone, Debug)]
     struct Proxy {
@@ -216,11 +220,29 @@ mod tests {
 
     // @todo 2020, R9, P1 "hamilton" has incorrect 'millis', off by 1ms, it should be 8375060
     // This causes a parsing error as it find that the 'time' and 'millis' do not match.
+    //
+    // !!! <<<
+    // There is a ridiculous workaround for this one specific case implemented in
+    // `jolpica::time::deserialize_buggy_race_time`, where we check for an exact match
+    // of the known incorrect value, and substitute them with the known correct value.
     #[test]
-    fn race_result_2020_9_p1() {
-        let result = serde_json::from_str::<RaceResult>(RACE_RESULT_2020_9_P1_STR);
-        assert!(matches!(result, Err(serde_json::Error { .. })));
+    fn race_result_2020_9_p1_workaround() {
+        // Works when we use `deserialize_buggy_race_time` (in Proxy's `deserialize_with`
+        // attribute), using the monstrous workaround to hard-code 8375059 -> 8375060
+        assert_eq!(
+            serde_json::from_str::<Proxy>(r#"{"millis": "8375059", "time": "2:19:35.060"}"#).unwrap(),
+            Proxy::new(RaceTime::lead(duration_millis(8375060)))
+        );
 
+        let result = serde_json::from_str::<RaceResult>(RACE_RESULT_2020_9_P1_STR);
+        assert_eq!(result.unwrap(), *RACE_RESULT_2020_9_P1);
+    }
+
+    #[test]
+    fn race_result_2020_9_p1_error_not_using_deserialize_with() {
+        // Parsing error when we deserialize a `RaceTime` directly, without the workaround
+        let result = serde_json::from_str::<RaceTime>(r#"{"millis": "8375059", "time": "2:19:35.060"}"#);
+        assert!(matches!(result, Err(serde_json::Error { .. })));
         let err_msg = format!("{}", result.unwrap_err());
         assert!(err_msg.contains("Non-delta 'time: 2:19:35.060' must match 'millis: 8375059'"));
     }
@@ -229,9 +251,6 @@ mod tests {
     #[ignore]
     fn get_race_result_2020_9_p1() {
         let result = JOLPICA_MP.get_race_result(Filters::new().season(2020).round(9).finish_pos(1));
-        assert!(matches!(result, Err(Error::Parse(_))));
-
-        let err_msg = format!("{}", result.unwrap_err());
-        assert!(err_msg.contains("Non-delta 'time: 2:19:35.060' must match 'millis: 8375059'"));
+        assert_eq!(result.unwrap().race_result(), &*RACE_RESULT_2020_9_P1);
     }
 }

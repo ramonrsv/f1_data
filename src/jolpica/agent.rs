@@ -2024,14 +2024,11 @@ mod tests {
             LenConstraint::Exactly(20),
         );
 
-        // @todo This currently fails with the error below. See `tests::known_bugs` for details.
-        // "Non-delta 'time: 2:19:35.060' must match 'millis: 8375059'"
-        // assert_each_expected_session_result_in_actual_event(
-        //     || JOLPICA_SP.get_race_results_for_event(race_filters(2020, 9)),
-        //     &RACE_2020_9_RACE_RESULTS,
-        //     LenConstraint::Exactly(20),
-        // );
-        let _unused = &RACE_2020_9_RACE_RESULTS;
+        assert_each_expected_session_result_in_actual_event(
+            || JOLPICA_SP.get_race_results_for_event(race_filters(2020, 9)),
+            &RACE_2020_9_RACE_RESULTS,
+            LenConstraint::Exactly(20),
+        );
 
         assert_each_expected_session_result_in_actual_event(
             || JOLPICA_SP.get_race_results_for_event(race_filters(2021, 12)),
@@ -2075,11 +2072,9 @@ mod tests {
     fn get_race_result_for_events_multi_page() {
         static RACE_RESULT_COUNTS_BY_DRIVER_TOTAL_AND_WINS: LazyLock<HashMap<String, (LenConstraint, LenConstraint)>> =
             LazyLock::new(|| {
-                // @todo Getting all race results for "hamilton" produces unrelated parsing errors
-                // in the new jolpica-f1 API, so comment these out for now. See `tests::known_bugs`
                 HashMap::from([
                     ("michael_schumacher".into(), (LenConstraint::Exactly(308), LenConstraint::Exactly(91))),
-                    // ("hamilton".into(), (LenConstraint::Minimum(374), LenConstraint::Minimum(105))),
+                    ("hamilton".into(), (LenConstraint::Minimum(374), LenConstraint::Minimum(105))),
                     ("alonso".into(), (LenConstraint::Minimum(422), LenConstraint::Minimum(32))),
                     ("max_verstappen".into(), (LenConstraint::Minimum(227), LenConstraint::Minimum(67))),
                     ("leclerc".into(), (LenConstraint::Minimum(167), LenConstraint::Minimum(8))),

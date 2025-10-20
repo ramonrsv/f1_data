@@ -2369,7 +2369,8 @@ pub(crate) const RACE_RESULT_2003_4_P19_STR: &str = formatcp!(
 
 // @todo jolpica-f1 API has incorrect 'millis' 8375059, off by 1ms, it should be 8375060
 // which would match the correct 'time' of "2:19:35.060". This causes a parsing error as it finds
-// that the 'time' and 'millis' do not match. There is currently no workaround for this issue.
+// that the 'time' and 'millis' do not match. This asset has the incorrect value to test the
+// ridiculous workaround implemented for this one specific case.
 pub(crate) const RACE_RESULT_2020_9_P1_STR: &str = formatcp!(
     r#"{{
     "number": "44",

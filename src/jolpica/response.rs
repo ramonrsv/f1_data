@@ -1446,12 +1446,9 @@ mod tests {
         assert_false!(race.payload.as_race_results().unwrap().is_empty());
         assert_eq!(race, *RACE_2003_4_RACE_RESULTS);
 
-        // @todo This currently fails with the error below. See `tests::known_bugs` for details.
-        // "Non-delta 'time: 2:19:35.060' must match 'millis: 8375059'"
-        // let race: Race = serde_json::from_str(RACE_2020_9_RACE_RESULTS_STR).unwrap();
-        // assert_false!(race.payload.as_race_results().unwrap().is_empty());
-        // assert_eq!(race, *RACE_2020_9_RACE_RESULTS);
-        let _unused = &RACE_2020_9_RACE_RESULTS_STR;
+        let race: Race = serde_json::from_str(RACE_2020_9_RACE_RESULTS_STR).unwrap();
+        assert_false!(race.payload.as_race_results().unwrap().is_empty());
+        assert_eq!(race, *RACE_2020_9_RACE_RESULTS);
 
         let race: Race = serde_json::from_str(RACE_2021_12_RACE_RESULTS_STR).unwrap();
         assert_false!(race.payload.as_race_results().unwrap().is_empty());

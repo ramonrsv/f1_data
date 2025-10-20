@@ -324,7 +324,19 @@ impl<'de> Deserialize<'de> for RaceTime {
 /// To handle this issue, we use a regex to detect the "hh:mm" format, verify that it matches
 /// the 'millis' to within 60s, and construct a [`RaceTime::lead`] from the 'millis' value.
 ///
+/// 2020, R9, P1 "hamilton" has incorrect 'millis', off by 1ms, it should be 8375060.
+/// This causes a parsing error as it finds that the 'time' and 'millis' do not match.
+/// To handle this specific known bug, we check for an exact match and fix it here.
+///
+/// !!! <<<
+/// The above is a ridiculous workaround, but it's the only remaining bug that causes parsing
+/// errors for which there isn't a workaround. To avoid throwing an error for what's likely
+/// to be a commonly requested race result, we do this monstrosity until jolpica-f1 fixes
+/// their data. If and when that happens it should be transparent to users of this crate.
+///
 /// See `crate::jolpica::tests::known_bugs` for more details and associated tests.
+//
+// @todo Remove these workaround as soon as possible; probably need upstream fixes in jolpica-f1.
 pub(crate) fn deserialize_buggy_race_time<'de, D>(deserializer: D) -> Result<Option<RaceTime>, D::Error>
 where
     D: Deserializer<'de>,
@@ -359,6 +371,14 @@ where
         }
 
         Ok(Some(RaceTime::lead(Duration::milliseconds(millis))))
+    } else if proxy.millis == "8375059" && proxy.time == "2:19:35.060" {
+        // 2020, R9, P1 "hamilton" has incorrect 'millis', off by 1ms, it should be 8375060
+        // To handle this specific known bug, we check for an exact match and fix it here.
+        //
+        // !!! <<<
+        // This is a ridiculous workaround, see function documentation for more details.
+        #[allow(clippy::unreadable_literal)]
+        Ok(Some(RaceTime::lead(Duration::milliseconds(8375060))))
     } else {
         serde_json::from_str::<RaceTime>(in_str.as_str())
             .map(Some)
