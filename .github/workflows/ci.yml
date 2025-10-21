@@ -15,6 +15,10 @@
 # which can be configured via `--var <OPTION_NAME>=true`. The supported options are:
 #   - `FORCE_CODECOV=true` will run the code coverage job, which uploads a report to Codecov.
 #   - `FORCE_RUN_BENCH=true` will run the benchmarks, which may upload perf reports to GitHub.
+#
+# Example local runs:
+#   `act --reuse`
+#   `act --reuse --var FORCE_CODECOV=true --artifact-server-path ./artifacts --secret-file .secrets`
 name: CI
 
 on:
