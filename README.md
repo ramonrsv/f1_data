@@ -27,9 +27,11 @@ use f1_data::jolpica::{Agent, Filters};
 
 let jolpica = Agent::default();
 
-let michael_wins = jolpica
-    .get_race_results(Filters::new().driver_id("michael_schumacher".into()).finish_pos(1))
-    .unwrap();
+let michael_wins = jolpica.get_race_results(
+    Filters::new()
+        .driver_id("michael_schumacher".into())
+        .finish_pos(1)
+    ).unwrap();
 
 assert_eq!(michael_wins.len(), 91);
 ```
@@ -51,9 +53,9 @@ parameter to filter the results, which correspond to the jolpica-f1 API's route 
 [race results](https://github.com/jolpica/jolpica-f1/blob/main/docs/endpoints/results.md#route-parameters).
 
 ```rust
-let race = jolpica
-    .get_race_result(Filters::new().season(2021).round(22).finish_pos(1))
-    .unwrap();
+let race = jolpica.get_race_result(
+        Filters::new().season(2021).round(22).finish_pos(1)
+    ).unwrap();
 
 assert_eq!(race.race_result().driver.full_name(), "Max Verstappen");
 ```
@@ -85,9 +87,10 @@ representing the API endpoint to query, a `Filters` with none or any number of f
 returns a `Response` struct containing the full API response.
 
 ```rust
-let response = jolpica
-    .get_response(&Resource::DriverInfo(Filters::new().driver_id("leclerc".into())))
-    .unwrap();
+let response = jolpica.get_response(
+    &Resource::DriverInfo(
+        Filters::new().driver_id("leclerc".into()))
+    ).unwrap();
 
 let Table::Drivers { drivers } = response.table else {
     panic!("expected drivers table");
