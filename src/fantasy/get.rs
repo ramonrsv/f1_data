@@ -8,7 +8,7 @@ use crate::error::Error;
 ///
 /// # Examples
 ///
-/// ```
+/// ```ignore
 /// # use f1_data::fantasy::get::get_season_prices;
 /// #
 /// let season_prices = get_season_prices(2023).unwrap();
@@ -34,6 +34,7 @@ use crate::error::Error;
 /// assert_eq!(max_opening_price, 26.9);
 /// assert_eq!(red_bull_opening_price, 27.2);
 /// ```
+// @todo Re-enable this test if and when `fantasy` is made publicly available.
 pub fn get_season_prices(season: SeasonID) -> Result<Season> {
     serde_yaml::from_str(&std::fs::read_to_string(format!("./src/fantasy/data/prices/{season}.yaml"))?).map_err(into)
 }

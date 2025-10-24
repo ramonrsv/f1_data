@@ -16,6 +16,7 @@ pub struct Season {
 #[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
 pub struct Round {
     /// ID/index of the round, e.g. `1` for the first round of the season.
+    #[allow(clippy::struct_field_names)]
     pub round: RoundID,
     /// Sequence of [`Driver`]s, for all drivers that have a price for this round.
     pub drivers: Vec<Driver>,

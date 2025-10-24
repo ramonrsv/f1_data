@@ -218,8 +218,10 @@ pub mod id;
 pub mod jolpica;
 pub mod rate_limiter;
 
+// @todo Make this public if and when a solution for sourcing the data is found.
+#[allow(unreachable_pub, unused, rustdoc::private_doc_tests)]
 #[cfg(feature = "fantasy")]
-pub mod fantasy;
+mod fantasy;
 
 #[cfg(test)]
 pub(crate) mod tests;
