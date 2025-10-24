@@ -27,9 +27,6 @@ use f1_data::jolpica::{Agent, Filters};
 
 let jolpica = Agent::default();
 
-let michael = jolpica.get_driver("michael_schumacher".into()).unwrap();
-assert_eq!(michael.full_name(), "Michael Schumacher");
-
 let michael_wins = jolpica
     .get_race_results(Filters::new().driver_id("michael_schumacher".into()).finish_pos(1))
     .unwrap();
@@ -54,11 +51,11 @@ parameter to filter the results, which correspond to the jolpica-f1 API's route 
 [race results](https://github.com/jolpica/jolpica-f1/blob/main/docs/endpoints/results.md#route-parameters).
 
 ```rust
-let race_2021_r22_p1 = jolpica
+let race = jolpica
     .get_race_result(Filters::new().season(2021).round(22).finish_pos(1))
     .unwrap();
 
-assert_eq!(race_2021_r22_p1.race_result().driver.driver_id, "max_verstappen");
+assert_eq!(race.race_result().driver.full_name(), "Max Verstappen");
 ```
 
 The `AgentConfigs` struct allows configuring various aspects of the `Agent`, such as the base URL of

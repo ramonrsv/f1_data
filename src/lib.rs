@@ -20,9 +20,6 @@ use f1_data::jolpica::{Agent, Filters};
 
 let jolpica = Agent::default();
 
-let michael = jolpica.get_driver("michael_schumacher".into()).unwrap();
-assert_eq!(michael.full_name(), "Michael Schumacher");
-
 let michael_wins = jolpica
     .get_race_results(Filters::new().driver_id("michael_schumacher".into()).finish_pos(1))
     .unwrap();
