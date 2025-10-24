@@ -4,7 +4,7 @@
 //! Test modules should `use crate::tests::asserts::*;`, to glob import all assertions macros. If
 //! there are "'assert_eq/ne' is ambiguous" errors, they should also add
 //! `use shadow_asserts::{assert_eq, assert_ne};` to shadow the prelude's `assert_eq/ne` macros.
-//
+
 // @todo Investigating using `all_asserts::{assert_range, assert_nrange}` for range checks.
 pub(crate) use all_asserts::{assert_false, assert_true};
 

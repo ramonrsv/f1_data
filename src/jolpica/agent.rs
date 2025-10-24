@@ -1016,7 +1016,6 @@ impl<'a> Agent<'a> {
     /// # use f1_data::jolpica::{agent::Agent, resource::Filters};
     /// # let jolpica = Agent::default();
     /// #
-    /// # // @todo This panics with Err(Error::MultiPage)
     /// let statuses = jolpica.get_statuses(Filters::none()).unwrap();
     /// assert!(!statuses.is_empty());
     /// assert_eq!(
@@ -2134,12 +2133,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_race_results_single_page_error_multi_page() {
-        // @todo The `driver_id` filter is not necessary, but for now it avoids getting parsing
-        // errors produced by some race results, e.g. from "michael_schumacher" and "hamilton".
-        assert!(matches!(
-            JOLPICA_SP.get_race_results(Filters::new().driver_id("alonso".into())),
-            Err(Error::MultiPage)
-        ));
+        assert!(matches!(JOLPICA_SP.get_race_results(Filters::none()), Err(Error::MultiPage)));
     }
 
     #[test]
