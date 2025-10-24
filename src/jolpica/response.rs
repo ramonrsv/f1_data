@@ -603,6 +603,14 @@ pub struct Driver {
     pub nationality: String,
 }
 
+impl Driver {
+    /// Returns the full name of this [`Driver`], i.e. the concatenation of
+    /// [`given_name`](Self::given_name) and [`family_name`](Self::family_name).
+    pub fn full_name(&self) -> String {
+        format!("{} {}", self.given_name, self.family_name)
+    }
+}
+
 impl TableInnerList for Driver {
     fn try_into_inner_from(table: Table) -> Result<InnerList<Self>> {
         table.into_drivers().map_err(into)
@@ -1347,6 +1355,15 @@ mod tests {
         let table: Table = serde_json::from_str(RACE_TABLE_SCHEDULE_STR).unwrap();
         assert_false!(table.as_races().unwrap().is_empty());
         assert_eq!(table, *RACE_TABLE_SCHEDULE);
+    }
+
+    #[test]
+    fn driver_full_name() {
+        assert_eq!(DRIVER_KIMI.full_name(), "Kimi Räikkönen");
+        assert_eq!(DRIVER_PEREZ.full_name(), "Sergio Pérez");
+        assert_eq!(DRIVER_DE_VRIES.full_name(), "Nyck de Vries");
+        assert_eq!(DRIVER_MAX.full_name(), "Max Verstappen");
+        assert_eq!(DRIVER_LECLERC.full_name(), "Charles Leclerc");
     }
 
     #[test]
