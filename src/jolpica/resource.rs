@@ -15,7 +15,9 @@ use crate::{
 
 #[cfg(doc)]
 use crate::jolpica::{
-    self, api,
+    self,
+    agent::Agent,
+    api,
     response::{
         Circuit, Constructor, Driver, QualifyingResult, Race, RaceResult, Response, Season, SprintResult, Status,
     },
@@ -23,7 +25,6 @@ use crate::jolpica::{
 
 /// Each variant of the [`Resource`] enumeration represents a given resource that can be requested
 /// from the jolpica-f1 API, and it contains any options/filters that can be applied to the request.
-// @todo Add examples once the `get_*` API has been settled
 #[derive(Clone, Debug)]
 pub enum Resource {
     /// Get a list of seasons currently supported by the API. Each season listed in a response is
@@ -32,6 +33,8 @@ pub enum Resource {
     /// requests for other resources, via [`Filters::season`].
     ///
     /// Directly maps to <https://api.jolpi.ca/ergast/f1/seasons/>
+    ///
+    /// Can be requested via methods like [`get_seasons`](Agent::get_seasons).
     SeasonList(Filters),
 
     /// Get a list of drivers within the series, and information about them. Each driver listed in
@@ -45,6 +48,8 @@ pub enum Resource {
     /// values returned by the API are guaranteed to be valid.
     ///
     /// Directly maps to <https://api.jolpi.ca/ergast/f1/drivers/>
+    ///
+    /// Can be requested via methods like [`get_drivers`](Agent::get_drivers).
     DriverInfo(Filters),
 
     #[allow(clippy::doc_markdown)] // False positive, complains about "_McLaren_".
@@ -54,6 +59,8 @@ pub enum Resource {
     /// used to filter requests for other resources, via [`Filters::constructor_id`].
     ///
     /// Directly maps to <https://api.jolpi.ca/ergast/f1/constructors/>
+    ///
+    /// Can be requested via methods like [`get_constructors`](Agent::get_constructors).
     ConstructorInfo(Filters),
 
     /// Get a list of circuits within the series, and information about them. Each circuit listed in
@@ -62,6 +69,8 @@ pub enum Resource {
     /// other resources, via [`Filters::circuit_id`].
     ///
     /// Directly maps to <https://api.jolpi.ca/ergast/f1/circuits/>
+    ///
+    /// Can be requested via methods like [`get_circuits`](Agent::get_circuits).
     CircuitInfo(Filters),
 
     /// Get a schedule of races within the series, and information about them. Each race can be
@@ -72,6 +81,8 @@ pub enum Resource {
     /// **Note:** Schedule details before 2022 are limited to the date/time of the Grand Prix.
     ///
     /// Directly maps to <https://api.jolpi.ca/ergast/f1/schedule/>
+    ///
+    /// Can be requested via methods like [`get_race_schedules`](Agent::get_race_schedules).
     RaceSchedule(Filters),
 
     /// Get a list of qualifying results. The qualifying position, returned in
@@ -86,6 +97,8 @@ pub enum Resource {
     /// races, respectively.
     ///
     /// Directly maps to <https://api.jolpi.ca/ergast/f1/qualifying/>
+    ///
+    /// Can be requested via methods like [`get_qualifying_results`](Agent::get_qualifying_results).
     QualifyingResults(Filters),
 
     /// Get a list of sprint event results. Various of the returned value can be used to filter
@@ -108,6 +121,8 @@ pub enum Resource {
     /// i.e. where [`SprintResult::position_text`] is a numeric value.
     ///
     /// Directly maps to <https://ergast.com/mrd/methods/sprint/>
+    ///
+    /// Can be requested via methods like [`get_sprint_results`](Agent::get_sprint_results).
     SprintResults(Filters),
 
     /// Get a list of race results. Various of the returned values can be used to filter requests
@@ -137,6 +152,8 @@ pub enum Resource {
     /// i.e. where [`RaceResult::position_text`] is a numeric value.
     ///
     /// Directly maps to <https://api.jolpi.ca/ergast/f1/results/>
+    ///
+    /// Can be requested via methods like [`get_race_results`](Agent::get_race_results).
     RaceResults(Filters),
 
     /// Get a list of finishing status codes supported by the API, as well as a count of the
@@ -146,6 +163,8 @@ pub enum Resource {
     /// filter requests for other resources, via [`Filters::finishing_status`].
     ///
     /// Directly maps to <https://api.jolpi.ca/ergast/f1/status/>
+    ///
+    /// Can be requested via methods like [`get_statuses`](Agent::get_statuses).
     FinishingStatus(Filters),
 
     /// Get lap timing data for a given race.
@@ -153,6 +172,9 @@ pub enum Resource {
     /// **Note:** Lap time data is available from the 1996 season onwards.
     ///
     /// Directly maps to <https://api.jolpi.ca/ergast/f1/laps/>
+    ///
+    /// Can be requested via methods like [`get_driver_laps`](Agent::get_driver_laps) or
+    /// [`get_lap_timings`](Agent::get_lap_timings).
     LapTimes(LapTimeFilters),
 
     /// Get pit stops data for a given race.
@@ -160,6 +182,8 @@ pub enum Resource {
     /// **Note:** Pit stop data is available from the 2011 season onwards.
     ///
     /// Directly maps to <https://api.jolpi.ca/ergast/f1/pitstops/>
+    ///
+    /// Can be requested via methods like [`get_pit_stops`](Agent::get_pit_stops).
     PitStops(PitStopFilters),
 
     // These resources are not yet supported.
