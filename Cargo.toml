@@ -1,16 +1,13 @@
 [package]
 name = "f1_data"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2024"
 
 authors = ["Ramon Sibello <ramon@sibello.ca>"]
 
-description = """
-Provides consolidated access to various sources of historical
-Formula 1 events information, results, and telemetry data.
-"""
+description = "Provides consolidated access to various sources of Formula 1 information and data."
 
-readme = "https://github.com/ramonrsv/f1_data/blob/main/README.md"
+readme = "README.md"
 homepage = "https://github.com/ramonrsv/f1_data"
 repository = "https://github.com/ramonrsv/f1_data"
 license = "MIT OR Apache-2.0"
