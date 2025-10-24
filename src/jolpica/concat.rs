@@ -1,3 +1,6 @@
+//! Functions to concatenate multi-page [`Response`]s into a single [`Response`], concatenating the
+//! underlying [`Table`]s, [`Payload`]s, [`Race`]s, etc., and performing optional verifications.
+
 use bitflags::bitflags;
 use url::Url;
 

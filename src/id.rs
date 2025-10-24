@@ -1,3 +1,8 @@
+//! Defines types for unique identifiers for various Formula 1 entities, such as drivers, etc.
+//!
+//! These types are used in interfaces throughout the [`f1_data`](crate) crate to refer to these
+//! entities in a consistent manner, regardless of the wrapper module or underlying data source.
+
 use serde::Deserialize;
 use serde_with::{DisplayFromStr, serde_as};
 

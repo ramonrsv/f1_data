@@ -1,3 +1,6 @@
+//! Contains constants and information about the [jolpica-f1](https://github.com/jolpica/jolpica-f1)
+//! API, e.g. base URL, rate limits, pagination, special values, etc.
+
 use nonzero_ext::nonzero;
 
 use crate::rate_limiter::Quota;

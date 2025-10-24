@@ -1,3 +1,11 @@
+//! Defines types that represent and can be used to deserialize JSON responses from the
+//! [jolpica-f1](https://github.com/jolpica/jolpica-f1) API.
+//!
+//! [`Response`] represents a full API response, supporting variants corresponding to the possible
+//! endpoints and returned [structures from the API](https://api.jolpi.ca/ergast/). There are also
+//! a variety of convenience methods for extracting specific data and performing certain validation,
+//! as well as more ergonomic types that can be returned when requesting specific resources.
+
 use std::convert::Infallible;
 
 use enum_as_inner::EnumAsInner;

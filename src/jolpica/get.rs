@@ -1,3 +1,6 @@
+//! Functions for performing GET requests to the [jolpica-f1](https://github.com/jolpica/jolpica-f1)
+//! API, including multi-page requests, returning the JSON response(s) parsed into [`Response`]s.
+
 use crate::{
     error::{Error, Result},
     jolpica::{

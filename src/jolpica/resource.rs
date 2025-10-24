@@ -1,3 +1,11 @@
+//! Types to identify various [`Resource`]s and [`Filters`] that can be requested from the
+//! [jolpica-f1](https://github.com/jolpica/jolpica-f1) API.
+//!
+//! These map directly to
+//! [jolpica-f1 API endpoints](https://github.com/jolpica/jolpica-f1/blob/main/docs/README.md#endpoints-and-documentation)
+//! and route parameters, e.g. for
+//! [race results](https://github.com/jolpica/jolpica-f1/blob/main/docs/endpoints/results.md#route-parameters).
+
 use url::Url;
 
 use crate::{

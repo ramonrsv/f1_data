@@ -1,3 +1,5 @@
+//! An [`Error`] type and associated [`Result<T>`] alias for the [`f1_data`](crate) crate.
+
 use serde_json;
 use ureq;
 
@@ -38,6 +40,7 @@ pub enum Error {
     #[cfg(feature = "fantasy")]
     YamlParse(serde_yaml::Error),
 
+    /// A request has exceeded the maximum number of allowed retries on HTTP errors.
     HttpRetries((usize /* retries */, ureq::Error)),
     /// A request by a method supporting only single-page responses resulted in a multi-page one.
     MultiPage,

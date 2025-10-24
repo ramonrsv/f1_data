@@ -1,3 +1,5 @@
+//! A simple rate limiter providing a minimal interface required by the [`f1_data`](crate) crate.
+
 use governor::DefaultDirectRateLimiter;
 pub use governor::Quota;
 pub use nonzero_ext::nonzero;

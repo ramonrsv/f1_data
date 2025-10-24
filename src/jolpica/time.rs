@@ -1,3 +1,6 @@
+//! Defines types, aliases, and parsing/deserialization functionality for time/date/duration
+//! concepts and formats used in the [jolpica-f1](https://github.com/jolpica/jolpica-f1) API.
+
 use regex::Regex;
 use serde::{Deserialize, Deserializer};
 use serde_with::{DisplayFromStr, serde_as};

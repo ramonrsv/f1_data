@@ -1,3 +1,6 @@
+//! An [`Agent`], and associated configuration options and utilities, for accessing the
+//! [jolpica-f1](https://github.com/jolpica/jolpica-f1) API for querying Formula 1 data.
+
 use crate::{
     error::{Error, Result},
     id::{CircuitID, ConstructorID, DriverID, RaceID, SeasonID, StatusID},
