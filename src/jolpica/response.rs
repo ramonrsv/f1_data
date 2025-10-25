@@ -791,6 +791,10 @@ pub struct Schedule {
     pub qualifying: Option<DateTime>,
     #[serde(rename = "Sprint")]
     pub sprint: Option<DateTime>,
+    #[serde(rename = "SprintShootout")]
+    pub sprint_shootout: Option<DateTime>,
+    #[serde(rename = "SprintQualifying")]
+    pub sprint_qualifying: Option<DateTime>,
 }
 
 impl Race<Schedule> {

@@ -1107,6 +1107,8 @@ pub(crate) const SCHEDULE_NONE: LazyLock<Schedule> = LazyLock::new(|| Schedule {
     third_practice: None,
     qualifying: None,
     sprint: None,
+    sprint_shootout: None,
+    sprint_qualifying: None,
 });
 
 // Can be used to fill all unspecified fields for a given race
@@ -1487,6 +1489,29 @@ pub(crate) const RACE_2023_12_SCHEDULE_STR: &str = formatcp!(
 }}"#
 );
 
+// Has "Sprint" and "SprintQualifying"
+pub(crate) const RACE_2024_5_SCHEDULE_STR: &str = formatcp!(
+    r#"{{
+    {RACE_2024_5_STR},
+    "FirstPractice": {{
+      "date": "2024-04-19",
+      "time": "03:30:00Z"
+    }},
+    "Qualifying": {{
+      "date": "2024-04-20",
+      "time": "07:00:00Z"
+    }},
+    "Sprint": {{
+      "date": "2024-04-20",
+      "time": "03:00:00Z"
+    }},
+    "SprintQualifying": {{
+      "date": "2024-04-19",
+      "time": "07:30:00Z"
+    }}
+}}"#
+);
+
 pub(crate) const RACE_1950_1_SCHEDULE: LazyLock<Race> = LazyLock::new(|| Race { ..RACE_1950_1.clone() });
 pub(crate) const RACE_1963_10_SCHEDULE: LazyLock<Race> = LazyLock::new(|| Race { ..RACE_1963_10.clone() });
 pub(crate) const RACE_2003_4_SCHEDULE: LazyLock<Race> = LazyLock::new(|| Race { ..RACE_2003_4.clone() });
@@ -1510,6 +1535,8 @@ pub(crate) const RACE_2015_11_SCHEDULE: LazyLock<Race> = LazyLock::new(|| Race {
             time: None,
         }),
         sprint: None,
+        sprint_shootout: None,
+        sprint_qualifying: None,
     }),
     ..RACE_2015_11.clone()
 });
@@ -1533,6 +1560,8 @@ pub(crate) const RACE_2020_4_SCHEDULE: LazyLock<Race> = LazyLock::new(|| Race {
             time: None,
         }),
         sprint: None,
+        sprint_shootout: None,
+        sprint_qualifying: None,
     }),
     ..RACE_2020_4.clone()
 });
@@ -1606,7 +1635,6 @@ pub(crate) const RACE_2023_3_SCHEDULE: LazyLock<Race> = LazyLock::new(|| Race {
     ..RACE_2023_3.clone()
 });
 
-// @todo Implement sprint_shootout field
 pub(crate) const RACE_2023_4_SCHEDULE: LazyLock<Race> = LazyLock::new(|| Race {
     payload: Payload::Schedule(Schedule {
         first_practice: Some(DateTime {
@@ -1620,6 +1648,10 @@ pub(crate) const RACE_2023_4_SCHEDULE: LazyLock<Race> = LazyLock::new(|| Race {
         sprint: Some(DateTime {
             date: date!(2023 - 04 - 29),
             time: Some(time!(13:30:00)),
+        }),
+        sprint_shootout: Some(DateTime {
+            date: date!(2023 - 04 - 29),
+            time: Some(time!(09:30:00)),
         }),
         ..SCHEDULE_NONE.clone()
     }),
@@ -1649,7 +1681,6 @@ pub(crate) const RACE_2023_10_SCHEDULE: LazyLock<Race> = LazyLock::new(|| Race {
     ..RACE_2023_10.clone()
 });
 
-// @todo Implement sprint_shootout field
 pub(crate) const RACE_2023_12_SCHEDULE: LazyLock<Race> = LazyLock::new(|| Race {
     payload: Payload::Schedule(Schedule {
         first_practice: Some(DateTime {
@@ -1664,9 +1695,36 @@ pub(crate) const RACE_2023_12_SCHEDULE: LazyLock<Race> = LazyLock::new(|| Race {
             date: date!(2023 - 07 - 29),
             time: Some(time!(14:30:00)),
         }),
+        sprint_shootout: Some(DateTime {
+            date: date!(2023 - 07 - 29),
+            time: Some(time!(10:30:00)),
+        }),
         ..SCHEDULE_NONE.clone()
     }),
     ..RACE_2023_12.clone()
+});
+
+pub(crate) const RACE_2024_5_SCHEDULE: LazyLock<Race> = LazyLock::new(|| Race {
+    payload: Payload::Schedule(Schedule {
+        first_practice: Some(DateTime {
+            date: date!(2024 - 04 - 19),
+            time: Some(time!(03:30:00)),
+        }),
+        qualifying: Some(DateTime {
+            date: date!(2024 - 04 - 20),
+            time: Some(time!(07:00:00)),
+        }),
+        sprint: Some(DateTime {
+            date: date!(2024 - 04 - 20),
+            time: Some(time!(03:00:00)),
+        }),
+        sprint_qualifying: Some(DateTime {
+            date: date!(2024 - 04 - 19),
+            time: Some(time!(07:30:00)),
+        }),
+        ..SCHEDULE_NONE.clone()
+    }),
+    ..RACE_2024_5.clone()
 });
 
 pub(crate) const RACE_TABLE_SCHEDULE_STR: &str = formatcp!(
@@ -1683,7 +1741,8 @@ pub(crate) const RACE_TABLE_SCHEDULE_STR: &str = formatcp!(
             {RACE_2023_3_SCHEDULE_STR},
             {RACE_2023_4_SCHEDULE_STR},
             {RACE_2023_10_SCHEDULE_STR},
-            {RACE_2023_12_SCHEDULE_STR}
+            {RACE_2023_12_SCHEDULE_STR},
+            {RACE_2024_5_SCHEDULE_STR}
         ]
     }}}}"#
 );
@@ -1701,6 +1760,7 @@ pub(crate) static RACE_TABLE_SCHEDULE: LazyLock<Table> = LazyLock::new(|| Table:
         RACE_2023_4_SCHEDULE.clone(),
         RACE_2023_10_SCHEDULE.clone(),
         RACE_2023_12_SCHEDULE.clone(),
+        RACE_2024_5_SCHEDULE.clone(),
     ],
 });
 
