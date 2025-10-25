@@ -17,9 +17,12 @@ use crate::{
 /// Base URL of endpoints for the [jolpica-f1](https://github.com/jolpica/jolpica-f1) API
 pub const JOLPICA_API_BASE_URL: &str = "https://api.jolpi.ca/ergast/f1";
 
+/// Represents a rate limit as expressed by the jolpica-f1 API.
 #[derive(Copy, Clone, Debug)]
 pub struct RateLimit {
+    /// The burst limit, in requests per second.
     pub burst_limit_per_sec: std::num::NonZeroU32,
+    /// The sustained limit, in requests per hour.
     pub sustained_limit_per_hour: std::num::NonZeroU32,
 }
 
@@ -37,6 +40,7 @@ pub const JOLPICA_API_RATE_LIMIT: RateLimit = RateLimit {
 pub const JOLPICA_API_RATE_LIMIT_QUOTA: Quota = Quota::per_hour(JOLPICA_API_RATE_LIMIT.sustained_limit_per_hour)
     .allow_burst(JOLPICA_API_RATE_LIMIT.burst_limit_per_sec);
 
+/// Represents pagination parameters for the jolpica-f1 API, e.g. max and default limits.
 #[derive(Clone, Copy, Debug)]
 pub struct Pagination {
     /// Default limit for a page, i.e. the number of items per page. This value is meant to match
@@ -53,6 +57,7 @@ pub struct Pagination {
     pub max_limit: u32,
 }
 
+/// The pagination parameters for the [jolpica-f1](https://github.com/jolpica/jolpica-f1) API.
 pub const JOLPICA_API_PAGINATION: Pagination = Pagination {
     default_limit: 30,
     default_offset: 0,
