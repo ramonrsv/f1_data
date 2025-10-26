@@ -24,7 +24,7 @@ use crate::{
 };
 
 #[cfg(doc)]
-use crate::jolpica::resource::Resource;
+use crate::jolpica::resource::{Filters, Resource};
 
 /// Represents a full JSON response from the jolpica-f1 API.
 ///
@@ -34,10 +34,15 @@ use crate::jolpica::resource::Resource;
 /// struct to improve ergonomics.
 #[derive(PartialEq, Clone, Debug)]
 pub struct Response {
+    /// XML namespace, unused in the new jolpica-f1 API.
     pub xmlns: String,
+    /// Racing series, currently always `"f1"`.
     pub series: String,
+    /// URL of the API endpoint that produced this response.
     pub url: Url,
+    /// Pagination information for this response.
     pub pagination: Pagination,
+    /// The main data table contained in this response.
     pub table: Table,
 }
 
@@ -433,26 +438,33 @@ impl<'de> Deserialize<'de> for Response {
     }
 }
 
+/// Represents pagination information included in a jolpica-f1 API response.
 #[serde_as]
 #[derive(Deserialize, PartialEq, Eq, Clone, Copy, Debug)]
 pub struct Pagination {
+    /// Maximum number of results returned in a given page.
     #[serde_as(as = "DisplayFromStr")]
     pub limit: u32,
+    /// Offset of the current page within the total results.
     #[serde_as(as = "DisplayFromStr")]
     pub offset: u32,
+    /// Total number of results available across all pages.
     #[serde_as(as = "DisplayFromStr")]
     pub total: u32,
 }
 
 impl Pagination {
+    /// Returns `true` if this is the last page of results, `false` otherwise.
     pub const fn is_last_page(&self) -> bool {
         (self.offset + self.limit) >= self.total
     }
 
+    /// Returns `true` if this is a single-page response, `false` otherwise.
     pub const fn is_single_page(&self) -> bool {
         (self.offset == 0) && self.is_last_page()
     }
 
+    /// Returns the [`Pagination`] for the next page of results, or `None` if this is the last page.
     pub const fn next_page(&self) -> Option<Self> {
         if self.is_last_page() {
             None
@@ -578,11 +590,18 @@ where
     fn try_as_inner_from(table: &Table) -> Result<&InnerList<Self>>;
 }
 
+/// Holds information about a Formula 1 season.
+///
+/// Requested via [`Resource::SeasonList`] and returned in [`Table::Seasons`].
 #[serde_as]
 #[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 pub struct Season {
+    /// Unique identifier for the season, i.e. the year in which it took place, e.g. `2024` for the
+    /// _2024 Formula One World Championship_.
     #[serde_as(as = "DisplayFromStr")]
     pub season: SeasonID,
+    /// URL to the Wikipedia page for this season, e.g. for the `2024` season:
+    /// [`"https://en.wikipedia.org/wiki/2024_Formula_One_World_Championship"`](https://en.wikipedia.org/wiki/2024_Formula_One_World_Championship)
     pub url: Url,
 }
 
@@ -596,18 +615,40 @@ impl TableInnerList for Season {
     }
 }
 
+/// Holds information about a Formula 1 driver.
+///
+/// Requested via [`Resource::DriverInfo`] and returned in [`Table::Drivers`].
 #[serde_as]
 #[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Driver {
+    /// Unique identifier for the driver, e.g. `"max_verstappen"` for _Max Verstappen_.
     pub driver_id: DriverID,
+    /// Permanent number associated with the driver, if any, e.g. `33` for _Max Verstappen_.
+    ///
+    /// Permanent numbers were introduced in the 2014 season, so drivers that raced before then
+    /// may not have one, represented by `None`. Drivers may also have used other numbers at
+    /// some point in their career, e.g. when substituting for another driver, when only
+    /// participating in free-practice sessions, when using the number `1`, etc. The number `1` is
+    /// reserved for the previous season's World Drivers' Champion, although it is not mandatory for
+    /// the driver to run the number. Most notably, Max Verstappen has used the number `1` since
+    /// 2022, following his titles in 2021, 2022, 2023, and 2024. For more information, see the
+    /// [List of Formula One driver numbers](https://en.wikipedia.org/wiki/List_of_Formula_One_driver_numbers)
     #[serde_as(as = "Option<DisplayFromStr>")]
     pub permanent_number: Option<u32>,
+    /// Three-letter code associated with the driver, if any, e.g. `"VER"` for _Max Verstappen_.
+    // @todo Add more information about three-letter codes; there are exceptions and special cases.
     pub code: Option<String>,
+    /// URL to the Wikipedia page for this driver, e.g. for _Max Verstappen_:
+    /// [`"https://en.wikipedia.org/wiki/Max_Verstappen"`](https://en.wikipedia.org/wiki/Max_Verstappen)
     pub url: Url,
+    /// Given name of the driver, e.g. `"Max"` for _Max Verstappen_.
     pub given_name: String,
+    /// Family name of the driver, e.g. `"Verstappen"` for _Max Verstappen_.
     pub family_name: String,
+    /// Date of birth of the driver, e.g. `1997-09-30` for _Max Verstappen_.
     pub date_of_birth: Date,
+    /// Nationality of the driver, e.g. `"Dutch"` for _Max Verstappen_.
     pub nationality: String,
 }
 
@@ -629,12 +670,20 @@ impl TableInnerList for Driver {
     }
 }
 
+/// Holds information about a Formula 1 constructor/team.
+///
+/// Requested via [`Resource::ConstructorInfo`] and returned in [`Table::Constructors`].
 #[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Constructor {
+    /// Unique identifier for the constructor, e.g. `"red_bull"` for _Red Bull Racing_.
     pub constructor_id: ConstructorID,
+    /// URL to the Wikipedia page for this constructor, e.g. for _Red Bull Racing_:
+    /// [`"https://en.wikipedia.org/wiki/Red_Bull_Racing"`](https://en.wikipedia.org/wiki/Red_Bull_Racing)
     pub url: Url,
+    /// Name of the constructor, e.g. `"Red Bull"` for _Red Bull Racing_.
     pub name: String,
+    /// Nationality of the constructor, e.g. `"Austrian"` for _Red Bull Racing_.
     pub nationality: String,
 }
 
@@ -648,12 +697,21 @@ impl TableInnerList for Constructor {
     }
 }
 
+/// Holds information about a Formula 1 circuit/track.
+///
+/// Requested via [`Resource::CircuitInfo`] and returned in [`Table::Circuits`].
 #[derive(Deserialize, Hash, Eq, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Circuit {
+    /// Unique identifier for the circuit, e.g. `"spa"` for the _Circuit de Spa-Francorchamps_.
     pub circuit_id: CircuitID,
+    /// URL to the Wikipedia page for this circuit, e.g. for the _Circuit de Spa-Francorchamps_:
+    /// [`"https://en.wikipedia.org/wiki/Circuit_de_Spa-Francorchamps"`](https://en.wikipedia.org/wiki/Circuit_de_Spa-Francorchamps)
     pub url: Url,
+    /// Name of the circuit, e.g. `"Circuit de Spa-Francorchamps"` for the _Circuit de
+    /// Spa-Francorchamps_.
     pub circuit_name: String,
+    /// Geographical location of the circuit, represented by a [`Location`].
     #[serde(rename = "Location")]
     pub location: Location,
 }
@@ -668,14 +726,20 @@ impl TableInnerList for Circuit {
     }
 }
 
+/// Holds information about a Formula 1 session result status.
+///
+/// Requested via [`Resource::FinishingStatus`] and returned in [`Table::Status`].
 #[serde_as]
 #[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Status {
+    /// Unique numerical identifier for the status, e.g. `1` for "Finished".
     #[serde_as(as = "DisplayFromStr")]
     pub status_id: StatusID,
+    /// Number of occurrences of this status in a given time period, e.g. during a season.
     #[serde_as(as = "DisplayFromStr")]
     pub count: u32,
+    /// Description of the status, e.g. `"Finished"`.
     pub status: String,
 }
 
@@ -699,18 +763,42 @@ impl TableInnerList for Status {
 #[derive(Deserialize, Eq, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Race<T = Payload> {
+    /// Unique identifier, i.e. year, for the season in which this race weekend event takes place,
+    /// e.g. `2023` for the _2023 Formula One World Championship_. See [`Season::season`] and
+    /// [`Filters::season`].
     #[serde_as(as = "DisplayFromStr")]
     pub season: SeasonID,
+    /// Identifier for this race weekend event within the season, a numerical index starting from
+    /// `1` for the first one of the season. See [`Resource::RaceSchedule`] and [`Filters::round`].
     #[serde_as(as = "DisplayFromStr")]
     pub round: RoundID,
+    /// URL to the Wikipedia page for this race weekend event, e.g. for the 2023 Belgian Grand Prix:
+    /// [`https://en.wikipedia.org/wiki/2023_Belgian_Grand_Prix`](https://en.wikipedia.org/wiki/2023_Belgian_Grand_Prix)
     pub url: Url,
+    /// Name of this race weekend event across seasons, e.g. the `"Belgian Grand Prix"`.
     pub race_name: String,
+    /// Circuit that this race weekend event takes place at, e.g. the _Circuit de Spa-Francorchamps_
+    /// for the Belgian Grand Prix.
     #[serde(rename = "Circuit")]
     pub circuit: Circuit,
+    /// Date that this race takes place on, e.g. `2023-07-30` for the 2023 Belgian Grand Prix.
+    ///
+    /// This is the date of the Sunday race. See [`Schedule`] for the dates of other sessions.
     pub date: Date,
     #[serde(default, deserialize_with = "deserialize_optional_time")]
+    /// Time that this race starts at, e.g. `13:00:00Z` for the 2023 Belgian Grand Prix.
+    ///
+    /// This is the time of the Sunday race. See [`Schedule`] for the times of other sessions.
+    /// For some historical races the time may not be available, represented by `None`.
     pub time: Option<Time>,
     #[serde(flatten)]
+    /// Payload data associated with this race weekend event, of generic type `T`.
+    ///
+    /// By default, <code>T = [Payload]</code> accepts all possible payload variants that may be
+    /// returned by the jolpica-f1 API depending on the requested [`Resource`]. However, the type
+    /// parameter `T` may be specified to provide a processed payload, e.g. [`Vec<RaceResult>`]
+    /// from the [`Payload::RaceResults`] variant, [`RaceResult`] for a single result, etc. See
+    /// [`Race::try_map()`] to map [`Race<Payload>`] into more specific [`Race<T>`] types.
     pub payload: T,
 }
 
@@ -779,20 +867,36 @@ impl<T> Race<T> {
     }
 }
 
+/// Holds scheduling information for sessions of a Formula 1 race weekend event.
+///
+/// Requested via [`Resource::RaceSchedule`] and returned in [`Payload::Schedule`].
 #[derive(Deserialize, PartialEq, Eq, Clone, Copy, Debug)]
 pub struct Schedule {
+    /// Date and time of the first free-practice session, if any.
     #[serde(rename = "FirstPractice")]
     pub first_practice: Option<DateTime>,
+    /// Date and time of the second free-practice session, if any.
     #[serde(rename = "SecondPractice")]
     pub second_practice: Option<DateTime>,
+    /// Date and time of the third free-practice session, if any.
     #[serde(rename = "ThirdPractice")]
     pub third_practice: Option<DateTime>,
+    /// Date and time of the qualifying session, if any.
     #[serde(rename = "Qualifying")]
     pub qualifying: Option<DateTime>,
+    /// Date and time of the sprint session, if any.
     #[serde(rename = "Sprint")]
     pub sprint: Option<DateTime>,
+    /// Date and time of the sprint shootout session, if any.
+    ///
+    /// This is a dedicated qualifying session for the sprint race. It was dubbed "sprint shootout"
+    /// in 2023, when it was first introduced, but in 2024 it was renamed to "sprint qualifying".
     #[serde(rename = "SprintShootout")]
     pub sprint_shootout: Option<DateTime>,
+    /// Date and time of the sprint qualifying session, if any.
+    ///
+    /// This is a dedicated qualifying session for the sprint race. It was dubbed "sprint shootout"
+    /// in 2023, when it was first introduced, but in 2024 it was renamed to "sprint qualifying".
     #[serde(rename = "SprintQualifying")]
     pub sprint_qualifying: Option<DateTime>,
 }
@@ -925,21 +1029,51 @@ where
     fn try_into_inner_from(payload: Payload) -> Result<InnerList<Self>>;
 }
 
+/// Holds information about a driver's qualifying result in a Formula 1 qualifying session.
+///
+/// Requested via [`Resource::QualifyingResults`] and returned in [`Payload::QualifyingResults`].
+///
+/// Qualifying session formats have changed over the years, and have not always included the
+/// three-stage knockout format (Q1, Q2, Q3) that has been in use since 2006. As such, the `q1-3`
+/// fields are populated in that order based on the number of stages that were held in the session.
+/// For example, in 2000 there was only a single qualifying session, so only `q1` is populated. In
+/// 2005 there were two sessions, so `q1` and `q2` are populated. From 2006 onwards all three
+/// sessions are held, so all three fields are populated. If a driver was eliminated in an
+/// earlier session, the later session fields are not populated, represented by `None`. Qualifying
+/// results are not available prior to 1994, so all three stage fields are `None` for those years.
+///
+/// See [Formula One qualifying](https://en.wikipedia.org/wiki/Formula_One_race_weekend#Qualifying)
+/// for more details about the different qualifying formats, including sprint qualifying sessions.
 #[serde_as]
 #[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 pub struct QualifyingResult {
+    /// Driver's car number during the qualifying session.
     #[serde_as(as = "DisplayFromStr")]
     pub number: u32,
+    /// Driver's qualifying position after the session, `1` being pole position.
     #[serde_as(as = "DisplayFromStr")]
     pub position: u32,
+    /// The driver that this qualifying result corresponds to.
     #[serde(rename = "Driver")]
     pub driver: Driver,
+    /// The constructor/team that the driver was driving for during the qualifying session.
     #[serde(rename = "Constructor")]
     pub constructor: Constructor,
+    /// Driver's qualifying times for the Q1/first "knockout" stage of the qualifying session.
+    ///
+    /// Qualifying results may not be available, e.g. prior to 1994, represented by [`None`].
     #[serde(rename = "Q1")]
     pub q1: Option<QualifyingTime>,
+    /// Driver's qualifying times for the Q2/second "knockout" stage of the qualifying session.
+    ///
+    /// Qualifying results may not be available, e.g. if the driver was eliminated in Q1, or on
+    /// any of the years that only had a single qualifying session, represented by [`None`].
     #[serde(rename = "Q2")]
     pub q2: Option<QualifyingTime>,
+    /// Driver's qualifying times for the Q3/third "knockout" stage of the qualifying session.
+    ///
+    /// Qualifying results may not be available, e.g. if the driver was eliminated in Q1 or Q2, or
+    /// on any of the years that had only one or two qualifying sessions, represented by [`None`].
     #[serde(rename = "Q3")]
     pub q3: Option<QualifyingTime>,
 }
@@ -980,30 +1114,47 @@ impl PayloadInnerList for QualifyingResult {
 /// the 2021 Belgian GP only awarded half points, meaning P1, P3, and P10 received `x.5` points.
 pub type Points = f32;
 
+/// Holds information about a driver's result in a Formula 1 sprint session.
+///
+/// Requested via [`Resource::SprintResults`] and returned in [`Payload::SprintResults`].
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct SprintResult {
+    /// Driver's car number during the sprint.
     #[serde_as(as = "DisplayFromStr")]
     pub number: u32,
+    /// Driver's classified position in the sprint, even if they did not finish.
     #[serde_as(as = "DisplayFromStr")]
     pub position: u32,
+    /// Indicates the driver's result in the sprint, e.g. [`Position::Finished`] containing
+    /// the finishing position if the driver finished, or any of other possible outcomes, e.g.
+    /// [`Position::Retired`], [`Position::Disqualified`], [`Position::Withdrawn`],etc.
     pub position_text: Position,
+    /// Points awarded to the driver for their result in the sprint.
     #[serde_as(as = "DisplayFromStr")]
     pub points: Points,
+    /// The driver that this sprint result corresponds to.
     #[serde(rename = "Driver")]
     pub driver: Driver,
+    /// The constructor/team that the driver was driving for during the sprint.
     #[serde(rename = "Constructor")]
     pub constructor: Constructor,
+    /// Driver's starting grid position for the sprint.
     #[serde_as(as = "DisplayFromStr")]
     pub grid: u32,
+    /// Number of laps completed by the driver during the sprint.
     #[serde_as(as = "DisplayFromStr")]
     pub laps: u32,
+    /// Driver's status at the end of the sprint, e.g. `"Finished"`, `"Retired"`, etc.
     pub status: String,
+    /// Full sprint duration for the driver, including possibly a delta to the sprint leader/P1.
+    /// This is only present if a driver finished in the lead lap, if their status is `"Finished"`.
     // @todo If and when the API bug is fixed, this can be changed back to:
     // #[serde(rename = "Time")]
     #[serde(rename = "Time", default, deserialize_with = "deserialize_buggy_race_time")]
     pub time: Option<RaceTime>,
+    /// Information about the driver's fastest lap during the sprint.
     #[serde(rename = "FastestLap")]
     pub fastest_lap: Option<FastestLap>,
 }
@@ -1038,30 +1189,47 @@ impl PayloadInnerList for SprintResult {
     }
 }
 
+/// Holds information about a driver's result in a Formula 1 Grand Prix (race session).
+///
+/// Requested via [`Resource::RaceResults`] and returned in [`Payload::RaceResults`].
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct RaceResult {
+    /// Driver's car number during the race.
     #[serde(deserialize_with = "deserialize_possible_no_number")]
     pub number: u32,
+    /// Driver's classified position in the race, even if they did not finish.
     #[serde_as(as = "DisplayFromStr")]
     pub position: u32,
+    /// Indicates the driver's result in the race, e.g. [`Position::Finished`] containing the
+    /// finishing position if the driver finished, or any of other possible outcomes, e.g.
+    /// [`Position::Retired`], [`Position::Disqualified`], [`Position::Withdrawn`],etc.
     pub position_text: Position,
+    /// Points awarded to the driver for their result in the race, including any fastest lap points.
     #[serde_as(as = "DisplayFromStr")]
     pub points: Points,
+    /// The driver that this race result corresponds to.
     #[serde(rename = "Driver")]
     pub driver: Driver,
+    /// The constructor/team that the driver was driving for during the race.
     #[serde(rename = "Constructor")]
     pub constructor: Constructor,
+    /// Driver's starting grid position for the race.
     #[serde_as(as = "DisplayFromStr")]
     pub grid: u32,
+    /// Number of laps completed by the driver during the race.
     #[serde_as(as = "DisplayFromStr")]
     pub laps: u32,
+    /// Driver's status at the end of the race, e.g. `"Finished"`, `"Retired"`, etc.
     pub status: String,
+    /// Full race duration for the driver, including possibly a delta to the race leader/P1.
+    /// This is only present if a driver finished in the lead lap, if their status is `"Finished"`.
     // @todo If and when the API bug is fixed, this can be changed back to:
     // #[serde(rename = "Time")]
     #[serde(rename = "Time", default, deserialize_with = "deserialize_buggy_race_time")]
     pub time: Option<RaceTime>,
+    /// Information about the driver's fastest lap during the race.
     #[serde(rename = "FastestLap")]
     pub fastest_lap: Option<FastestLap>,
 }
@@ -1122,23 +1290,37 @@ where
     })
 }
 
+/// Represents a driver's result outcome in a Formula 1 sprint or race session.
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum Position {
+    /// Driver finished the session, with the contained `u32` representing their finishing position.
     Finished(u32),
+    /// Driver retired from the session.
     Retired,
+    /// Driver was disqualified from the session.
     Disqualified,
+    /// Driver was excluded from the session.
     Excluded,
+    /// Driver withdrew from the session.
     Withdrawn,
+    /// Driver failed to qualify for the session.
     FailedToQualify,
+    /// Driver was not classified in the session.
     NotClassified,
 }
 
 impl Position {
+    /// Shorthand constant for [`Position::Retired`], i.e. [`Position::R`] or [`Self::R`].
     pub const R: Self = Self::Retired;
+    /// Shorthand constant for [`Position::Disqualified`], i.e. [`Position::D`] or [`Self::D`].
     pub const D: Self = Self::Disqualified;
+    /// Shorthand constant for [`Position::Excluded`], i.e. [`Position::E`] or [`Self::E`].
     pub const E: Self = Self::Excluded;
+    /// Shorthand constant for [`Position::Withdrawn`], i.e. [`Position::W`] or [`Self::W`].
     pub const W: Self = Self::Withdrawn;
+    /// Shorthand constant for [`Position::FailedToQualify`], i.e. [`Position::F`] or [`Self::F`].
     pub const F: Self = Self::FailedToQualify;
+    /// Shorthand constant for [`Position::NotClassified`], i.e. [`Position::N`] or [`Self::N`].
     pub const N: Self = Self::NotClassified;
 }
 
@@ -1193,61 +1375,89 @@ impl DriverLap {
     }
 }
 
+/// Holds information about a single lap in a Formula 1 sprint or race session.
+///
+/// Requested via [`Resource::LapTimes`] and returned in [`Payload::Laps`].
 #[serde_as]
 #[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 pub struct Lap {
+    /// Lap number within the session, starting from `1` for the first lap.
     #[serde_as(as = "DisplayFromStr")]
     pub number: u32,
+    /// List of [`Timing`]s for all drivers for this lap.
     #[serde(rename = "Timings")]
     pub timings: Vec<Timing>,
 }
 
+/// Holds timing information for a single driver in a given lap of a sprint or race.
 #[serde_as]
 #[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Timing {
+    /// Unique identifier for the driver that this timing corresponds to.
     pub driver_id: DriverID,
+    /// Position of the driver at the end of the lap.
     #[serde_as(as = "DisplayFromStr")]
     pub position: u32,
+    /// Lap time for the driver in this lap.
     #[serde(deserialize_with = "deserialize_duration")]
     pub time: Duration,
 }
 
+/// Holds information about a single pit stop made by a driver in a Formula 1 sprint or race.
+///
+/// Requested via [`Resource::PitStops`] and returned in [`Payload::PitStops`].
 #[serde_as]
 #[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PitStop {
+    /// Unique identifier for the driver that made this pit stop.
     pub driver_id: DriverID,
     #[serde_as(as = "DisplayFromStr")]
+    /// Lap number during which the pit stop was made.
     pub lap: u32,
+    /// Pit stop index for the driver during the session, starting from `1` for their first stop.
     #[serde_as(as = "DisplayFromStr")]
     pub stop: u32,
+    /// Time from the start of the race at which the pit stop was made.
     #[serde(deserialize_with = "deserialize_time")]
     pub time: Time,
+    /// Duration of the pit stop from pit entry to pit exit.
+    // @todo Double-check if it's actually from pit entry to pit exit.
     #[serde(deserialize_with = "deserialize_duration")]
     pub duration: Duration,
 }
 
+/// Holds geographical location information, typically about a Formula 1 circuit/track.
 #[serde_as]
 #[derive(Deserialize, Hash, Eq, PartialEq, Clone, Debug)]
 pub struct Location {
+    /// Latitude of the location, e.g. `"50.4372"` for 50°26′14″N of Circuit de Spa-Francorchamps.
     #[serde_as(as = "DisplayFromStr")]
     pub lat: OrderedFloat<f64>,
+    /// Longitude of the location, e.g. `"5.97139"` for 5°58′17″E of Circuit de Spa-Francorchamps.
     #[serde_as(as = "DisplayFromStr")]
     pub long: OrderedFloat<f64>,
+    /// Locality (city/town) of the location, e.g. `"Spa"`, `"Monte-Carlo"`, `"Montreal"`, etc.
     pub locality: String,
+    /// Country of the location, e.g. `"Belgium"`, `"Monaco"`, `"Canada"`, `"UK"`, etc.
     pub country: String,
 }
 
+/// Holds information about a driver's fastest lap in a Formula 1 sprint or race session.
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Copy, Debug)]
 pub struct FastestLap {
+    /// The rank of the fastest lap, e.g. `1` for the overall fastest lap in the session.
     #[serde_as(as = "Option<DisplayFromStr>")]
     pub rank: Option<u32>,
+    /// The lap number during which the fastest lap was set.
     #[serde_as(as = "DisplayFromStr")]
     pub lap: u32,
+    /// The lap time of the fastest lap.
     #[serde(rename = "Time", deserialize_with = "extract_nested_time")]
     pub time: Duration,
+    /// The average speed during the fastest lap.
     #[serde(rename = "AverageSpeed")]
     pub average_speed: Option<AverageSpeed>,
 }
@@ -1261,16 +1471,21 @@ fn extract_nested_time<'de, D: Deserializer<'de>>(deserializer: D) -> std::resul
     Ok(Time::deserialize(deserializer)?.time)
 }
 
+/// Holds information about the average speed during a lap.
 #[serde_as]
 #[derive(Deserialize, PartialEq, Clone, Copy, Debug)]
 pub struct AverageSpeed {
+    /// The units used for the speed measurement, e.g. kilometers per hour, [`SpeedUnits::Kph`].
     pub units: SpeedUnits,
+    /// The average speed value.
     #[serde_as(as = "DisplayFromStr")]
     pub speed: f32,
 }
 
+/// Represents the units used for speed measurements.
 #[derive(Deserialize, PartialEq, Eq, Clone, Copy, Debug)]
 pub enum SpeedUnits {
+    /// Kilometers per hour.
     #[serde(rename = "kph")]
     Kph,
 }
