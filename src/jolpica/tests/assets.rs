@@ -2534,7 +2534,7 @@ pub(crate) const RACE_RESULT_2023_3_P15_STR: &str = formatcp!(
     "Constructor": {CONSTRUCTOR_ALPHA_TAURI_STR},
     "grid": "15",
     "laps": "56",
-    "status": "Finished",
+    "status": "Retired",
     "Time": {{
         "millis": "7005713",
         "time": "+-1:24:07.342"
@@ -2808,7 +2808,7 @@ pub(crate) const RACE_RESULT_2023_3_P15: LazyLock<RaceResult> = LazyLock::new(||
     constructor: CONSTRUCTOR_ALPHA_TAURI.clone(),
     grid: 15,
     laps: 56,
-    status: "Finished".to_string(),
+    status: "Retired".to_string(),
     time: None, // Buggy in Jolpi-ca F1
     fastest_lap: Some(FastestLap {
         rank: Some(10),
