@@ -98,6 +98,7 @@ impl Response {
     ///     .unwrap();
     ///
     /// let seasons = resp.into_table_list::<Season>().unwrap();
+    ///
     /// assert!(seasons.len() >= 74);
     /// assert_eq!(seasons[0].season, 1950);
     /// assert_eq!(seasons[73].season, 2023);
@@ -110,14 +111,14 @@ impl Response {
     /// variant for this [`TableInnerList`].
     ///
     /// This method is similar to [`Response::into_table_list::<T>()`], but verifies that one and
-    /// only one element is present in the extracted list, returning that element directly.For
-    /// example, [`Response::into_table_list_single_element::<Season>()`] extracts from
+    /// only one element is present in the extracted list, returning that element directly. For
+    /// example, [`Response::into_single_table_list_element::<Season>()`] extracts from
     /// [`Response::table`] the inner [`Vec<Season>`] of the [`Table::Seasons`] variant, verifies
     /// that it contains only one element, then extracts and returns that single [`Season`].
     ///
     /// Convenience aliases are provided for all implemented [`TableInnerList`] types, e.g.
     /// [`Response::into_season()`] is an alias for
-    /// [`Response::into_table_list_single_element::<Season>()`].
+    /// [`Response::into_single_table_list_element::<Season>()`].
     ///
     /// # Errors
     ///
@@ -135,14 +136,16 @@ impl Response {
     /// let resp = jolpica
     ///     .get_response(&Resource::SeasonList(Filters::new().season(2023)))
     ///     .unwrap();
-    /// let season = resp.into_table_list_single_element::<Season>().unwrap();
+    ///
+    /// let season = resp.into_single_table_list_element::<Season>().unwrap();
+    ///
     /// assert_eq!(season.season, 2023);
     /// assert_eq!(
     ///     season.url.as_str(),
     ///     "https://en.wikipedia.org/wiki/2023_Formula_One_World_Championship"
     /// );
     /// ```
-    pub fn into_table_list_single_element<T: TableInnerList>(self) -> Result<T> {
+    pub fn into_single_table_list_element<T: TableInnerList>(self) -> Result<T> {
         self.into_table_list().and_then(verify_has_one_element_and_extract)
     }
 
@@ -173,9 +176,11 @@ impl Response {
     ///     .get_response(&Resource::SeasonList(Filters::none()))
     ///     .unwrap();
     ///
-    /// assert!(resp.as_seasons().unwrap().len() >= 74);
-    /// assert_eq!(resp.as_seasons().unwrap()[0].season, 1950);
-    /// assert_eq!(resp.as_seasons().unwrap()[73].season, 2023);
+    /// let seasons = resp.as_table_list::<Season>().unwrap();
+    ///
+    /// assert!(seasons.len() >= 74);
+    /// assert_eq!(seasons[0].season, 1950);
+    /// assert_eq!(seasons[73].season, 2023);
     /// ```
     pub fn as_table_list<T: TableInnerList>(&self) -> Result<&Vec<T>> {
         T::try_as_inner_from(&self.table)
@@ -186,15 +191,15 @@ impl Response {
     ///
     /// This method is similar to [`Response::as_table_list::<T>()`], but verifies that one and
     /// only one element is present in the list, returning a reference to that element directly.
-    /// It's also similar to [`Response::into_table_list_single_element::<T>()`], but it returns a
+    /// It's also similar to [`Response::into_single_table_list_element::<T>()`], but it returns a
     /// reference instead of consuming the [`Response`]. For example,
-    /// [`Response::as_table_list_single_element::<Season>()`] gets a reference to the
+    /// [`Response::as_single_table_list_element::<Season>()`] gets a reference to the
     /// [`Vec<Season>`] from the [`Table::Seasons`] variant in [`Response::table`], verifies that it
     /// contains only one element, then returns a reference to that single [`Season`].
     ///
     /// Convenience aliases are provided for all implemented [`TableInnerList`] types, e.g.
     /// [`Response::as_season()`] is an alias for
-    /// [`Response::as_table_list_single_element::<Season>()`].
+    /// [`Response::as_single_table_list_element::<Season>()`].
     ///
     /// # Errors
     ///
@@ -212,13 +217,16 @@ impl Response {
     /// let resp = jolpica
     ///     .get_response(&Resource::SeasonList(Filters::new().season(2023)))
     ///     .unwrap();
-    /// assert_eq!(resp.as_season().unwrap().season, 2023);
+    ///
+    /// let season = resp.as_single_table_list_element::<Season>().unwrap();
+    ///
+    /// assert_eq!(season.season, 2023);
     /// assert_eq!(
-    ///     resp.as_season().unwrap().url.as_str(),
+    ///     season.url.as_str(),
     ///     "https://en.wikipedia.org/wiki/2023_Formula_One_World_Championship"
     /// );
     /// ```
-    pub fn as_table_list_single_element<T: TableInnerList>(&self) -> Result<&T> {
+    pub fn as_single_table_list_element<T: TableInnerList>(&self) -> Result<&T> {
         self.as_table_list()
             .map(Vec::as_slice)
             .and_then(verify_has_one_element)
@@ -239,27 +247,27 @@ impl Response {
         self.into_race_schedules().and_then(verify_has_one_element_and_extract)
     }
 
-    pub fn into_many_session_results_for_many_events<T: PayloadInnerList>(self) -> Result<Vec<Race<Vec<T>>>> {
+    pub fn into_many_races_with_many_session_results<T: PayloadInnerList>(self) -> Result<Vec<Race<Vec<T>>>> {
         self.into_races()?
             .into_iter()
             .map(|race| race.try_map(|payload| T::try_into_inner_from(payload)))
             .collect()
     }
 
-    pub fn into_many_session_results_for_single_event<T: PayloadInnerList>(self) -> Result<Race<Vec<T>>> {
-        self.into_many_session_results_for_many_events::<T>()
+    pub fn into_one_race_with_many_session_results<T: PayloadInnerList>(self) -> Result<Race<Vec<T>>> {
+        self.into_many_races_with_many_session_results::<T>()
             .and_then(verify_has_one_element_and_extract)
     }
 
-    pub fn into_single_session_result_for_many_events<T: PayloadInnerList>(self) -> Result<Vec<Race<T>>> {
-        self.into_many_session_results_for_many_events::<T>()?
+    pub fn into_many_races_with_one_session_result<T: PayloadInnerList>(self) -> Result<Vec<Race<T>>> {
+        self.into_many_races_with_many_session_results::<T>()?
             .into_iter()
             .map(|race| race.try_map(verify_has_one_element_and_extract))
             .collect()
     }
 
-    pub fn into_single_session_result_for_single_event<T: PayloadInnerList>(self) -> Result<Race<T>> {
-        self.into_single_session_result_for_many_events::<T>()
+    pub fn into_one_race_with_one_session_result<T: PayloadInnerList>(self) -> Result<Race<T>> {
+        self.into_many_races_with_one_session_result::<T>()
             .and_then(verify_has_one_element_and_extract)
     }
 
@@ -294,7 +302,7 @@ impl Response {
             .map_err(into)
     }
 
-    // Convenience aliases for into/as_table_list(s)::<T> and into/as_table_list_single_element::<T>
+    // Convenience aliases for into/as_table_list(s)::<T> and into/as_single_table_list_element::<T>
     // Aliases for TableInnerList's: Season, Driver, Constructor, Circuit, Status, Race<Payload>
     // ---------------------------------------------------------------------------------------------
 
@@ -304,9 +312,9 @@ impl Response {
     }
 
     /// Alias for
-    /// [`into_table_list_single_element::<Season>()`](Self::into_table_list_single_element).
+    /// [`into_single_table_list_element::<Season>()`](Self::into_single_table_list_element).
     pub fn into_season(self) -> Result<Season> {
-        self.into_table_list_single_element::<Season>()
+        self.into_single_table_list_element::<Season>()
     }
 
     /// Alias for [`as_table_list::<Season>()`](Self::as_table_list).
@@ -314,9 +322,9 @@ impl Response {
         self.as_table_list::<Season>()
     }
 
-    /// Alias for [`as_table_list_single_element::<Season>()`](Self::as_table_list_single_element).
+    /// Alias for [`as_single_table_list_element::<Season>()`](Self::as_single_table_list_element).
     pub fn as_season(&self) -> Result<&Season> {
-        self.as_table_list_single_element::<Season>()
+        self.as_single_table_list_element::<Season>()
     }
 
     /// Alias for [`into_table_list::<Driver>()`](Self::into_table_list).
@@ -325,9 +333,9 @@ impl Response {
     }
 
     /// Alias for
-    /// [`into_table_list_single_element::<Driver>()`](Self::into_table_list_single_element).
+    /// [`into_single_table_list_element::<Driver>()`](Self::into_single_table_list_element).
     pub fn into_driver(self) -> Result<Driver> {
-        self.into_table_list_single_element::<Driver>()
+        self.into_single_table_list_element::<Driver>()
     }
 
     /// Alias for [`as_table_list::<Driver>()`](Self::as_table_list).
@@ -335,9 +343,9 @@ impl Response {
         self.as_table_list::<Driver>()
     }
 
-    /// Alias for [`as_table_list_single_element::<Driver>()`](Self::as_table_list_single_element).
+    /// Alias for [`as_single_table_list_element::<Driver>()`](Self::as_single_table_list_element).
     pub fn as_driver(&self) -> Result<&Driver> {
-        self.as_table_list_single_element::<Driver>()
+        self.as_single_table_list_element::<Driver>()
     }
 
     /// Alias for [`into_table_list::<Constructor>()`](Self::into_table_list).
@@ -346,9 +354,9 @@ impl Response {
     }
 
     /// Alias for
-    /// [`into_table_list_single_element::<Constructor>()`](Self::into_table_list_single_element).
+    /// [`into_single_table_list_element::<Constructor>()`](Self::into_single_table_list_element).
     pub fn into_constructor(self) -> Result<Constructor> {
-        self.into_table_list_single_element::<Constructor>()
+        self.into_single_table_list_element::<Constructor>()
     }
 
     /// Alias for [`as_table_list::<Constructor>()`](Self::as_table_list).
@@ -357,9 +365,9 @@ impl Response {
     }
 
     /// Alias for
-    /// [`as_table_list_single_element::<Constructor>()`](Self::as_table_list_single_element).
+    /// [`as_single_table_list_element::<Constructor>()`](Self::as_single_table_list_element).
     pub fn as_constructor(&self) -> Result<&Constructor> {
-        self.as_table_list_single_element::<Constructor>()
+        self.as_single_table_list_element::<Constructor>()
     }
 
     /// Alias for [`as_table_list::<Circuit>()`](Self::as_table_list).
@@ -368,9 +376,9 @@ impl Response {
     }
 
     /// Alias for
-    /// [`into_table_list_single_element::<Circuit>()`](Self::into_table_list_single_element).
+    /// [`into_single_table_list_element::<Circuit>()`](Self::into_single_table_list_element).
     pub fn into_circuit(self) -> Result<Circuit> {
-        self.into_table_list_single_element::<Circuit>()
+        self.into_single_table_list_element::<Circuit>()
     }
 
     /// Alias for [`as_table_list::<Circuit>()`](Self::as_table_list).
@@ -379,9 +387,9 @@ impl Response {
     }
 
     /// Alias for
-    /// [`as_table_list_single_element::<Circuit>()`](Self::as_table_list_single_element).
+    /// [`as_single_table_list_element::<Circuit>()`](Self::as_single_table_list_element).
     pub fn as_circuit(&self) -> Result<&Circuit> {
-        self.as_table_list_single_element::<Circuit>()
+        self.as_single_table_list_element::<Circuit>()
     }
 
     /// Alias for [`as_table_list::<Status>()`](Self::as_table_list).
@@ -390,9 +398,9 @@ impl Response {
     }
 
     /// Alias for
-    /// [`into_table_list_single_element::<Status>()`](Self::into_table_list_single_element).
+    /// [`into_single_table_list_element::<Status>()`](Self::into_single_table_list_element).
     pub fn into_status(self) -> Result<Status> {
-        self.into_table_list_single_element::<Status>()
+        self.into_single_table_list_element::<Status>()
     }
 
     /// Alias for [`as_table_list::<Status>()`](Self::as_table_list).
@@ -400,9 +408,9 @@ impl Response {
         self.as_table_list::<Status>()
     }
 
-    /// Alias for [`as_table_list_single_element::<Status>()`](Self::as_table_list_single_element).
+    /// Alias for [`as_single_table_list_element::<Status>()`](Self::as_single_table_list_element).
     pub fn as_status(&self) -> Result<&Status> {
-        self.as_table_list_single_element::<Status>()
+        self.as_single_table_list_element::<Status>()
     }
 
     /// Alias for [`into_table_list::<Race<Payload>>()`](Self::into_table_list).
@@ -411,9 +419,9 @@ impl Response {
     }
 
     /// Alias for
-    /// [`into_table_list_single_element::<Race<Payload>>()`](Self::into_table_list_single_element).
+    /// [`into_single_table_list_element::<Race<Payload>>()`](Self::into_single_table_list_element).
     pub fn into_race(self) -> Result<Race<Payload>> {
-        self.into_table_list_single_element::<Race<Payload>>()
+        self.into_single_table_list_element::<Race<Payload>>()
     }
 
     /// Alias for [`as_table_list::<Race<Payload>>()`](Self::as_table_list).
@@ -422,9 +430,9 @@ impl Response {
     }
 
     /// Alias for
-    /// [`as_table_list_single_element::<Race<Payload>>()`](Self::as_table_list_single_element).
+    /// [`as_single_table_list_element::<Race<Payload>>()`](Self::as_single_table_list_element).
     pub fn as_race(&self) -> Result<&Race<Payload>> {
-        self.as_table_list_single_element::<Race<Payload>>()
+        self.as_single_table_list_element::<Race<Payload>>()
     }
 }
 

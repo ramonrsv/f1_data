@@ -377,7 +377,7 @@ impl<'a> Agent<'a> {
     /// [`get_table_list_single_element::<Season>`][Self::get_table_list_single_element] will
     /// perform a GET request for a single season, filtered by [`SeasonID`] in [`Filters::season`],
     /// and return the resulting inner single [`Season`] in [`Response::table`], via
-    /// [`Response::into_table_list_single_element::<Season>()`].
+    /// [`Response::into_single_table_list_element::<Season>()`].
     ///
     /// # Errors
     ///
@@ -401,7 +401,7 @@ impl<'a> Agent<'a> {
     /// ```
     pub fn get_table_list_single_element<T: ToResource + IdFilter + TableInnerList>(&self, id: T::ID) -> Result<T> {
         self.get_response(&T::to_resource(T::id_filter(id)))?
-            .into_table_list_single_element::<T>()
+            .into_single_table_list_element::<T>()
     }
 
     /// Performs a GET request to the jolpica-f1 API for [`Resource::SeasonList`], with the argument
@@ -769,7 +769,7 @@ impl<'a> Agent<'a> {
     /// ```
     pub fn get_session_results<T: SessionResult>(&self, filters: Filters) -> Result<Vec<Race<Vec<T>>>> {
         self.get_response(&T::to_resource(filters))?
-            .into_many_session_results_for_many_events::<T>()
+            .into_many_races_with_many_session_results::<T>()
     }
 
     /// Performs a GET request to the jolpica-f1 API for the [`Resource`] corresponding to the
@@ -819,7 +819,7 @@ impl<'a> Agent<'a> {
     /// ```
     pub fn get_session_results_for_event<T: SessionResult>(&self, filters: Filters) -> Result<Race<Vec<T>>> {
         self.get_response(&T::to_resource(filters))?
-            .into_many_session_results_for_single_event::<T>()
+            .into_one_race_with_many_session_results::<T>()
     }
 
     /// Performs a GET request to the jolpica-f1 API for the [`Resource`] corresponding to the
@@ -884,7 +884,7 @@ impl<'a> Agent<'a> {
     /// ```
     pub fn get_session_result_for_events<T: SessionResult>(&self, filters: Filters) -> Result<Vec<Race<T>>> {
         self.get_response(&T::to_resource(filters))?
-            .into_single_session_result_for_many_events::<T>()
+            .into_many_races_with_one_session_result::<T>()
     }
 
     /// Performs a GET request to the jolpica-f1 API for the [`Resource`] corresponding to the
@@ -931,7 +931,7 @@ impl<'a> Agent<'a> {
     /// ```
     pub fn get_session_result<T: SessionResult>(&self, filters: Filters) -> Result<Race<T>> {
         self.get_response(&T::to_resource(filters))?
-            .into_single_session_result_for_single_event::<T>()
+            .into_one_race_with_one_session_result::<T>()
     }
 
     /// Alias for [`get_session_results::<QualifyingResult>`][Self::get_session_results].

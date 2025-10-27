@@ -37,18 +37,18 @@ fn bench_process_response(c: &mut Criterion) {
         b.iter_batched(|| response.clone(), |response| response.into_race_schedule(), BatchSize::SmallInput)
     });
 
-    group.bench_function("into_many_session_results_for_many_events::<RaceResult>", |b| {
+    group.bench_function("into_many_races_with_many_session_results::<RaceResult>", |b| {
         b.iter_batched(
             || response.clone(),
-            |response| response.into_many_session_results_for_many_events::<RaceResult>(),
+            |response| response.into_many_races_with_many_session_results::<RaceResult>(),
             BatchSize::SmallInput,
         )
     });
 
-    group.bench_function("into_single_session_result_for_single_event::<RaceResult>", |b| {
+    group.bench_function("into_one_race_with_one_session_result::<RaceResult>", |b| {
         b.iter_batched(
             || response.clone(),
-            |response| response.into_single_session_result_for_single_event::<RaceResult>(),
+            |response| response.into_one_race_with_one_session_result::<RaceResult>(),
             BatchSize::SmallInput,
         )
     });
