@@ -9,6 +9,12 @@
 # and only run on schedules and locally via act. It is highly recommended that the full CI workflow
 # be run locally before pushing changes, to catch any issues that the reduced workflow may miss.
 #
+# Many of the documentation tests are marked with ```no_run since they make requests to the jolpica
+# API, and so have the same issues mentioned above, but we still want to check that they compile -
+# doc tests marked with #[ignore] are not compile, unlike regular tests. Since Rust doesn't have a
+# built-in way to run these tests, as it does with --ignored tests, the script `test_no_run_docs.sh`
+# is provided as a workaround.
+#
 # Some jobs and/or steps are skipped when running locally with `act` - controlled via env.ACT and
 # vars.ACT, because they may take too long or may undesirably upload codecov or performance reports.
 # To force running these steps/jobs when running locally with `act`, several options are supported,
@@ -51,6 +57,9 @@ jobs:
       - name: Test (ignored)
         if: github.event_name == 'schedule' || vars.ACT == 'true'
         run: cargo test --workspace --all-features -- --ignored --test-threads 1
+      - name: Test (doc no_run)
+        if: github.event_name == 'schedule' || vars.ACT == 'true'
+        run: ./scripts/test_no_run_docs.sh
 
   build_docs:
     runs-on: ubuntu-latest
