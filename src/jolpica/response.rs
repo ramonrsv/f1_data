@@ -228,14 +228,6 @@ impl Response {
     // Races and SessionResults
     // ------------------------
 
-    pub fn into_races(self) -> Result<Vec<Race>> {
-        self.table.into_races().map_err(into)
-    }
-
-    pub fn into_race(self) -> Result<Race> {
-        self.into_races().and_then(verify_has_one_element_and_extract)
-    }
-
     pub fn into_race_schedules(self) -> Result<Vec<Race<Schedule>>> {
         self.into_races()?
             .into_iter()
@@ -303,107 +295,136 @@ impl Response {
     }
 
     // Convenience aliases for into/as_table_list(s)::<T> and into/as_table_list_single_element::<T>
-    // Aliases implemented for TableInnerList's: Seasons, Drivers, Constructors, Circuits, Statuses
+    // Aliases for TableInnerList's: Season, Driver, Constructor, Circuit, Status, Race<Payload>
     // ---------------------------------------------------------------------------------------------
 
-    /// Convenience alias for `into_table_list::<Season>()`.
+    /// Alias for [`into_table_list::<Season>()`](Self::into_table_list).
     pub fn into_seasons(self) -> Result<Vec<Season>> {
         self.into_table_list::<Season>()
     }
 
-    /// Convenience alias for `into_table_list_single_element::<Season>()`.
+    /// Alias for
+    /// [`into_table_list_single_element::<Season>()`](Self::into_table_list_single_element).
     pub fn into_season(self) -> Result<Season> {
         self.into_table_list_single_element::<Season>()
     }
 
-    /// Convenience alias for `as_table_list::<Season>()`.
+    /// Alias for [`as_table_list::<Season>()`](Self::as_table_list).
     pub fn as_seasons(&self) -> Result<&Vec<Season>> {
         self.as_table_list::<Season>()
     }
 
-    /// Convenience alias for `as_table_list_single_element::<Season>()`.
+    /// Alias for [`as_table_list_single_element::<Season>()`](Self::as_table_list_single_element).
     pub fn as_season(&self) -> Result<&Season> {
         self.as_table_list_single_element::<Season>()
     }
 
-    /// Convenience alias for `into_table_list::<Driver>()`.
+    /// Alias for [`into_table_list::<Driver>()`](Self::into_table_list).
     pub fn into_drivers(self) -> Result<Vec<Driver>> {
         self.into_table_list::<Driver>()
     }
 
-    /// Convenience alias for `into_table_list_single_element::<Driver>()`.
+    /// Alias for
+    /// [`into_table_list_single_element::<Driver>()`](Self::into_table_list_single_element).
     pub fn into_driver(self) -> Result<Driver> {
         self.into_table_list_single_element::<Driver>()
     }
 
-    /// Convenience alias for `as_table_list::<Driver>()`.
+    /// Alias for [`as_table_list::<Driver>()`](Self::as_table_list).
     pub fn as_drivers(&self) -> Result<&Vec<Driver>> {
         self.as_table_list::<Driver>()
     }
 
-    /// Convenience alias for `as_table_list_single_element::<Driver>()`.
+    /// Alias for [`as_table_list_single_element::<Driver>()`](Self::as_table_list_single_element).
     pub fn as_driver(&self) -> Result<&Driver> {
         self.as_table_list_single_element::<Driver>()
     }
 
-    /// Convenience alias for `into_table_list::<Constructor>()`.
+    /// Alias for [`into_table_list::<Constructor>()`](Self::into_table_list).
     pub fn into_constructors(self) -> Result<Vec<Constructor>> {
         self.into_table_list::<Constructor>()
     }
 
-    /// Convenience alias for `into_table_list_single_element::<Constructor>()`.
+    /// Alias for
+    /// [`into_table_list_single_element::<Constructor>()`](Self::into_table_list_single_element).
     pub fn into_constructor(self) -> Result<Constructor> {
         self.into_table_list_single_element::<Constructor>()
     }
 
-    /// Convenience alias for `as_table_list::<Constructor>()`.
+    /// Alias for [`as_table_list::<Constructor>()`](Self::as_table_list).
     pub fn as_constructors(&self) -> Result<&Vec<Constructor>> {
         self.as_table_list::<Constructor>()
     }
 
-    /// Convenience alias for `as_table_list_single_element::<Constructor>()`.
+    /// Alias for
+    /// [`as_table_list_single_element::<Constructor>()`](Self::as_table_list_single_element).
     pub fn as_constructor(&self) -> Result<&Constructor> {
         self.as_table_list_single_element::<Constructor>()
     }
 
-    /// Convenience alias for `as_table_list::<Constructor>()`.
+    /// Alias for [`as_table_list::<Circuit>()`](Self::as_table_list).
     pub fn into_circuits(self) -> Result<Vec<Circuit>> {
         self.into_table_list::<Circuit>()
     }
 
-    /// Convenience alias for `into_table_list_single_element::<Constructor>()`.
+    /// Alias for
+    /// [`into_table_list_single_element::<Circuit>()`](Self::into_table_list_single_element).
     pub fn into_circuit(self) -> Result<Circuit> {
         self.into_table_list_single_element::<Circuit>()
     }
 
-    /// Convenience alias for `as_table_list::<Constructor>()`.
+    /// Alias for [`as_table_list::<Circuit>()`](Self::as_table_list).
     pub fn as_circuits(&self) -> Result<&Vec<Circuit>> {
         self.as_table_list::<Circuit>()
     }
 
-    /// Convenience alias for `as_table_list_single_element::<Constructor>()`.
+    /// Alias for
+    /// [`as_table_list_single_element::<Circuit>()`](Self::as_table_list_single_element).
     pub fn as_circuit(&self) -> Result<&Circuit> {
         self.as_table_list_single_element::<Circuit>()
     }
 
-    /// Convenience alias for `as_table_list::<Constructor>()`.
+    /// Alias for [`as_table_list::<Status>()`](Self::as_table_list).
     pub fn into_statuses(self) -> Result<Vec<Status>> {
         self.into_table_list::<Status>()
     }
 
-    /// Convenience alias for `into_table_list_single_element::<Constructor>()`.
+    /// Alias for
+    /// [`into_table_list_single_element::<Status>()`](Self::into_table_list_single_element).
     pub fn into_status(self) -> Result<Status> {
         self.into_table_list_single_element::<Status>()
     }
 
-    /// Convenience alias for `as_table_list::<Constructor>()`.
+    /// Alias for [`as_table_list::<Status>()`](Self::as_table_list).
     pub fn as_statuses(&self) -> Result<&Vec<Status>> {
         self.as_table_list::<Status>()
     }
 
-    /// Convenience alias for `as_table_list_single_element::<Constructor>()`.
+    /// Alias for [`as_table_list_single_element::<Status>()`](Self::as_table_list_single_element).
     pub fn as_status(&self) -> Result<&Status> {
         self.as_table_list_single_element::<Status>()
+    }
+
+    /// Alias for [`into_table_list::<Race<Payload>>()`](Self::into_table_list).
+    pub fn into_races(self) -> Result<Vec<Race<Payload>>> {
+        self.into_table_list::<Race<Payload>>()
+    }
+
+    /// Alias for
+    /// [`into_table_list_single_element::<Race<Payload>>()`](Self::into_table_list_single_element).
+    pub fn into_race(self) -> Result<Race<Payload>> {
+        self.into_table_list_single_element::<Race<Payload>>()
+    }
+
+    /// Alias for [`as_table_list::<Race<Payload>>()`](Self::as_table_list).
+    pub fn as_races(&self) -> Result<&Vec<Race<Payload>>> {
+        self.as_table_list::<Race<Payload>>()
+    }
+
+    /// Alias for
+    /// [`as_table_list_single_element::<Race<Payload>>()`](Self::as_table_list_single_element).
+    pub fn as_race(&self) -> Result<&Race<Payload>> {
+        self.as_table_list_single_element::<Race<Payload>>()
     }
 }
 
@@ -574,7 +595,8 @@ type InnerList<T> = Vec<T>;
 /// For example, [`Season`]s can be extracted from a [`Response`]'s [`Response::table`], from the
 /// [`Table::Seasons`] variant, via  [`T::try_into_inner_from()`](Self::try_into_inner_from).
 ///
-/// The trait is implemented for [`Season`], [`Driver`], [`Constructor`], [`Circuit`], [`Status`].
+/// The trait is implemented for [`Season`], [`Driver`], [`Constructor`], [`Circuit`], [`Status`],
+/// and [`Race<Payload>`].
 pub trait TableInnerList
 where
     Self: Sized,
@@ -864,6 +886,16 @@ impl<T> Race<T> {
     /// Constructs a [`Race<T>`] from a [`Race<U>`] and a payload argument of type `T`.
     pub fn from<U>(race: Race<U>, payload: T) -> Self {
         race.map(|_| payload)
+    }
+}
+
+impl TableInnerList for Race<Payload> {
+    fn try_into_inner_from(table: Table) -> Result<InnerList<Self>> {
+        table.into_races().map_err(into)
+    }
+
+    fn try_as_inner_from(table: &Table) -> Result<&InnerList<Self>> {
+        table.as_races().ok_or(Error::BadTableVariant)
     }
 }
 
