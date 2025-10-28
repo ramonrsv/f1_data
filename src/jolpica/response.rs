@@ -236,6 +236,39 @@ impl Response {
     // Races and SessionResults
     // ------------------------
 
+    /// Extracts the inner list of [`Race<Payload>`]s from the [`Table::Races`] variant and maps
+    /// them to [`Race<Schedule>`]s.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error::BadTableVariant`] if the contained [`Table`] variant is not
+    /// [`Table::Races`], and an [`Error::BadPayloadVariant`] if the contained [`Payload`] variant
+    /// is not [`Payload::Schedule`].
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use f1_data::jolpica::{agent::Agent, resource::{Filters, Resource}, time::macros::date};
+    /// # let jolpica = Agent::default();
+    /// #
+    /// let resp = jolpica
+    ///     .get_response(&Resource::RaceSchedule(Filters::new().season(2024)))
+    ///     .unwrap();
+    ///
+    /// let races = resp.into_race_schedules().unwrap();
+    ///
+    /// assert_eq!(races.len(), 24);
+    /// assert_eq!(races[0].season, 2024);
+    /// assert_eq!(races.first().unwrap().round, 1);
+    /// assert_eq!(races.last().unwrap().round, 24);
+    ///
+    /// let sprint_count = races.iter().filter(|race| race.schedule().sprint.is_some()).count();
+    /// assert_eq!(sprint_count, 6);
+    ///
+    /// assert_eq!(races[0].circuit.circuit_name, "Bahrain International Circuit");
+    /// assert_eq!(races[0].date, date!(2024 - 3 - 2));
+    /// assert_eq!(races[0].schedule().qualifying.unwrap().date, date!(2024 - 3 - 1));
+    /// ```
     pub fn into_race_schedules(self) -> Result<Vec<Race<Schedule>>> {
         self.into_races()?
             .into_iter()
@@ -243,10 +276,101 @@ impl Response {
             .collect()
     }
 
+    /// Extracts an expected single element from the inner list of [`Race<Payload>`]s from the
+    /// [`Table::Races`] variant and maps it to [`Race<Schedule>`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error::BadTableVariant`] if the contained [`Table`] variant is not
+    /// [`Table::Races`], or an [`Error::BadPayloadVariant`] if the contained [`Payload`] variant is
+    /// not [`Payload::Schedule`]. Returns an [`Error::NotFound`] if the extracted list is empty, or
+    /// an [`Error::TooMany`] if it contains more than one element.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use f1_data::jolpica::{agent::Agent, resource::{Filters, Resource}, time::macros::date};
+    /// # let jolpica = Agent::default();
+    /// #
+    /// let resp = jolpica
+    ///     .get_response(&Resource::RaceSchedule(Filters::new().season(2024).round(1)))
+    ///     .unwrap();
+    ///
+    /// let race = resp.into_race_schedule().unwrap();
+    ///
+    /// assert_eq!(race.season, 2024);
+    /// assert_eq!(race.round, 1);
+    ///
+    /// assert_eq!(race.circuit.circuit_name, "Bahrain International Circuit");
+    /// assert_eq!(race.date, date!(2024 - 3 - 2));
+    /// assert_eq!(race.schedule().qualifying.unwrap().date, date!(2024 - 3 - 1));
+    /// ```
     pub fn into_race_schedule(self) -> Result<Race<Schedule>> {
         self.into_race_schedules().and_then(verify_has_one_element_and_extract)
     }
 
+    /// Extracts the inner list of [`Race<Payload>`]s from the [`Table::Races`] variant, each with
+    /// an inner list of <code>T = [PayloadInnerList]</code>s, and maps them to [`Race<Vec<T>>`]s.
+    ///
+    /// For example,
+    /// [`into_many_races_with_many_session_results::<RaceResult>()`](Self::into_many_races_with_many_session_results)
+    /// will return a sequence of [`Race<Vec<RaceResult>>`]s, where the [`Payload`] variant
+    /// [`Payload::RaceResults`] has already been extracted and processed into
+    /// [`Race<Vec<RaceResult>>`], obviating the need to perform error checking and extraction of
+    /// the expected variants.
+    ///
+    /// This function returns a sequence of <code>T = [PayloadInnerList]</code>s for each of a
+    /// sequence of [`Race`]s, i.e. it returns [`Vec<Race<Vec<T>>>`]. If a single [`Race`] is
+    /// expected in the response, or a single `T` per [`Race`], or other, consider using one of
+    /// the other methods with the desired processing:
+    /// [`into_one_race_with_many_session_results`][Self::into_one_race_with_many_session_results],
+    /// [`into_many_races_with_one_session_result`][Self::into_many_races_with_one_session_result],
+    /// or [`into_one_race_with_one_session_result`][Self::into_one_race_with_one_session_result].
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error::BadTableVariant`] if the contained [`Table`] variant is not
+    /// [`Table::Races`], or an [`Error::BadPayloadVariant`] if the contained [`Payload`] variant is
+    /// not the variant corresponding to the <code>T = [PayloadInnerList]</code>, e.g. if it's not
+    /// [`Payload::RaceResults`] when <code>T = [RaceResult]</code>.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use f1_data::{
+    /// #     id::ConstructorID,
+    /// #     jolpica::{
+    /// #         agent::Agent,
+    /// #         resource::{Filters, Resource},
+    /// #         response::{Points, RaceResult, SprintResult},
+    /// #     },
+    /// # };
+    /// # let jolpica = Agent::default();
+    /// #
+    /// let red_bull_2021_filter = Filters::new()
+    ///     .season(2021).constructor_id(ConstructorID::from("red_bull"));
+    ///
+    /// let resp_race_results = jolpica.get_response(
+    ///     &Resource::RaceResults(red_bull_2021_filter.clone())).unwrap();
+    /// let resp_sprint_results = jolpica.get_response(
+    ///     &Resource::SprintResults(red_bull_2021_filter.clone())).unwrap();
+    ///
+    /// let race_points = resp_race_results
+    ///     .into_many_races_with_many_session_results::<RaceResult>()
+    ///     .unwrap()
+    ///     .iter()
+    ///     .map(|r| r.race_results().iter().map(|r| r.points).sum::<Points>())
+    ///     .sum::<Points>();
+    ///
+    /// let sprint_points = resp_sprint_results
+    ///     .into_many_races_with_many_session_results::<SprintResult>()
+    ///     .unwrap()
+    ///     .iter()
+    ///     .map(|s| s.sprint_results().iter().map(|r| r.points).sum::<Points>())
+    ///     .sum::<Points>();
+    ///
+    /// assert_eq!(race_points + sprint_points, 585.5);
+    /// ```
     pub fn into_many_races_with_many_session_results<T: PayloadInnerList>(self) -> Result<Vec<Race<Vec<T>>>> {
         self.into_races()?
             .into_iter()
@@ -254,11 +378,108 @@ impl Response {
             .collect()
     }
 
+    /// Extracts the single expected [`Race<Payload>`] from the [`Table::Races`] variant, with
+    /// an inner list of <code>T = [PayloadInnerList]</code>s, and maps it to a [`Race<Vec<T>>`].
+    ///
+    /// For example,
+    /// [`into_one_race_with_many_session_results::<RaceResult>`][Self::into_one_race_with_many_session_results]
+    /// will return a single [`Race<Vec<RaceResult>>`], where the [`Payload`] variant
+    /// [`Payload::RaceResults`] has already been extracted and processed into a single
+    /// [`Race<Vec<RaceResult>>`], obviating the need to perform error checking and extraction of
+    /// the expected variants.
+    ///
+    /// This function returns a single [`Race`] containing a sequence of
+    /// <code>T = [PayloadInnerList]</code>s, i.e. it returns a [`Race<Vec<T>>`]. If multiple
+    /// [`Race`]s are expected in the response, or a single `T` per [`Race`], or other, consider
+    /// using one of the other methods with the desired processing:
+    /// [`into_many_races_with_many_session_results`][Self::into_many_races_with_many_session_results],
+    /// [`into_many_races_with_one_session_result`][Self::into_many_races_with_one_session_result],
+    /// or [`into_one_race_with_one_session_result`][Self::into_one_race_with_one_session_result].
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error::BadTableVariant`] if the contained [`Table`] variant is not
+    /// [`Table::Races`], or an [`Error::BadPayloadVariant`] if the contained [`Payload`] variant is
+    /// not the variant corresponding to the <code>T = [PayloadInnerList]</code>, e.g. if it's not
+    /// [`Payload::RaceResults`] when <code>T = [RaceResult]</code>. An [`Error::NotFound`] or
+    /// [`Error::TooMany`] is returned if the expected number of [`Race`]s and
+    /// <code>T = [PayloadInnerList]</code>s per [`Race`] are not found in the response.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use f1_data::jolpica::{agent::Agent, resource::{Filters, Resource}, response::RaceResult};
+    /// # let jolpica = Agent::default();
+    /// #
+    /// let resp = jolpica.get_response(&Resource::RaceResults(
+    ///     Filters::new().season(2021).round(22))).unwrap();
+    ///
+    /// let race = resp.into_one_race_with_many_session_results::<RaceResult>().unwrap();
+    ///
+    /// assert_eq!(race.race_name, "Abu Dhabi Grand Prix");
+    /// assert_eq!(race.race_results()[0].driver.family_name, "Verstappen");
+    /// assert_eq!(race.race_results()[0].position, 1);
+    /// assert_eq!(race.race_results()[1].driver.family_name, "Hamilton");
+    /// assert_eq!(race.race_results()[1].position, 2);
+    /// ```
     pub fn into_one_race_with_many_session_results<T: PayloadInnerList>(self) -> Result<Race<Vec<T>>> {
         self.into_many_races_with_many_session_results::<T>()
             .and_then(verify_has_one_element_and_extract)
     }
 
+    /// Extracts the inner list of [`Race<Payload>`]s from the [`Table::Races`] variant, each with
+    /// with a single expected <code>T = [PayloadInnerList]</code>, and maps them to [`Race<T>`]s.
+    ///
+    /// For example,
+    /// [`into_many_races_with_one_session_result::<RaceResult>`][Self::into_many_races_with_one_session_result]
+    /// will return a sequence of [`Race<RaceResult>`], where the [`Payload`] variant
+    /// [`Payload::RaceResults`] has already been extracted and processed into [`Race<RaceResult>`],
+    /// ensuring that each [`Race`] holds one and only one <code>T = [PayloadInnerList]</code>,
+    /// obviating the need to perform error checking and extraction of the expected variants.
+    ///
+    /// This function returns a sequence of [`Race`]s containing a single
+    /// <code>T = [PayloadInnerList]</code> each, i.e. it returns [`Vec<Race<T>>`]. If a single
+    /// [`Race`] is expected in the response, or multiple `T`s per [`Race`], or other, consider
+    /// using one of the other methods with the desired processing:
+    /// [`into_many_races_with_many_session_results`][Self::into_many_races_with_many_session_results],
+    /// [`into_one_race_with_many_session_results`][Self::into_one_race_with_many_session_results],
+    /// or [`into_one_race_with_one_session_result`][Self::into_one_race_with_one_session_result].
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error::BadTableVariant`] if the contained [`Table`] variant is not
+    /// [`Table::Races`], or an [`Error::BadPayloadVariant`] if the contained [`Payload`] variant is
+    /// not the variant corresponding to the <code>T = [PayloadInnerList]</code>, e.g. if it's not
+    /// [`Payload::RaceResults`] when <code>T = [RaceResult]</code>. An [`Error::NotFound`] or
+    /// [`Error::TooMany`] is returned if the expected number of [`Race`]s and
+    /// <code>T = [PayloadInnerList]</code>s per [`Race`] are not found in the response.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use f1_data::id::DriverID;
+    /// # use f1_data::jolpica::{
+    /// #     agent::Agent,
+    /// #     resource::{Filters, Resource},
+    /// #     response::QualifyingResult
+    /// # };
+    /// # let jolpica = Agent::default();
+    /// #
+    /// # // @todo Replace .map(...) with .qualifying_pos(1) when that filter is fixed in the API.
+    /// let resp = jolpica.get_response(&Resource::QualifyingResults(
+    ///     Filters::new().driver_id(DriverID::from("vettel"))
+    /// )).unwrap();
+    ///
+    /// let seb_poles: u32 = resp.into_many_races_with_one_session_result::<QualifyingResult>()
+    ///     .unwrap()
+    ///     .iter()
+    ///     .map(|race| {
+    ///         if race.qualifying_result().position == 1 { 1 } else { 0 }
+    ///     })
+    ///     .sum();
+    ///
+    /// assert_eq!(seb_poles, 57);
+    /// ```
     pub fn into_many_races_with_one_session_result<T: PayloadInnerList>(self) -> Result<Vec<Race<T>>> {
         self.into_many_races_with_many_session_results::<T>()?
             .into_iter()
@@ -266,6 +487,49 @@ impl Response {
             .collect()
     }
 
+    /// Extracts the single expected [`Race<Payload>`] from the [`Table::Races`] variant, with
+    /// a single expected <code>T = [PayloadInnerList]</code>, and maps it to a [`Race<T>`].
+    ///
+    /// For example,
+    /// [`into_one_race_with_one_session_result::<RaceResult>`][Self::into_one_race_with_one_session_result]
+    /// will return a single [`Race<RaceResult>`], where the [`Payload`] variant
+    /// [`Payload::RaceResults`] has already been extracted and processed into [`Race<RaceResult>`],
+    /// ensuring that one and only one [`Race`] is found, holding one and only one
+    /// <code>T = [PayloadInnerList]</code>, obviating the need to perform error checking and
+    /// extraction of the expected variants.
+    ///
+    /// This function returns a single [`Race`]s containing a single
+    /// <code>T = [PayloadInnerList]</code> , i.e. it returns [`Race<T>`]. If multiple [`Race`]s or
+    /// `T`s are expected in the response, consider using one of the other methods with the
+    /// desired processing:
+    /// [`into_many_races_with_many_session_results`][Self::into_many_races_with_many_session_results],
+    /// [`into_one_race_with_many_session_results`][Self::into_one_race_with_many_session_results], or
+    /// [`into_many_races_with_one_session_result`][Self::into_many_races_with_one_session_result].
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error::BadTableVariant`] if the contained [`Table`] variant is not
+    /// [`Table::Races`], or an [`Error::BadPayloadVariant`] if the contained [`Payload`] variant is
+    /// not the variant corresponding to the <code>T = [PayloadInnerList]</code>, e.g. if it's not
+    /// [`Payload::RaceResults`] when <code>T = [RaceResult]</code>. An [`Error::NotFound`] or
+    /// [`Error::TooMany`] is returned if the expected number of [`Race`]s and
+    /// <code>T = [PayloadInnerList]</code>s per [`Race`] are not found in the response.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use f1_data::jolpica::{agent::Agent, resource::{Filters, Resource}, response::SprintResult};
+    /// # let jolpica = Agent::default();
+    /// #
+    /// let resp = jolpica.get_response(&Resource::SprintResults(
+    ///     Filters::new().season(2021).round(10).sprint_pos(1)
+    /// )).unwrap();
+    ///
+    /// let race = resp.into_one_race_with_one_session_result::<SprintResult>().unwrap();
+    ///
+    /// assert_eq!(race.sprint_result().position, 1);
+    /// assert_eq!(race.sprint_result().driver.family_name, "Verstappen");
+    /// ```
     pub fn into_one_race_with_one_session_result<T: PayloadInnerList>(self) -> Result<Race<T>> {
         self.into_many_races_with_one_session_result::<T>()
             .and_then(verify_has_one_element_and_extract)

@@ -785,7 +785,7 @@ impl<'a> Agent<'a> {
     /// already been extracted and processed into [`Race<Vec<RaceResult>>`], obviating the need to
     /// perform error checking and extraction of the expected variants.
     ///
-    /// This function returns a singe [`Race`] containing a sequence of [`SessionResult`]s, i.e. it
+    /// This function returns a single [`Race`] containing a sequence of [`SessionResult`]s, i.e. it
     /// returns a [`Race<Vec<T>>`]. If multiple [`Race`]s are expected in the response, or a single
     /// [`SessionResult`] per [`Race`], or other, consider using one of the other methods with the
     /// desired processing: [`get_session_results`][Self::get_session_results],
@@ -837,8 +837,8 @@ impl<'a> Agent<'a> {
     /// extraction of the expected variants.
     ///
     /// This function returns a sequence of [`Race`]s containing a single [`SessionResult`] each,
-    /// i.e. it returns [`Vec<Race<T>>`]. If a single [`Race`] is expected in the response, or a
-    /// single [`SessionResult`] per [`Race`], or other, consider using one of the other methods
+    /// i.e. it returns [`Vec<Race<T>>`]. If a single [`Race`] is expected in the response, or
+    /// multiple [`SessionResult`]s per [`Race`], or other, consider using one of the other methods
     /// with the desired processing: [`get_session_results`][Self::get_session_results],
     /// [`get_session_results_for_event`][Self::get_session_results_for_event], or
     /// [`get_session_result`][Self::get_session_result].
@@ -863,20 +863,15 @@ impl<'a> Agent<'a> {
     /// # };
     /// # let jolpica = Agent::default();
     /// #
+    /// # // @todo Replace .map(...) with .qualifying_pos(1) when that filter is fixed in the API.
     /// let seb_poles: u32 = jolpica
     ///     .get_session_result_for_events::<QualifyingResult>(
-    ///         Filters::new()
-    ///             .driver_id(DriverID::from("vettel"))
-    ///             .qualifying_pos(1),
+    ///         Filters::new().driver_id(DriverID::from("vettel"))
     ///     )
     ///     .unwrap()
     ///     .iter()
     ///     .map(|race| {
-    ///         if race.qualifying_result().position == 1 {
-    ///             1
-    ///         } else {
-    ///             0
-    ///         }
+    ///         if race.qualifying_result().position == 1 { 1 } else { 0 }
     ///     })
     ///     .sum();
     ///
