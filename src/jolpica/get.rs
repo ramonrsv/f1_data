@@ -168,9 +168,9 @@ pub fn get_response_multi_pages(
         http_retries,
     )?];
 
-    let mut pages = vec![responses.last().unwrap().pagination];
+    let mut pages = vec![responses.last().unwrap_or_else(|| unreachable!()).pagination];
 
-    while let Some(next_page) = pages.last().unwrap().next_page() {
+    while let Some(next_page) = pages.last().unwrap_or_else(|| unreachable!()).next_page() {
         pages.push(next_page);
     }
 

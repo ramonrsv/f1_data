@@ -244,6 +244,10 @@ impl RaceTime {
     }
 
     /// Construct a [`RaceTime`] for a driver other than the leader/P1, i.e. with a non-zero delta.
+    ///
+    /// # Panics
+    ///
+    /// This method will panic if the given `delta` is not less than the `total` duration.
     pub fn with_delta(total: Duration, delta: Duration) -> Self {
         assert!(delta < total);
 

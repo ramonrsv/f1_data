@@ -230,7 +230,7 @@ impl Response {
         self.as_table_list()
             .map(Vec::as_slice)
             .and_then(verify_has_one_element)
-            .map(|s| s.first().unwrap())
+            .map(|s| s.first().unwrap_or_else(|| unreachable!()))
     }
 
     // Races and SessionResults
@@ -1264,7 +1264,8 @@ impl<T> Race<T> {
     where
         F: FnOnce(T) -> U,
     {
-        self.try_map(|payload| Ok::<_, Infallible>(op(payload))).unwrap()
+        self.try_map(|payload| Ok::<_, Infallible>(op(payload)))
+            .unwrap_or_else(|_| unreachable!())
     }
 
     /// Constructs a [`Race<T>`] from a [`Race<U>`] and a payload argument of type `T`.
