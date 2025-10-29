@@ -195,7 +195,7 @@ assert!(all_drivers.len() >= 864);
 // These lints are temporarily allowed while fixes for associated violations are being worked on.
 // Developers can locally change to `warn` to see the warnings - CI would fail due to `-D warnings`.
 // @todo Fix the associated violations and remove these lints - list should normally be empty.
-#![allow(missing_docs, clippy::missing_errors_doc, clippy::missing_panics_doc)]
+#![allow(clippy::missing_errors_doc, clippy::missing_panics_doc)]
 
 // Silence unused_crate_dependencies lint for [dev-dependencies] used in /benches and /examples.
 // While clippy detects uses in unit tests, it doesn't seem to capture these particular uses.
