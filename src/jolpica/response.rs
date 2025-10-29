@@ -542,10 +542,10 @@ impl Response {
         Ok(self)
             .and_then(verify_has_one_race_and_extract)?
             .payload
-            .into_laps()
-            .map_err(into)
-            .map(into_iter)
-            .and_then(|laps| laps.map(|lap| DriverLap::try_from(lap, driver_id)).collect())
+            .into_laps()?
+            .into_iter()
+            .map(|lap| DriverLap::try_from(lap, driver_id))
+            .collect()
     }
 
     pub fn into_lap_timings(self) -> Result<Vec<Timing>> {
@@ -1832,13 +1832,6 @@ pub(crate) fn verify_has_one_race_and_extract(response: Response) -> Result<Race
 // https://doc.rust-lang.org/nightly/unstable-book/language-features/import-trait-associated-functions.html
 fn into<T: Into<U>, U>(t: T) -> U {
     t.into()
-}
-
-/// Shorthand for closure `|v| v.into_iter()` and/or `std::iter::IntoIterator::into_iter`.
-// @todo Replace with an import once `import_trait_associated_functions` is stabilized:
-// https://doc.rust-lang.org/nightly/unstable-book/language-features/import-trait-associated-functions.html
-fn into_iter<T: IntoIterator>(t: T) -> T::IntoIter {
-    t.into_iter()
 }
 
 #[cfg(test)]
