@@ -538,6 +538,48 @@ impl Response {
     // Laps, Timings, PitStops
     // -----------------------
 
+    /// Extracts an inner list of [`Lap`]s, each with a single [`Timing`], from the single expected
+    /// [`Race`] from the [`Table::Races`] variant, and maps them into a list of [`DriverLap`]s.
+    ///
+    /// A [`DriverLap`] is a flattened combination of a [`Lap`] and [`Timing`] for a single driver,
+    /// intended to make use more ergonomic when accessing a single driver's lap and timing data.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error::BadTableVariant`] if the contained [`Table`] variant is not
+    /// [`Table::Races`], or an [`Error::BadPayloadVariant`] if the contained [`Payload`] variant is
+    /// not [`Payload::Laps`]. An [`Error::NotFound`] or [`Error::TooMany`] is returned if the
+    /// expected number of [`Race`]s, [`Lap`]s, or [`Timing`]s per [`Lap`] are not found in the
+    /// response. An [`Error::UnexpectedData`] is returned if any of the [`Timing`]s do not belong
+    /// to the specified `driver_id`.
+    ///
+    /// [`Error::UnexpectedData`]
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use f1_data::{
+    /// #     id::DriverID,
+    /// #     jolpica::{agent::Agent, resource::{Resource, LapTimeFilters}, time::duration_m_s_ms},
+    /// # };
+    /// # let jolpica = Agent::default();
+    /// #
+    /// let resp = jolpica.get_response(&Resource::LapTimes(LapTimeFilters {
+    ///     season: 2023,
+    ///     round: 4,
+    ///     lap: None,
+    ///     driver_id: Some(DriverID::from("leclerc")),
+    /// })).unwrap();
+    ///
+    /// let laps = resp.into_driver_laps(&DriverID::from("leclerc")).unwrap();
+    ///
+    /// assert_eq!(laps.len(), 51);
+    /// assert_eq!(laps[0].number, 1);
+    /// assert_eq!(laps[0].time, duration_m_s_ms(1, 50, 109));
+    ///
+    /// assert_eq!(laps[0].position, 1);
+    /// assert_eq!(laps[2].position, 2)
+    /// ```
     pub fn into_driver_laps(self, driver_id: &DriverID) -> Result<Vec<DriverLap>> {
         Ok(self)
             .and_then(verify_has_one_race_and_extract)?
@@ -548,6 +590,39 @@ impl Response {
             .collect()
     }
 
+    /// Extracts an expected single [`Lap`], from an expected single [`Race`] from the
+    /// [`Table::Races`] variant, and extracts the [`Lap`]'s inner list of [`Timing`]s.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error::BadTableVariant`] if the contained [`Table`] variant is not
+    /// [`Table::Races`], or an [`Error::BadPayloadVariant`] if the contained [`Payload`] variant is
+    /// not [`Payload::Laps`]. An [`Error::NotFound`] or [`Error::TooMany`] if there isn't exactly
+    /// one [`Race`] with one [`Lap`] in the response.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use f1_data::{
+    /// #     id::DriverID,
+    /// #     jolpica::{agent::Agent, resource::{Resource, LapTimeFilters}, time::duration_m_s_ms},
+    /// # };
+    /// # let jolpica = Agent::default();
+    /// #
+    /// let resp = jolpica.get_response(&Resource::LapTimes(LapTimeFilters {
+    ///     season: 2023,
+    ///     round: 4,
+    ///     lap: Some(1),
+    ///     driver_id: None,
+    /// })).unwrap();
+    ///
+    /// let timings = resp.into_lap_timings().unwrap();
+    ///
+    /// assert_eq!(timings.len(), 20);
+    /// assert_eq!(timings[0].driver_id, DriverID::from("leclerc"));
+    /// assert_eq!(timings[0].position, 1);
+    /// assert_eq!(timings[0].time, duration_m_s_ms(1, 50, 109));
+    /// ```
     pub fn into_lap_timings(self) -> Result<Vec<Timing>> {
         Ok(self)
             .and_then(verify_has_one_race_and_extract)?
@@ -558,6 +633,43 @@ impl Response {
             .map(|lap| lap.timings)
     }
 
+    /// Extracts an inner list of [`PitStop`]s from the single expected [`Race`] from the
+    /// [`Table::Races`] variant.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`Error::BadTableVariant`] if the contained [`Table`] variant is not
+    /// [`Table::Races`], or an [`Error::BadPayloadVariant`] if the contained [`Payload`] variant is
+    /// not [`Payload::PitStops`]. An [`Error::NotFound`] or [`Error::TooMany`] if there isn't
+    /// exactly one [`Race`] in the response.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use f1_data::id::DriverID;
+    /// # use f1_data::jolpica::{
+    /// #     agent::Agent,
+    /// #     resource::{PitStopFilters, Resource},
+    /// #     time::{duration_m_s_ms, macros::time},
+    /// #     response::PitStop};
+    /// # let jolpica = Agent::default();
+    /// #
+    /// let resp = jolpica.get_response(&Resource::PitStops(PitStopFilters::new(2023, 4))).unwrap();
+    ///
+    /// let pit_stops = resp.into_pit_stops().unwrap();
+    ///
+    /// assert_eq!(pit_stops.len(), 23);
+    /// assert_eq!(
+    ///     pit_stops[0],
+    ///     PitStop {
+    ///         driver_id: DriverID::from("gasly"),
+    ///         lap: 5,
+    ///         stop: 1,
+    ///         time: time!(15:13:22),
+    ///         duration: duration_m_s_ms(0, 20, 235)
+    ///     }
+    /// );
+    /// ```
     pub fn into_pit_stops(self) -> Result<Vec<PitStop>> {
         Ok(self)
             .and_then(verify_has_one_race_and_extract)?
@@ -1645,7 +1757,7 @@ impl<'de> Deserialize<'de> for Position {
     }
 }
 
-/// Represents a flattened combination of a [`Lap`] and [`Timing`] for a single driver, indented to
+/// Represents a flattened combination of a [`Lap`] and [`Timing`] for a single driver, intended to
 /// make use more ergonomic, without nesting, when accessing a single driver's lap and timing data.
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct DriverLap {
