@@ -19,3 +19,7 @@ Cargo.lock
 # Local environment files
 .env
 .secrets
+
+# Copilot instructions
+.github/copilot-instructions.md
+
