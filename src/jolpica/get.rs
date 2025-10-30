@@ -194,7 +194,7 @@ pub fn get_response_multi_pages(
 /// Call the provided function, retrying on HTTP errors, and forwarding anything else.
 ///
 /// The function `f` is unconditionally called at least once. If it returns [`Ok`], any error that
-/// isn't [`Error::Http`], or if `max_retries` is [`None`] or [`Some(0)`], then the result is
+/// isn't [`Error::Http`], or if `max_retries` is [`None`] or [`Some(0)`](Some), then the result is
 /// returned as-is. Otherwise, if it returns an [`Error::Http`] error, it calls the function again
 /// up to `max_retries` times, returning the first [`Ok`] result or the first [`Error`] that isn't
 /// [`Error::Http`]. If all attempts result in [`Error::Http`], then an [`Error::HttpRetries`] is

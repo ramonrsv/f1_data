@@ -37,10 +37,11 @@ pub struct AgentConfigs<'a> {
 
     /// Configuration to enable retrying GET calls if they return [`Error::Http`].
     ///
-    /// If [`Some(n)`] where `n > 0`, and if any GET requests made to the jolpica-f1 API return
-    /// [`Error::Http`], then the call will be repeated until [`Ok`] or some non-HTTP error is
-    /// returned, up to `n` times. If all attempts result in [`Error::Http`], then an
-    /// [`Error::HttpRetries`] is returned. If [`None`] or [`Some(0)`], no retries are performed.
+    /// If [`Some(n)`](Some) where `n > 0`, and if any GET requests made to the jolpica-f1 API
+    /// return [`Error::Http`], then the call will be repeated until [`Ok`] or some non-HTTP error
+    /// is returned, up to `n` times. If all attempts result in [`Error::Http`], then an
+    /// [`Error::HttpRetries`] is returned. If [`None`] or [`Some(0)`](Some), no retries are
+    /// performed.
     ///
     /// **Note:**: If enabled, the maximum number of retries applies to each individual GET request
     /// made, including each one made as part of handling multi-page responses, so the total number
@@ -93,10 +94,11 @@ impl RateLimiterOption<'_> {
 
 /// Options for configuring multi-page response handling from the jolpica-f1 API.
 ///
-/// The jolpica-f1 API supports a maximum of [`JOLPICA_API_PAGINATION.max_limit`] elements per
-/// page, which makes it likely for many requests to result in multi-page responses. Most of the
-/// [`Agent`] interface, i.e. the `get_*` methods, are not designed to explicitly handle multi-page
-/// responses. Users can explicitly handle these scenarios via [`Agent::get_response_page`] and
+/// The jolpica-f1 API supports a maximum of
+/// [`JOLPICA_API_PAGINATION.max_limit`](JOLPICA_API_PAGINATION) elements per page, which makes it
+/// likely for many requests to result in multi-page responses. Most of the [`Agent`] interface,
+/// i.e. the `get_*` methods, are not designed to explicitly handle multi-page responses. Users can
+/// explicitly handle these scenarios via [`Agent::get_response_page`] and
 /// [`Agent::get_response_multi_pages`], but that would be very cumbersome in most cases. As such,
 /// [`Agent`] supports implicitly handling multi-page responses, by making multiple requests for
 /// subsequent pages and concatenating the results into a single [`Response`]. The resulting
@@ -634,10 +636,10 @@ impl<'a> Agent<'a> {
     /// [`Race::season`], [`Race::round`], [`Race::race_name`], etc., so this function can be used
     /// to obtain general information about race weekend events, e.g. a list of rounds for a season.
     ///
-    /// **Note:** Since more than [`JOLPICA_API_PAGINATION.max_limit`] races have taken place in the
-    /// history of F1, calling this function without any filters will return [`Error::MultiPage`].
-    /// As such, it is necessary to pass some filters, e.g. [`Filters::season`],
-    /// [`Filters::driver_id`], etc.
+    /// **Note:** Since more than [`JOLPICA_API_PAGINATION.max_limit`](JOLPICA_API_PAGINATION) races
+    /// have taken place in the history of F1, calling this function without any filters will return
+    /// [`Error::MultiPage`]. As such, it is necessary to pass some filters, e.g.
+    /// [`Filters::season`], [`Filters::driver_id`], etc.
     ///
     /// # Errors
     ///
