@@ -1292,7 +1292,7 @@ mod tests {
 
     use crate::jolpica::tests::{
         assets::*,
-        util::{GLOBAL_JOLPICA_RATE_LIMITER, TESTS_DEFAULT_HTTP_RETRIES},
+        util::{JOLPICA_MP, JOLPICA_SP},
     };
     use crate::tests::asserts::*;
     use shadow_asserts::assert_eq;
@@ -1416,26 +1416,6 @@ mod tests {
     fn assert_too_many<G: Fn() -> Result<T>, T>(get: G) {
         assert!(matches!(get(), Err(Error::TooMany)));
     }
-
-    /// Shared instance of [`Agent`] for use in tests, to share a rate limiter, cache, etc.
-    static JOLPICA_SP: LazyLock<Agent<'_>> = LazyLock::new(|| {
-        Agent::new(AgentConfigs {
-            base_url: JOLPICA_API_BASE_URL.to_string(),
-            multi_page: MultiPageOption::Disabled,
-            http_retries: Some(TESTS_DEFAULT_HTTP_RETRIES),
-            rate_limiter: RateLimiterOption::External(&*GLOBAL_JOLPICA_RATE_LIMITER),
-        })
-    });
-
-    /// Shared instance of [`Agent`] for use in tests, to share a rate limiter, cache, etc.
-    static JOLPICA_MP: LazyLock<Agent<'_>> = LazyLock::new(|| {
-        Agent::new(AgentConfigs {
-            base_url: JOLPICA_API_BASE_URL.to_string(),
-            multi_page: MultiPageOption::Enabled(None),
-            http_retries: Some(TESTS_DEFAULT_HTTP_RETRIES),
-            rate_limiter: RateLimiterOption::External(&*GLOBAL_JOLPICA_RATE_LIMITER),
-        })
-    });
 
     // Resource::SeasonList
     // --------------------
@@ -2549,6 +2529,8 @@ mod tests {
     // Rate limiting
     // -------------
 
+    // This test makes requests to [`JOLPICA_API_BASE_URL`] even if `LOCAL_JOLPICA` is set.
+    // @todo Fix so that we can use a different rate limit if testing against a local jolpica.
     #[test]
     #[ignore]
     fn rate_limiting() {

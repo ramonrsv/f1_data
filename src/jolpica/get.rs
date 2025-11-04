@@ -244,7 +244,7 @@ mod tests {
         jolpica::{
             api::{JOLPICA_API_BASE_URL, JOLPICA_API_PAGINATION, JOLPICA_API_RATE_LIMIT_QUOTA},
             resource::Filters,
-            tests::util::GLOBAL_JOLPICA_RATE_LIMITER,
+            tests::util::{get_jolpica_test_base_url, get_jolpica_test_rate_limiter},
         },
         rate_limiter::{Quota, RateLimiter, nonzero},
     };
@@ -270,7 +270,7 @@ mod tests {
     #[ignore]
     fn get_response_page() {
         let resp = get_response_rate_limited_with_http_retries(
-            JOLPICA_API_BASE_URL,
+            &get_jolpica_test_base_url(),
             &Resource::SeasonList(Filters::none()),
             Some(Page::with_limit(50)),
         )
@@ -283,7 +283,7 @@ mod tests {
         assert_false!(resp.pagination.is_last_page());
 
         let resp = get_response_rate_limited_with_http_retries(
-            JOLPICA_API_BASE_URL,
+            &get_jolpica_test_base_url(),
             &Resource::SeasonList(Filters::none()),
             Some(resp.pagination.next_page().unwrap().into()),
         )
@@ -295,7 +295,7 @@ mod tests {
         assert_true!(resp.pagination.is_last_page());
 
         let resp = get_response_rate_limited_with_http_retries(
-            JOLPICA_API_BASE_URL,
+            &get_jolpica_test_base_url(),
             &Resource::DriverInfo(Filters::new().driver_id("leclerc".into())),
             None,
         )
@@ -313,7 +313,7 @@ mod tests {
     #[ignore]
     fn get_response_page_multi_default() {
         let resp = get_response_rate_limited_with_http_retries(
-            JOLPICA_API_BASE_URL,
+            &get_jolpica_test_base_url(),
             &Resource::SeasonList(Filters::none()),
             None,
         )
@@ -335,7 +335,7 @@ mod tests {
     #[ignore]
     fn get_response_page_single_max_limit() {
         let resp = get_response_rate_limited_with_http_retries(
-            JOLPICA_API_BASE_URL,
+            &get_jolpica_test_base_url(),
             &Resource::SeasonList(Filters::none()),
             Some(Page::with_max_limit()),
         )
@@ -363,7 +363,8 @@ mod tests {
         let page = Page::with_limit(5);
 
         let mut resp =
-            get_response_rate_limited_with_http_retries(JOLPICA_API_BASE_URL, &resource, Some(page.clone())).unwrap();
+            get_response_rate_limited_with_http_retries(&get_jolpica_test_base_url(), &resource, Some(page.clone()))
+                .unwrap();
         assert_false!(resp.pagination.is_last_page());
 
         let mut current_offset: u32 = 0;
@@ -387,7 +388,7 @@ mod tests {
             }
 
             resp = get_response_rate_limited_with_http_retries(
-                JOLPICA_API_BASE_URL,
+                &get_jolpica_test_base_url(),
                 &resource,
                 Some(pagination.next_page().unwrap().into()),
             )
@@ -423,11 +424,11 @@ mod tests {
         let page = Page::with_limit(5);
 
         let responses = super::get_response_multi_pages(
-            JOLPICA_API_BASE_URL,
+            &get_jolpica_test_base_url(),
             &resource,
             Some(page.clone()),
             None,
-            Some(&*GLOBAL_JOLPICA_RATE_LIMITER),
+            get_jolpica_test_rate_limiter(),
             Some(TESTS_DEFAULT_HTTP_RETRIES),
         )
         .unwrap();
@@ -477,6 +478,8 @@ mod tests {
         assert_eq!(seasons.last().unwrap().season, 1950 + current_offset + (seasons.len() as u32) - 1);
     }
 
+    // This test makes requests to [`JOLPICA_API_BASE_URL`] even if `LOCAL_JOLPICA` is set.
+    // @todo Fix so that we can use a different rate limit if testing against a local jolpica.
     #[test]
     #[ignore]
     fn get_response_multi_pages_rate_limiting() {
@@ -519,6 +522,8 @@ mod tests {
         assert_ge!(elapsed, Duration::from_secs(7 * 4));
     }
 
+    // This test makes requests to [`JOLPICA_API_BASE_URL`] even if `LOCAL_JOLPICA` is set.
+    // @todo Fix so that we can use a different rate limit if testing against a local jolpica.
     #[test]
     #[ignore]
     fn get_response_multi_pages_error_exceeded_max_page_count() {

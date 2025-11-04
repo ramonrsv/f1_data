@@ -5,16 +5,14 @@
 //! indicate that the underlying issue has been fixed, and the associated workaround can be removed.
 
 mod tests {
-    use std::sync::LazyLock;
-
     use serde::Deserialize;
 
     use crate::{
         error::Error,
         jolpica::{
-            agent::Agent,
             resource::Filters,
             response::{Position, QualifyingResult, RaceResult, SprintResult},
+            tests::util::JOLPICA_MP,
             time::{
                 QualifyingTime, RaceTime, deserialize_buggy_race_time, duration_hms_ms, duration_m_s_ms,
                 duration_millis,
@@ -25,9 +23,6 @@ mod tests {
     use crate::jolpica::tests::assets::*;
     use crate::tests::asserts::*;
     use shadow_asserts::assert_eq;
-
-    /// Shared instance of [`Agent`] for use in tests, to share a rate limiter, cache, etc.
-    static JOLPICA_MP: LazyLock<Agent<'_>> = LazyLock::new(|| Agent::default());
 
     // @todo Some race times in the jolpica-f1 API seem to be buggy. I don't fully understand these
     // issues yet. For now, as a workaround, [`RaceTime`]s are being parsed with a temporary hack in

@@ -220,11 +220,10 @@ mod tests {
     use std::sync::LazyLock;
 
     use crate::jolpica::{
-        api::JOLPICA_API_BASE_URL,
         get::{get_response_multi_pages, get_response_page},
         resource::{Filters, Page, Resource},
         response::Pagination,
-        tests::util::{GLOBAL_JOLPICA_RATE_LIMITER, TESTS_DEFAULT_HTTP_RETRIES},
+        tests::util::{TESTS_DEFAULT_HTTP_RETRIES, get_jolpica_test_base_url, get_jolpica_test_rate_limiter},
     };
 
     use crate::jolpica::tests::assets::*;
@@ -517,11 +516,11 @@ mod tests {
     #[ignore]
     fn concat_responses_seasons_get_response_multi_pages() {
         let responses = get_response_multi_pages(
-            JOLPICA_API_BASE_URL,
+            &get_jolpica_test_base_url(),
             &Resource::SeasonList(Filters::none()),
             None,
             None,
-            Some(&*GLOBAL_JOLPICA_RATE_LIMITER),
+            get_jolpica_test_rate_limiter(),
             Some(TESTS_DEFAULT_HTTP_RETRIES),
         )
         .unwrap();
@@ -546,8 +545,11 @@ mod tests {
     #[ignore]
     fn concat_responses_races_race_results_get_response_multi_pages() {
         let get_race_results = |page| {
-            GLOBAL_JOLPICA_RATE_LIMITER.wait_until_ready();
-            get_response_page(JOLPICA_API_BASE_URL, &Resource::RaceResults(Filters::new().season(2019)), page).unwrap()
+            if let Some(rate_limiter) = get_jolpica_test_rate_limiter() {
+                rate_limiter.wait_until_ready();
+            }
+            get_response_page(&get_jolpica_test_base_url(), &Resource::RaceResults(Filters::new().season(2019)), page)
+                .unwrap()
         };
 
         let response_r1_to_r3 = get_race_results(Some(Page::with_limit(60)));
