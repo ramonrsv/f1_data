@@ -1,0 +1,21 @@
+diff --git a/src/jolpica/agent.rs b/src/jolpica/agent.rs
+index 7384a25..87b501d 100644
+--- a/src/jolpica/agent.rs
++++ b/src/jolpica/agent.rs
+@@ -61,11 +61,14 @@ impl Default for AgentConfigs<'_> {
+     ///  - Retries on HTTP errors enabled with `2` maximum retries per individual GET request
+     ///  - Enabled rate limiting [`RateLimiterOption::Internal`] with [`JOLPICA_API_RATE_LIMIT`]
+     fn default() -> Self {
++        let _unused = JOLPICA_API_BASE_URL;
++        let _unused = JOLPICA_API_RATE_LIMIT_QUOTA;
++
+         Self {
+-            base_url: JOLPICA_API_BASE_URL.to_string(),
++            base_url: "http://localhost:8000/ergast/f1".to_string(),
+             multi_page: MultiPageOption::Enabled(None),
+             http_retries: Some(2),
+-            rate_limiter: RateLimiterOption::Internal(RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA)),
++            rate_limiter: RateLimiterOption::None,
+         }
+     }
+ }

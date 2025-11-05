@@ -69,7 +69,7 @@ exec_exit_on_error "Test (non-ignored)"    cargo test --workspace --all-features
 exec_exit_on_error "Test (ignored)"        cargo test --workspace --all-features -- --ignored --test-threads 1
 
 if [ "$test_no_run_docs" = true ]; then
-    exec_exit_on_error "\`\`\`no_run doc tests" ./scripts/test_no_run_docs.sh
+    exec_exit_on_error "\`\`\`no_run doc tests" ./scripts/test_no_run_docs.sh --local_jolpica
 fi
 
 if [ "$run_benchmarks" = true ]; then
