@@ -1,0 +1,28 @@
+diff --git a/jolpica_api/authentication/throttles.py b/jolpica_api/authentication/throttles.py
+index 17f6b12..8312f86 100644
+--- a/jolpica_api/authentication/throttles.py
++++ b/jolpica_api/authentication/throttles.py
+@@ -38,9 +38,9 @@ class ErgastLongThrottle(RatelimitThrottle):
+     group = "ergast"
+ 
+     def get_ratelimit(self, request: Request, view: APIView) -> tuple[int, int] | None:
+-        if request.user.is_anonymous:
+-            # 500 per hour
+-            return (500, 60 * 60)
++        # if request.user.is_anonymous:
++        #     # 500 per hour
++        #     return (500, 60 * 60)
+         return None
+ 
+ 
+@@ -48,7 +48,7 @@ class ErgastShortThrottle(RatelimitThrottle):
+     group = "ergast"
+ 
+     def get_ratelimit(self, request: Request, view: APIView) -> tuple[int, int] | None:
+-        if request.user.is_anonymous:
+-            # 4 per second
+-            return (4, 1)
++        # if request.user.is_anonymous:
++        #     # 4 per second
++        #     return (4, 1)
+         return None
