@@ -24,7 +24,7 @@ echo "Cloning jolpica-f1 repository into $dst/jolpica-f1"
 git clone git@github.com:jolpica/jolpica-f1.git "$dst/jolpica-f1" || exit 1
 
 echo "Applying patch to disable rate limiting"
-cp -avr ./scripts/disable_jolpica_server_rate_limits.patch "$dst/jolpica-f1/"
+cp -avr ./patches/disable_jolpica_server_rate_limits.patch "$dst/jolpica-f1/"
 cd "$dst/jolpica-f1"
 git apply "./disable_jolpica_server_rate_limits.patch" || exit 1
 

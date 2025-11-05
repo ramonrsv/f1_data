@@ -16,7 +16,7 @@ fi
 find ./src -type f -name "*.rs" -exec sed -i 's/```no_run/```/g' {} +
 
 # Apply rate limiting patch to ./src/jolpica/get.rs
-git apply ./scripts/get_response_page_rate_limiting.patch
+git apply ./patches/get_response_page_rate_limiting.patch
 
 # Log the applied changes for verification
 # @todo This causes `act` to freeze, for some reason
