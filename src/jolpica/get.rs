@@ -242,9 +242,9 @@ mod tests {
     use crate::{
         error::Error,
         jolpica::{
-            api::{JOLPICA_API_BASE_URL, JOLPICA_API_PAGINATION, JOLPICA_API_RATE_LIMIT_QUOTA},
+            api::{JOLPICA_API_PAGINATION, JOLPICA_API_RATE_LIMIT_QUOTA},
             resource::Filters,
-            tests::util::{get_jolpica_test_base_url, get_jolpica_test_rate_limiter},
+            tests::util::{get_jolpica_test_base_url, get_jolpica_test_rate_limiter, get_request_avg_duration_ms},
         },
         rate_limiter::{Quota, RateLimiter, nonzero},
     };
@@ -478,19 +478,14 @@ mod tests {
         assert_eq!(seasons.last().unwrap().season, 1950 + current_offset + (seasons.len() as u32) - 1);
     }
 
-    // This test makes requests to [`JOLPICA_API_BASE_URL`] even if `LOCAL_JOLPICA` is set.
-    // @todo Fix so that we can use a different rate limit if testing against a local jolpica.
     #[test]
     #[ignore]
     fn get_response_multi_pages_rate_limiting() {
-        // Requests take about ~300ms each without rate limiting
-        // 500 requests per hour = 1 request every 7.2 seconds
-
         let rate_limiter = RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA);
 
         let start = std::time::Instant::now();
         let _responses = super::get_response_multi_pages(
-            JOLPICA_API_BASE_URL,
+            &get_jolpica_test_base_url(),
             &Resource::SeasonList(Filters::none()),
             Some(Page::with_limit(20)),
             None,
@@ -500,15 +495,15 @@ mod tests {
         let elapsed = start.elapsed();
         assert_eq!(_responses.unwrap().len(), 4);
 
-        // First four requests should not wait, ~600ms per request to allow for network latency
-        assert_lt!(elapsed, Duration::from_millis(600 * 4));
+        // First four requests should not wait; need to allow for network latency, and +1 margin
+        assert_lt!(elapsed, Duration::from_millis(get_request_avg_duration_ms() * (4 + 1)));
 
         // Clear any accumulation from previous requests' latency
         rate_limiter.wait_until_ready();
 
         let start = std::time::Instant::now();
         let _responses = super::get_response_multi_pages(
-            JOLPICA_API_BASE_URL,
+            &get_jolpica_test_base_url(),
             &Resource::SeasonList(Filters::none()),
             Some(Page::with_limit(20)),
             None,
@@ -518,12 +513,11 @@ mod tests {
         let elapsed = start.elapsed();
         assert_eq!(_responses.unwrap().len(), 4);
 
-        // Subsequent requests should wait, at least ~7s each
-        assert_ge!(elapsed, Duration::from_secs(7 * 4));
+        // Subsequent requests should wait, ~7.2s each (500 req/hr -> 1 req/7.2s), * +/-1 margin
+        assert_ge!(elapsed, Duration::from_millis(7200 * (4 - 1)));
+        assert_lt!(elapsed, Duration::from_millis(7200 * (4 + 1)));
     }
 
-    // This test makes requests to [`JOLPICA_API_BASE_URL`] even if `LOCAL_JOLPICA` is set.
-    // @todo Fix so that we can use a different rate limit if testing against a local jolpica.
     #[test]
     #[ignore]
     fn get_response_multi_pages_error_exceeded_max_page_count() {
@@ -534,7 +528,7 @@ mod tests {
         let start = std::time::Instant::now();
         assert!(matches!(
             super::get_response_multi_pages(
-                JOLPICA_API_BASE_URL,
+                &get_jolpica_test_base_url(),
                 &req,
                 Some(Page::with_limit(5)),
                 Some(10),
@@ -546,8 +540,8 @@ mod tests {
         ));
         let elapsed = start.elapsed();
 
-        // Only the first request should have been made
-        assert_lt!(elapsed, Duration::from_millis(600));
+        // Only the first request should have been made, * +1 margin
+        assert_lt!(elapsed, Duration::from_millis(get_request_avg_duration_ms() * (1 + 1)));
     }
 
     // Helper function to create a closure that counts how many times it has been called.

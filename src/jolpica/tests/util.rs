@@ -92,3 +92,15 @@ pub(crate) static JOLPICA_MP: LazyLock<Agent<'_>> = LazyLock::new(|| {
         rate_limiter: get_jolpica_test_rate_limiter_option(),
     })
 });
+
+/// Get an estimated average duration (in milliseconds) of a request to the jolpica-f1 API.
+///
+/// This can be used in tests to take request latency into account when asserting time-based
+/// conditions, e.g., rate limiting wait times, usually allowing for some margin of error.
+///
+/// The estimated averages are based on the `jolpica_get.rs/get_race_results/get_race_results`
+/// benchmark results. When using a local jolpica-f1 instance the benchmark actually shows ~7ms,
+/// but in practice - with other factors, no warming, etc. - we see around 15ms, so we use that.
+pub(crate) fn get_request_avg_duration_ms() -> u64 {
+    if is_using_local_jolpica() { 15 } else { 300 }
+}

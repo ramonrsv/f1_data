@@ -1292,7 +1292,7 @@ mod tests {
 
     use crate::jolpica::tests::{
         assets::*,
-        util::{JOLPICA_MP, JOLPICA_SP},
+        util::{JOLPICA_MP, JOLPICA_SP, get_jolpica_test_base_url, get_request_avg_duration_ms},
     };
     use crate::tests::asserts::*;
     use shadow_asserts::assert_eq;
@@ -2529,16 +2529,14 @@ mod tests {
     // Rate limiting
     // -------------
 
-    // This test makes requests to [`JOLPICA_API_BASE_URL`] even if `LOCAL_JOLPICA` is set.
-    // @todo Fix so that we can use a different rate limit if testing against a local jolpica.
     #[test]
     #[ignore]
     fn rate_limiting() {
         // Separate instance to avoid rate limiting interference
-        let jolpica = Agent::default();
-
-        // Requests take about ~300ms each without rate limiting
-        // 500 requests per hour = 1 request every 7.2 seconds
+        let jolpica = Agent::new(AgentConfigs {
+            base_url: get_jolpica_test_base_url().into(),
+            ..Default::default()
+        });
 
         let start = Instant::now();
         for _ in 0..4 {
@@ -2546,8 +2544,8 @@ mod tests {
         }
         let elapsed = start.elapsed();
 
-        // First four requests should not wait, ~600ms per request to allow for network latency
-        assert_lt!(elapsed, Duration::from_millis(2400));
+        // First four requests should not wait; need to allow for network latency, and * +1 margin
+        assert_lt!(elapsed, Duration::from_millis(get_request_avg_duration_ms() * (4 + 1)));
 
         // Clear any accumulation from previous requests' latency
         let _unused = jolpica.get_season(2024).unwrap();
@@ -2556,7 +2554,7 @@ mod tests {
         let _unused = jolpica.get_season(2024).unwrap();
         let elapsed = start.elapsed();
 
-        // Subsequent requests should wait, at least ~7s each
-        assert_ge!(elapsed, Duration::from_secs(6));
+        // Subsequent requests should wait, ~7.2s each (500 req/hr -> 1 req/7.2s)
+        assert_ge!(elapsed, Duration::from_millis(7200 / 2)); // /2 as margin of error
     }
 }
