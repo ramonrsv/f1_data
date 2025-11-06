@@ -141,7 +141,7 @@ impl From<MultiPageOption> for Option<usize> {
 /// This type fundamentally acts as a wrapper around GET requests to the jolpica-f1 API endpoints at
 /// [`JOLPICA_API_BASE_URL`], but also provides additional functionality like caching, rate
 /// limiting, as well as alternate sources, e.g. [jolpica-f1 database
-/// dumps](https://github.com/jolpica/jolpica-f1/blob/main/docs/dumps.md).
+/// dumps](https://github.com/jolpica/jolpica-f1/blob/main/docs/database_dumps.md).
 ///
 /// The jolpica-f1 API is a drop-in replacement for the now defunct
 /// [Ergast API](https://github.com/jolpica/jolpica-f1/blob/main/docs/ergast_differences.md).
