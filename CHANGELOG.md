@@ -16,11 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/scripts/run_local_test_suite.sh` to run a CI-equivalent test suite locally outside of `act`
 - Support for running tests/benchmarks against a local `jolpica-f1` server, via `LOCAL_JOLPICA=1`
 - Scripts for setting up and running a local `jolpica-f1` API server instance in a .devcontainer
-- [`crates.io`](crates.io) and documentation badges to `README.md`
+- `crates.io` and documentation badges to `README.md`
 
 ### Fixed
 
--Broken documentation links, notably `None` and `Some`, after Rust 1.91 release
+- Broken documentation links, notably `None` and `Some`, after Rust 1.91 release
 
 ### Changed
 
