@@ -19,7 +19,7 @@ Add `f1_data` as a dependency in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-f1_data = "0.0.1"
+f1_data = "0.0.2"
 ```
 
 Then, in your Rust code:

@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+## [0.0.2] - 2025-11-06
+
 ### Added
 
 - `/scripts/run_local_test_suite.sh` to run a CI-equivalent test suite locally outside of `act`
@@ -55,5 +57,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`TODO.md`** - Issue tracking, to be moved to GitHub Issues.
 
 <!-- next-url -->
-[Unreleased]: https://github.com/ramonrsv/f1_data/compare/v0.0.1...HEAD
+[Unreleased]:  https://github.com/ramonrsv/f1_data/compare/v0.0.2...HEAD
+[0.0.2]: https://github.com/ramonrsv/f1_data/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/ramonrsv/f1_data/releases/tag/v0.0.1
