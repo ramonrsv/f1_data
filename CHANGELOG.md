@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `/scripts/run_local_test_suite.sh` to run a CI-equivalent test suite locally outside of `act`
+- Support for running tests/benchmarks against a local `jolpica-f1` server, via `LOCAL_JOLPICA=1`
+- Scripts for setting up and running a local `jolpica-f1` API server instance in a .devcontainer
+- [`crates.io`](crates.io) and documentation badges to `README.md`
+
+### Fixed
+
+-Broken documentation links, notably `None` and `Some`, after Rust 1.91 release
+
+### Changed
+
+- Move `*.patch` patches from `/scripts` to new `/batches` directory
+- Upgrade dependencies: `serde_with` 3.15.1, `regex` 1.12.2, `indexmap` 2.12.0, `bitflags` 2.10.0
+
 ## [0.0.1] - 2025-10-30
 
 ### Added
