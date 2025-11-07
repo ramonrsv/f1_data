@@ -43,7 +43,7 @@ assert_eq!(michael_wins.len(), 91);
 [Jolpica F1](https://github.com/jolpica/jolpica-f1) is an open source API for querying Formula 1
 data, with backwards compatible endpoints for the now deprecated Ergast API.
 
-The `jolpica` module is a wrapper around the this API, with additional functionality such as rate
+The `jolpica` module is a wrapper around this API, with additional functionality such as rate
 limiting to comply with the [Terms of Use](https://github.com/jolpica/jolpica-f1/blob/main/TERMS.md)
 , automatic handling of multi-page responses, handling HTTP errors and retries, configurable
 alternate servers, etc. A synopsis of the wrapper interface and functionality is provided below.
