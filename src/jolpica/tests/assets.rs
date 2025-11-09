@@ -1941,6 +1941,30 @@ pub(crate) const QUALIFYING_RESULT_2023_12_P2: LazyLock<QualifyingResult> = Lazy
     q3: Some(QualifyingTime::Time(duration_m_s_ms(1, 46, 988))),
 });
 
+pub(crate) const QUALIFYING_RESULTS_STR: [&str; 8] = [
+    QUALIFYING_RESULT_2003_4_P1_STR,
+    QUALIFYING_RESULT_2003_4_P2_STR,
+    QUALIFYING_RESULT_2003_4_P20_STR,
+    QUALIFYING_RESULT_2023_4_P1_STR,
+    QUALIFYING_RESULT_2023_4_P2_STR,
+    QUALIFYING_RESULT_2023_4_P3_STR,
+    QUALIFYING_RESULT_2023_10_P4_STR,
+    QUALIFYING_RESULT_2023_12_P2_STR,
+];
+
+pub(crate) static QUALIFYING_RESULTS: LazyLock<Vec<QualifyingResult>> = LazyLock::new(|| {
+    vec![
+        QUALIFYING_RESULT_2003_4_P1.clone(),
+        QUALIFYING_RESULT_2003_4_P2.clone(),
+        QUALIFYING_RESULT_2003_4_P20.clone(),
+        QUALIFYING_RESULT_2023_4_P1.clone(),
+        QUALIFYING_RESULT_2023_4_P2.clone(),
+        QUALIFYING_RESULT_2023_4_P3.clone(),
+        QUALIFYING_RESULT_2023_10_P4.clone(),
+        QUALIFYING_RESULT_2023_12_P2.clone(),
+    ]
+});
+
 pub(crate) const RACE_2003_4_QUALIFYING_RESULTS_STR: &str = formatcp!(
     r#"{{
     {RACE_2003_4_STR},
@@ -2007,6 +2031,22 @@ pub(crate) const RACE_2023_12_QUALIFYING_RESULTS_STR: &str = formatcp!(
 pub(crate) static RACE_2023_12_QUALIFYING_RESULTS: LazyLock<Race> = LazyLock::new(|| Race {
     payload: Payload::QualifyingResults(vec![QUALIFYING_RESULT_2023_12_P2.clone()]),
     ..RACE_2023_12.clone()
+});
+
+pub(crate) static RACES_QUALIFYING_RESULTS_STR: [&str; 4] = [
+    RACE_2003_4_QUALIFYING_RESULTS_STR,
+    RACE_2023_4_QUALIFYING_RESULTS_STR,
+    RACE_2023_10_QUALIFYING_RESULTS_STR,
+    RACE_2023_12_QUALIFYING_RESULTS_STR,
+];
+
+pub(crate) static RACES_QUALIFYING_RESULTS: LazyLock<Vec<Race>> = LazyLock::new(|| {
+    vec![
+        RACE_2003_4_QUALIFYING_RESULTS.clone(),
+        RACE_2023_4_QUALIFYING_RESULTS.clone(),
+        RACE_2023_10_QUALIFYING_RESULTS.clone(),
+        RACE_2023_12_QUALIFYING_RESULTS.clone(),
+    ]
 });
 
 // RacesTimes, used in sprint, results
@@ -2887,6 +2927,44 @@ pub(crate) const RACE_RESULT_2023_4_P20: LazyLock<RaceResult> = LazyLock::new(||
     }),
 });
 
+pub(crate) const RACE_RESULTS_STR: [&str; 15] = [
+    RACE_RESULT_1950_5_P1_STR,
+    RACE_RESULT_1963_10_P23_STR,
+    RACE_RESULT_1998_8_P1_STR,
+    RACE_RESULT_2003_4_P1_STR,
+    RACE_RESULT_2003_4_P2_STR,
+    RACE_RESULT_2003_4_P19_STR,
+    RACE_RESULT_2020_9_P1_STR,
+    RACE_RESULT_2021_12_P1_STR,
+    RACE_RESULT_2021_12_P2_STR,
+    RACE_RESULT_2021_12_P3_STR,
+    RACE_RESULT_2021_12_P10_STR,
+    RACE_RESULT_2023_3_P15_STR,
+    RACE_RESULT_2023_4_P1_STR,
+    RACE_RESULT_2023_4_P2_STR,
+    RACE_RESULT_2023_4_P20_STR,
+];
+
+pub(crate) static RACE_RESULTS: LazyLock<Vec<RaceResult>> = LazyLock::new(|| {
+    vec![
+        RACE_RESULT_1950_5_P1.clone(),
+        RACE_RESULT_1963_10_P23.clone(),
+        RACE_RESULT_1998_8_P1.clone(),
+        RACE_RESULT_2003_4_P1.clone(),
+        RACE_RESULT_2003_4_P2.clone(),
+        RACE_RESULT_2003_4_P19.clone(),
+        RACE_RESULT_2020_9_P1.clone(),
+        RACE_RESULT_2021_12_P1.clone(),
+        RACE_RESULT_2021_12_P2.clone(),
+        RACE_RESULT_2021_12_P3.clone(),
+        RACE_RESULT_2021_12_P10.clone(),
+        RACE_RESULT_2023_3_P15.clone(),
+        RACE_RESULT_2023_4_P1.clone(),
+        RACE_RESULT_2023_4_P2.clone(),
+        RACE_RESULT_2023_4_P20.clone(),
+    ]
+});
+
 pub(crate) const RACE_1950_5_RACE_RESULTS_STR: &str = formatcp!(
     r#"{{
     {RACE_1950_5_STR},
@@ -3017,6 +3095,30 @@ pub(crate) static RACE_2023_4_RACE_RESULTS: LazyLock<Race> = LazyLock::new(|| Ra
         RACE_RESULT_2023_4_P20.clone(),
     ]),
     ..RACE_2023_4.clone()
+});
+
+pub(crate) static RACES_RACE_RESULTS_STR: [&str; 8] = [
+    RACE_1950_5_RACE_RESULTS_STR,
+    RACE_1963_10_RACE_RESULTS_STR,
+    RACE_1998_8_RACE_RESULTS_STR,
+    RACE_2003_4_RACE_RESULTS_STR,
+    RACE_2020_9_RACE_RESULTS_STR,
+    RACE_2021_12_RACE_RESULTS_STR,
+    RACE_2023_3_RACE_RESULTS_STR,
+    RACE_2023_4_RACE_RESULTS_STR,
+];
+
+pub(crate) static RACES_RACE_RESULTS: LazyLock<Vec<Race>> = LazyLock::new(|| {
+    vec![
+        RACE_1950_5_RACE_RESULTS.clone(),
+        RACE_1963_10_RACE_RESULTS.clone(),
+        RACE_1998_8_RACE_RESULTS.clone(),
+        RACE_2003_4_RACE_RESULTS.clone(),
+        RACE_2020_9_RACE_RESULTS.clone(),
+        RACE_2021_12_RACE_RESULTS.clone(),
+        RACE_2023_3_RACE_RESULTS.clone(),
+        RACE_2023_4_RACE_RESULTS.clone(),
+    ]
 });
 
 // https://api.jolpi.ca/ergast/f1/status/

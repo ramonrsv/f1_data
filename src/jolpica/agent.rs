@@ -1704,29 +1704,22 @@ mod tests {
     #[test]
     #[ignore]
     fn get_qualifying_results_for_event() {
-        assert_each_expected_session_result_in_actual_event(
-            || JOLPICA_SP.get_qualifying_results_for_event(race_filters(2003, 4)),
-            &RACE_2003_4_QUALIFYING_RESULTS,
-            LenConstraint::Exactly(20),
-        );
+        static RACE_QUALIFYING_RESULT_COUNTS: LazyLock<HashMap<(u32, u32), usize>> =
+            LazyLock::new(|| HashMap::from([((2003, 4), 20), ((2023, 4), 20), ((2023, 10), 20), ((2023, 12), 20)]));
 
-        assert_each_expected_session_result_in_actual_event(
-            || JOLPICA_SP.get_qualifying_results_for_event(race_filters(2023, 4)),
-            &RACE_2023_4_QUALIFYING_RESULTS,
-            LenConstraint::Exactly(20),
-        );
+        assert_false!(RACES_QUALIFYING_RESULTS.is_empty());
 
-        assert_each_expected_session_result_in_actual_event(
-            || JOLPICA_SP.get_qualifying_results_for_event(race_filters(2023, 10)),
-            &RACE_2023_10_QUALIFYING_RESULTS,
-            LenConstraint::Exactly(20),
-        );
+        for race_expected in RACES_QUALIFYING_RESULTS.iter() {
+            let expected_result_count = *RACE_QUALIFYING_RESULT_COUNTS
+                .get(&(race_expected.season, race_expected.round))
+                .unwrap();
 
-        assert_each_expected_session_result_in_actual_event(
-            || JOLPICA_SP.get_qualifying_results_for_event(race_filters(2023, 12)),
-            &RACE_2023_12_QUALIFYING_RESULTS,
-            LenConstraint::Exactly(20),
-        );
+            assert_each_expected_session_result_in_actual_event(
+                || JOLPICA_SP.get_qualifying_results_for_event(race_filters_from(race_expected)),
+                &race_expected,
+                LenConstraint::Exactly(expected_result_count),
+            );
+        }
     }
 
     #[test]
@@ -1765,17 +1758,15 @@ mod tests {
 
         // |result, filters| filters.qualifying_pos(result.position),
 
-        assert_each_get_eq_expected_session_result(
-            |filters| JOLPICA_SP.get_qualifying_result(filters),
-            |result, filters| filters.driver_id(result.driver.driver_id.clone()),
-            &RACE_2003_4_QUALIFYING_RESULTS,
-        );
+        assert_false!(RACES_QUALIFYING_RESULTS.is_empty());
 
-        assert_each_get_eq_expected_session_result(
-            |filters| JOLPICA_SP.get_qualifying_result(filters),
-            |result, filters| filters.driver_id(result.driver.driver_id.clone()),
-            &RACE_2023_4_QUALIFYING_RESULTS,
-        );
+        for race in RACES_QUALIFYING_RESULTS.iter() {
+            assert_each_get_eq_expected_session_result(
+                |filters| JOLPICA_SP.get_qualifying_result(filters),
+                |result, filters| filters.driver_id(result.driver.driver_id.clone()),
+                &race,
+            );
+        }
     }
 
     #[test]
@@ -1986,47 +1977,32 @@ mod tests {
     #[test]
     #[ignore]
     fn get_race_results_for_event() {
-        assert_each_expected_session_result_in_actual_event(
-            || JOLPICA_SP.get_race_results_for_event(race_filters(1950, 5)),
-            &RACE_1950_5_RACE_RESULTS,
-            LenConstraint::Exactly(14),
-        );
+        static RACE_RESULT_COUNTS: LazyLock<HashMap<(u32, u32), usize>> = LazyLock::new(|| {
+            HashMap::from([
+                ((1950, 5), 14),
+                ((1963, 10), 23),
+                ((1998, 8), 22),
+                ((2003, 4), 20),
+                ((2020, 9), 20),
+                ((2021, 12), 20),
+                ((2023, 3), 20),
+                ((2023, 4), 20),
+            ])
+        });
 
-        assert_each_expected_session_result_in_actual_event(
-            || JOLPICA_SP.get_race_results_for_event(race_filters(1963, 10)),
-            &RACE_1963_10_RACE_RESULTS,
-            LenConstraint::Exactly(23),
-        );
+        assert_false!(RACES_RACE_RESULTS.is_empty());
 
-        assert_each_expected_session_result_in_actual_event(
-            || JOLPICA_SP.get_race_results_for_event(race_filters(2003, 4)),
-            &RACE_2003_4_RACE_RESULTS,
-            LenConstraint::Exactly(20),
-        );
+        for race_expected in RACES_RACE_RESULTS.iter() {
+            let expected_result_count = *RACE_RESULT_COUNTS
+                .get(&(race_expected.season, race_expected.round))
+                .unwrap();
 
-        assert_each_expected_session_result_in_actual_event(
-            || JOLPICA_SP.get_race_results_for_event(race_filters(2020, 9)),
-            &RACE_2020_9_RACE_RESULTS,
-            LenConstraint::Exactly(20),
-        );
-
-        assert_each_expected_session_result_in_actual_event(
-            || JOLPICA_SP.get_race_results_for_event(race_filters(2021, 12)),
-            &RACE_2021_12_RACE_RESULTS,
-            LenConstraint::Exactly(20),
-        );
-
-        assert_each_expected_session_result_in_actual_event(
-            || JOLPICA_SP.get_race_results_for_event(race_filters(2023, 3)),
-            &RACE_2023_3_RACE_RESULTS,
-            LenConstraint::Exactly(20),
-        );
-
-        assert_each_expected_session_result_in_actual_event(
-            || JOLPICA_SP.get_race_results_for_event(race_filters(2023, 4)),
-            &RACE_2023_4_RACE_RESULTS,
-            LenConstraint::Exactly(20),
-        );
+            assert_each_expected_session_result_in_actual_event(
+                || JOLPICA_SP.get_race_results_for_event(race_filters_from(race_expected)),
+                &race_expected,
+                LenConstraint::Exactly(expected_result_count),
+            );
+        }
     }
 
     #[test]
@@ -2050,7 +2026,7 @@ mod tests {
     #[test]
     #[ignore]
     fn get_race_result_for_events_multi_page() {
-        static RACE_RESULT_COUNTS_BY_DRIVER_TOTAL_AND_WINS: LazyLock<HashMap<String, (LenConstraint, LenConstraint)>> =
+        static RACE_RESULT_TOTAL_AND_WIN_COUNTS: LazyLock<HashMap<String, (LenConstraint, LenConstraint)>> =
             LazyLock::new(|| {
                 HashMap::from([
                     ("michael_schumacher".into(), (LenConstraint::Exactly(308), LenConstraint::Exactly(91))),
@@ -2061,7 +2037,7 @@ mod tests {
                 ])
             });
 
-        for (driver_id, (total_constraint, wins_constraint)) in RACE_RESULT_COUNTS_BY_DRIVER_TOTAL_AND_WINS.iter() {
+        for (driver_id, (total_constraint, wins_constraint)) in RACE_RESULT_TOTAL_AND_WIN_COUNTS.iter() {
             let total_filter = Filters::new().driver_id(driver_id.clone());
             let wins_filter = Filters::new().driver_id(driver_id.clone()).finish_pos(1);
 
@@ -2079,33 +2055,32 @@ mod tests {
     #[test]
     #[ignore]
     fn get_race_result() {
-        assert_each_get_eq_expected_session_result(
-            |filters| JOLPICA_SP.get_race_result(filters),
-            |result, filters| filters.finish_pos(result.position),
-            &RACE_2021_12_RACE_RESULTS,
-        );
-
         // @todo Cannot use all available race results because, counterintuitively, non-finishing
         // race results cannot be filtered by .finish_pos, even though .position would be set.
         // See [`Resource::RaceResults`], and try reaching out to jolpica-f1 maintainers about it.
+        let filter_out_non_finishing = |mut race: Race| {
+            race.payload
+                .as_race_results_mut()
+                .unwrap()
+                .retain(|result| matches!(result.position_text, Position::Finished(_)));
+            race
+        };
 
-        assert_each_get_eq_expected(
-            |result| {
-                JOLPICA_SP
-                    .get_race_result(race_filters(2003, 4).finish_pos(result.position))
-                    .map(|race| race.payload)
-            },
-            &RACE_2003_4_RACE_RESULTS.payload.as_race_results().unwrap()[0..2],
-        );
+        let mut races_race_results = RACES_RACE_RESULTS
+            .iter()
+            .map(|race| filter_out_non_finishing(race.clone()))
+            .collect::<Vec<_>>();
 
-        assert_each_get_eq_expected(
-            |result| {
-                JOLPICA_SP
-                    .get_race_result(race_filters(2023, 4).finish_pos(result.position))
-                    .map(|race| race.payload)
-            },
-            &RACE_2023_4_RACE_RESULTS.payload.as_race_results().unwrap()[0..2],
-        );
+        races_race_results.retain(|race| !race.payload.as_race_results().unwrap().is_empty());
+        assert_false!(races_race_results.is_empty());
+
+        for race in races_race_results {
+            assert_each_get_eq_expected_session_result(
+                |filters| JOLPICA_SP.get_race_result(filters),
+                |result, filters| filters.finish_pos(result.position),
+                &race,
+            );
+        }
     }
 
     #[test]

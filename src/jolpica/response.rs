@@ -2005,42 +2005,25 @@ mod tests {
 
     #[test]
     fn qualifying_result() {
-        let from_str = |result_str| serde_json::from_str::<QualifyingResult>(result_str).unwrap();
+        assert_false!(QUALIFYING_RESULTS_STR.is_empty());
+        assert_false!(QUALIFYING_RESULTS.is_empty());
+        assert_eq!(QUALIFYING_RESULTS_STR.len(), QUALIFYING_RESULTS.len());
 
-        assert_eq!(from_str(QUALIFYING_RESULT_2003_4_P1_STR), *QUALIFYING_RESULT_2003_4_P1);
-        assert_eq!(from_str(QUALIFYING_RESULT_2003_4_P2_STR), *QUALIFYING_RESULT_2003_4_P2);
-        assert_eq!(from_str(QUALIFYING_RESULT_2003_4_P20_STR), *QUALIFYING_RESULT_2003_4_P20);
-        assert_eq!(from_str(QUALIFYING_RESULT_2023_4_P1_STR), *QUALIFYING_RESULT_2023_4_P1);
-        assert_eq!(from_str(QUALIFYING_RESULT_2023_4_P2_STR), *QUALIFYING_RESULT_2023_4_P2);
-        assert_eq!(from_str(QUALIFYING_RESULT_2023_4_P3_STR), *QUALIFYING_RESULT_2023_4_P3);
-        assert_eq!(from_str(QUALIFYING_RESULT_2023_10_P4_STR), *QUALIFYING_RESULT_2023_10_P4);
-        assert_eq!(from_str(QUALIFYING_RESULT_2023_12_P2_STR), *QUALIFYING_RESULT_2023_12_P2);
+        for (result_str, actual) in QUALIFYING_RESULTS_STR.iter().zip(QUALIFYING_RESULTS.iter()) {
+            let expected: QualifyingResult = serde_json::from_str(result_str).unwrap();
+            assert_eq!(expected, *actual);
+        }
     }
 
     #[test]
     fn qualifying_results() {
-        {
-            let race: Race = serde_json::from_str(RACE_2003_4_QUALIFYING_RESULTS_STR).unwrap();
-            assert_false!(race.payload.as_qualifying_results().unwrap().is_empty());
-            assert_eq!(race, *RACE_2003_4_QUALIFYING_RESULTS);
-        }
+        assert_false!(RACES_QUALIFYING_RESULTS_STR.is_empty());
+        assert_false!(RACES_QUALIFYING_RESULTS.is_empty());
+        assert_eq!(RACES_QUALIFYING_RESULTS_STR.len(), RACES_QUALIFYING_RESULTS.len());
 
-        {
-            let race: Race = serde_json::from_str(RACE_2023_4_QUALIFYING_RESULTS_STR).unwrap();
-            assert_false!(race.payload.as_qualifying_results().unwrap().is_empty());
-            assert_eq!(race, *RACE_2023_4_QUALIFYING_RESULTS);
-        }
-
-        {
-            let race: Race = serde_json::from_str(RACE_2023_10_QUALIFYING_RESULTS_STR).unwrap();
-            assert_false!(race.payload.as_qualifying_results().unwrap().is_empty());
-            assert_eq!(race, *RACE_2023_10_QUALIFYING_RESULTS);
-        }
-
-        {
-            let race: Race = serde_json::from_str(RACE_2023_12_QUALIFYING_RESULTS_STR).unwrap();
-            assert_false!(race.payload.as_qualifying_results().unwrap().is_empty());
-            assert_eq!(race, *RACE_2023_12_QUALIFYING_RESULTS);
+        for (race_str, expected) in RACES_QUALIFYING_RESULTS_STR.iter().zip(RACES_QUALIFYING_RESULTS.iter()) {
+            let actual: Race = serde_json::from_str(race_str).unwrap();
+            assert_eq!(actual, *expected);
         }
     }
 
@@ -2064,57 +2047,26 @@ mod tests {
 
     #[test]
     fn race_result() {
-        let from_str = |result_str| serde_json::from_str::<RaceResult>(result_str).unwrap();
+        assert_false!(RACE_RESULTS_STR.is_empty());
+        assert_false!(RACE_RESULTS.is_empty());
+        assert_eq!(RACE_RESULTS_STR.len(), RACE_RESULTS.len());
 
-        assert_eq!(from_str(RACE_RESULT_1963_10_P23_STR), *RACE_RESULT_1963_10_P23);
-
-        assert_eq!(from_str(RACE_RESULT_2003_4_P1_STR), *RACE_RESULT_2003_4_P1);
-        assert_eq!(from_str(RACE_RESULT_2003_4_P2_STR), *RACE_RESULT_2003_4_P2);
-        assert_eq!(from_str(RACE_RESULT_2003_4_P19_STR), *RACE_RESULT_2003_4_P19);
-
-        assert_eq!(from_str(RACE_RESULT_2021_12_P1_STR), *RACE_RESULT_2021_12_P1);
-        assert_eq!(from_str(RACE_RESULT_2021_12_P2_STR), *RACE_RESULT_2021_12_P2);
-        assert_eq!(from_str(RACE_RESULT_2021_12_P3_STR), *RACE_RESULT_2021_12_P3);
-        assert_eq!(from_str(RACE_RESULT_2021_12_P10_STR), *RACE_RESULT_2021_12_P10);
-
-        assert_eq!(from_str(RACE_RESULT_2023_4_P1_STR), *RACE_RESULT_2023_4_P1);
-        assert_eq!(from_str(RACE_RESULT_2023_4_P2_STR), *RACE_RESULT_2023_4_P2);
-        assert_eq!(from_str(RACE_RESULT_2023_4_P20_STR), *RACE_RESULT_2023_4_P20);
+        for (result_str, actual) in RACE_RESULTS_STR.iter().zip(RACE_RESULTS.iter()) {
+            let expected: RaceResult = serde_json::from_str(result_str).unwrap();
+            assert_eq!(expected, *actual);
+        }
     }
 
     #[test]
     fn race_results() {
-        let race: Race = serde_json::from_str(RACE_1950_5_RACE_RESULTS_STR).unwrap();
-        assert_false!(race.payload.as_race_results().unwrap().is_empty());
-        assert_eq!(race, *RACE_1950_5_RACE_RESULTS);
+        assert_false!(RACES_RACE_RESULTS_STR.is_empty());
+        assert_false!(RACES_RACE_RESULTS.is_empty());
+        assert_eq!(RACES_RACE_RESULTS_STR.len(), RACES_RACE_RESULTS.len());
 
-        let race: Race = serde_json::from_str(RACE_1963_10_RACE_RESULTS_STR).unwrap();
-        assert_false!(race.payload.as_race_results().unwrap().is_empty());
-        assert_eq!(race, *RACE_1963_10_RACE_RESULTS);
-
-        let race: Race = serde_json::from_str(RACE_1998_8_RACE_RESULTS_STR).unwrap();
-        assert_false!(race.payload.as_race_results().unwrap().is_empty());
-        assert_eq!(race, *RACE_1998_8_RACE_RESULTS);
-
-        let race: Race = serde_json::from_str(RACE_2003_4_RACE_RESULTS_STR).unwrap();
-        assert_false!(race.payload.as_race_results().unwrap().is_empty());
-        assert_eq!(race, *RACE_2003_4_RACE_RESULTS);
-
-        let race: Race = serde_json::from_str(RACE_2020_9_RACE_RESULTS_STR).unwrap();
-        assert_false!(race.payload.as_race_results().unwrap().is_empty());
-        assert_eq!(race, *RACE_2020_9_RACE_RESULTS);
-
-        let race: Race = serde_json::from_str(RACE_2021_12_RACE_RESULTS_STR).unwrap();
-        assert_false!(race.payload.as_race_results().unwrap().is_empty());
-        assert_eq!(race, *RACE_2021_12_RACE_RESULTS);
-
-        let race: Race = serde_json::from_str(RACE_2023_3_RACE_RESULTS_STR).unwrap();
-        assert_false!(race.payload.as_race_results().unwrap().is_empty());
-        assert_eq!(race, *RACE_2023_3_RACE_RESULTS);
-
-        let race: Race = serde_json::from_str(RACE_2023_4_RACE_RESULTS_STR).unwrap();
-        assert_false!(race.payload.as_race_results().unwrap().is_empty());
-        assert_eq!(race, *RACE_2023_4_RACE_RESULTS);
+        for (race_str, expected) in RACES_RACE_RESULTS_STR.iter().zip(RACES_RACE_RESULTS.iter()) {
+            let actual: Race = serde_json::from_str(race_str).unwrap();
+            assert_eq!(actual, *expected);
+        }
     }
 
     #[test]
