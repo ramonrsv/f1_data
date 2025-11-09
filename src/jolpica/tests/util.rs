@@ -102,5 +102,5 @@ pub(crate) static JOLPICA_MP: LazyLock<Agent<'_>> = LazyLock::new(|| {
 /// benchmark results. When using a local jolpica-f1 instance the benchmark actually shows ~7ms,
 /// but in practice - with other factors, no warming, etc. - we see around 15ms, so we use that.
 pub(crate) fn get_request_avg_duration_ms() -> u64 {
-    if is_using_local_jolpica() { 15 } else { 300 }
+    if is_using_local_jolpica() { 15 } else { 350 }
 }

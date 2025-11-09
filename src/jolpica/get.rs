@@ -495,7 +495,7 @@ mod tests {
         let elapsed = start.elapsed();
         assert_eq!(_responses.unwrap().len(), 4);
 
-        // First four requests should not wait; need to allow for network latency, and +1 margin
+        // First four requests should not wait; need to allow for network latency, and * +1 margin
         assert_lt!(elapsed, Duration::from_millis(get_request_avg_duration_ms() * (4 + 1)));
 
         // Clear any accumulation from previous requests' latency
@@ -648,6 +648,6 @@ mod tests {
         assert!(matches!(result, Err(Error::HttpRetries((3, _)))));
         assert_eq!(*count.borrow(), 4);
         assert_ge!(elapsed, Duration::from_millis(100 * 4));
-        assert_lt!(elapsed, Duration::from_millis(100 * 5));
+        assert_lt!(elapsed, Duration::from_millis(100 * (4 + 1))); // * +1 margin
     }
 }

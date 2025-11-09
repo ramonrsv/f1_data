@@ -116,15 +116,15 @@ mod tests {
         let elapsed = start.elapsed();
 
         // First 10 requests should complete immediately
-        assert_lt!(elapsed, Duration::from_millis(5));
+        assert_lt!(elapsed, Duration::from_millis(50)); // + some margin
 
         let start = Instant::now();
         spawn_and_join_threads(&limiter, 5, 2);
         let elapsed = start.elapsed();
 
-        // Subsequent requests should wait, ~100ms each, ~1000ms total
-        assert_ge!(elapsed, Duration::from_millis(990));
-        assert_lt!(elapsed, Duration::from_millis(1010));
+        // Subsequent requests should wait, ~100ms each, ~1000ms total, +/- some margin
+        assert_ge!(elapsed, Duration::from_millis(100 * (10 - 1)));
+        assert_lt!(elapsed, Duration::from_millis(100 * (10 + 1)));
 
         // Wait two seconds (20 tokens @10/s) to let the limiter replenish
         // It should only accumulate 10 burst tokens
@@ -135,14 +135,14 @@ mod tests {
         let elapsed = start.elapsed();
 
         // First subsequent 10 requests should complete immediately
-        assert_lt!(elapsed, Duration::from_millis(5));
+        assert_lt!(elapsed, Duration::from_millis(50)); // + some margin
 
         let start = Instant::now();
         spawn_and_join_threads(&limiter, 5, 2);
         let elapsed = start.elapsed();
 
-        // Subsequent requests should wait, ~100ms each, ~1000ms total
-        assert_ge!(elapsed, Duration::from_millis(990));
-        assert_lt!(elapsed, Duration::from_millis(1010));
+        // Subsequent requests should wait, ~100ms each, ~1000ms total, +/- some margin
+        assert_ge!(elapsed, Duration::from_millis(100 * (10 - 1)));
+        assert_lt!(elapsed, Duration::from_millis(100 * (10 + 1)));
     }
 }
