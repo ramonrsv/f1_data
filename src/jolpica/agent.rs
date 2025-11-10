@@ -1615,7 +1615,7 @@ mod tests {
         // have been more than 100 races. As such, we are testing calls with by-season filters to
         // restrict the responses to a smaller, but still plural, element count, usually ~20.
 
-        static RACE_SCHEDULES_COUNTS_BY_SEASON: LazyLock<HashMap<u32, usize>> = LazyLock::new(|| {
+        static RACE_SCHEDULES_COUNTS_BY_SEASON: LazyLock<HashMap<SeasonID, usize>> = LazyLock::new(|| {
             HashMap::from([
                 (1950, 7),
                 (1963, 10),
@@ -1704,15 +1704,19 @@ mod tests {
     #[test]
     #[ignore]
     fn get_qualifying_results_for_event() {
-        static RACE_QUALIFYING_RESULT_COUNTS: LazyLock<HashMap<(u32, u32), usize>> =
-            LazyLock::new(|| HashMap::from([((2003, 4), 20), ((2023, 4), 20), ((2023, 10), 20), ((2023, 12), 20)]));
+        static RACE_QUALIFYING_RESULT_COUNTS: LazyLock<HashMap<RaceID, usize>> = LazyLock::new(|| {
+            HashMap::from([
+                (RaceID::from(2003, 4), 20),
+                (RaceID::from(2023, 4), 20),
+                (RaceID::from(2023, 10), 20),
+                (RaceID::from(2023, 12), 20),
+            ])
+        });
 
         assert_false!(RACES_QUALIFYING_RESULTS.is_empty());
 
         for race_expected in RACES_QUALIFYING_RESULTS.iter() {
-            let expected_result_count = *RACE_QUALIFYING_RESULT_COUNTS
-                .get(&(race_expected.season, race_expected.round))
-                .unwrap();
+            let expected_result_count = *RACE_QUALIFYING_RESULT_COUNTS.get(&race_expected.id()).unwrap();
 
             assert_each_expected_session_result_in_actual_event(
                 || JOLPICA_SP.get_qualifying_results_for_event(race_filters_from(race_expected)),
@@ -1977,25 +1981,23 @@ mod tests {
     #[test]
     #[ignore]
     fn get_race_results_for_event() {
-        static RACE_RESULT_COUNTS: LazyLock<HashMap<(u32, u32), usize>> = LazyLock::new(|| {
+        static RACE_RESULT_COUNTS: LazyLock<HashMap<RaceID, usize>> = LazyLock::new(|| {
             HashMap::from([
-                ((1950, 5), 14),
-                ((1963, 10), 23),
-                ((1998, 8), 22),
-                ((2003, 4), 20),
-                ((2020, 9), 20),
-                ((2021, 12), 20),
-                ((2023, 3), 20),
-                ((2023, 4), 20),
+                (RaceID::from(1950, 5), 14),
+                (RaceID::from(1963, 10), 23),
+                (RaceID::from(1998, 8), 22),
+                (RaceID::from(2003, 4), 20),
+                (RaceID::from(2020, 9), 20),
+                (RaceID::from(2021, 12), 20),
+                (RaceID::from(2023, 3), 20),
+                (RaceID::from(2023, 4), 20),
             ])
         });
 
         assert_false!(RACES_RACE_RESULTS.is_empty());
 
         for race_expected in RACES_RACE_RESULTS.iter() {
-            let expected_result_count = *RACE_RESULT_COUNTS
-                .get(&(race_expected.season, race_expected.round))
-                .unwrap();
+            let expected_result_count = *RACE_RESULT_COUNTS.get(&race_expected.id()).unwrap();
 
             assert_each_expected_session_result_in_actual_event(
                 || JOLPICA_SP.get_race_results_for_event(race_filters_from(race_expected)),

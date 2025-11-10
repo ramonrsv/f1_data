@@ -16,7 +16,7 @@ use url::Url;
 
 use crate::{
     error::{Error, Result},
-    id::{CircuitID, ConstructorID, DriverID, RoundID, SeasonID, StatusID},
+    id::{CircuitID, ConstructorID, DriverID, RaceID, RoundID, SeasonID, StatusID},
     jolpica::time::{
         Date, DateTime, Duration, QualifyingTime, RaceTime, Time, deserialize_buggy_race_time, deserialize_duration,
         deserialize_optional_time, deserialize_time,
@@ -1209,6 +1209,15 @@ pub struct Race<T = Payload> {
 }
 
 impl<T> Race<T> {
+    /// Returns the [`RaceID`] for this [`Race`], composed of its [`season`](Self::season) and
+    /// [`round`](Self::round).
+    pub const fn id(&self) -> RaceID {
+        RaceID {
+            season: self.season,
+            round: self.round,
+        }
+    }
+
     /// Returns a tuple with references to all the fields of this [`Race`] except for the `payload`
     /// field, to allow comparing [`Race`]s for equality while ignoring [`payload`](Self::payload).
     //

@@ -43,7 +43,7 @@ pub type RoundID = u32;
 /// assert_eq!(race_id.round, 1);
 /// ```
 #[serde_as]
-#[derive(Deserialize, Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Deserialize, Hash, Clone, Copy, PartialEq, Eq, Debug)]
 pub struct RaceID {
     /// The season/year that a race took place in, e.g. `2023` for the 2023 season.
     #[serde_as(as = "DisplayFromStr")]
