@@ -6,6 +6,12 @@
 //! a variety of convenience methods for extracting specific data and performing certain validation,
 //! as well as more ergonomic types that can be returned when requesting specific resources.
 
+// @todo After Rust 1.92, there is an `unused_assignments` lint warning being triggered by the
+// inner fields of [`Table`] variants, e.g. [`Table::Seasons::seasons`]. I don't understand why
+// it's being triggered, how to fix it, or why `#[allow(unused_assignments)]` on the field or enum
+// is not silencing the warning. For now, silencing it at the smallest scope that works.
+#![allow(unused_assignments)]
+
 use std::convert::Infallible;
 
 use enum_as_inner::EnumAsInner;
