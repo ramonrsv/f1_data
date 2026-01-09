@@ -529,7 +529,7 @@ pub(crate) const CONSTRUCTOR_FERRARI_STR: &str = r#"{
 
 pub(crate) const CONSTRUCTOR_WILLIAMS_STR: &str = r#"{
     "constructorId": "williams",
-    "url": "https://en.wikipedia.org/wiki/Williams_Grand_Prix_Engineering",
+    "url": "https://en.wikipedia.org/wiki/Williams_Racing",
     "name": "Williams",
     "nationality": "British"
   }"#;
@@ -599,7 +599,7 @@ pub(crate) static CONSTRUCTOR_FERRARI: LazyLock<Constructor> = LazyLock::new(|| 
 
 pub(crate) static CONSTRUCTOR_WILLIAMS: LazyLock<Constructor> = LazyLock::new(|| Constructor {
     constructor_id: "williams".into(),
-    url: Url::parse("https://en.wikipedia.org/wiki/Williams_Grand_Prix_Engineering").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/Williams_Racing").unwrap(),
     name: "Williams".to_string(),
     nationality: "British".to_string(),
 });
