@@ -501,140 +501,140 @@ pub(crate) static DRIVER_TABLE: LazyLock<Table> = LazyLock::new(|| Table::Driver
 
 pub(crate) const CONSTRUCTOR_ALFA_ROMEO_STR: &str = r#"{
     "constructorId": "alfa",
-    "url": "http://en.wikipedia.org/wiki/Alfa_Romeo_in_Formula_One",
+    "url": "https://en.wikipedia.org/wiki/Alfa_Romeo_in_Formula_One",
     "name": "Alfa Romeo",
     "nationality": "Swiss"
   }"#;
 
 pub(crate) const CONSTRUCTOR_LOLA_STR: &str = r#"{
     "constructorId": "lola",
-    "url": "http://en.wikipedia.org/wiki/MasterCard_Lola",
+    "url": "https://en.wikipedia.org/wiki/MasterCard_Lola",
     "name": "Lola",
     "nationality": "British"
   }"#;
 
 pub(crate) const CONSTRUCTOR_MCLAREN_STR: &str = r#"{
     "constructorId": "mclaren",
-    "url": "http://en.wikipedia.org/wiki/McLaren",
+    "url": "https://en.wikipedia.org/wiki/McLaren",
     "name": "McLaren",
     "nationality": "British"
   }"#;
 
 pub(crate) const CONSTRUCTOR_FERRARI_STR: &str = r#"{
     "constructorId": "ferrari",
-    "url": "http://en.wikipedia.org/wiki/Scuderia_Ferrari",
+    "url": "https://en.wikipedia.org/wiki/Scuderia_Ferrari",
     "name": "Ferrari",
     "nationality": "Italian"
   }"#;
 
 pub(crate) const CONSTRUCTOR_WILLIAMS_STR: &str = r#"{
     "constructorId": "williams",
-    "url": "http://en.wikipedia.org/wiki/Williams_Grand_Prix_Engineering",
+    "url": "https://en.wikipedia.org/wiki/Williams_Grand_Prix_Engineering",
     "name": "Williams",
     "nationality": "British"
   }"#;
 
 pub(crate) const CONSTRUCTOR_MINARDI_STR: &str = r#"{
     "constructorId": "minardi",
-    "url": "http://en.wikipedia.org/wiki/Minardi",
+    "url": "https://en.wikipedia.org/wiki/Minardi",
     "name": "Minardi",
     "nationality": "Italian"
   }"#;
 
 pub(crate) const CONSTRUCTOR_ALPHA_TAURI_STR: &str = r#"{
     "constructorId": "alphatauri",
-    "url": "http://en.wikipedia.org/wiki/Scuderia_AlphaTauri",
+    "url": "https://en.wikipedia.org/wiki/Scuderia_AlphaTauri",
     "name": "AlphaTauri",
     "nationality": "Italian"
   }"#;
 
 pub(crate) const CONSTRUCTOR_RED_BULL_STR: &str = r#"{
     "constructorId": "red_bull",
-    "url": "http://en.wikipedia.org/wiki/Red_Bull_Racing",
+    "url": "https://en.wikipedia.org/wiki/Red_Bull_Racing",
     "name": "Red Bull",
     "nationality": "Austrian"
   }"#;
 
 pub(crate) const CONSTRUCTOR_MERCEDES_STR: &str = r#"{
     "constructorId": "mercedes",
-    "url": "http://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One",
+    "url": "https://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One",
     "name": "Mercedes",
     "nationality": "German"
   }"#;
 
 pub(crate) const CONSTRUCTOR_ASTON_MARTIN_STR: &str = r#"{
     "constructorId": "aston_martin",
-    "url": "http://en.wikipedia.org/wiki/Aston_Martin_in_Formula_One",
+    "url": "https://en.wikipedia.org/wiki/Aston_Martin_in_Formula_One",
     "name": "Aston Martin",
     "nationality": "British"
   }"#;
 
 pub(crate) static CONSTRUCTOR_ALFA_ROMEO: LazyLock<Constructor> = LazyLock::new(|| Constructor {
     constructor_id: "alfa".into(),
-    url: Url::parse("http://en.wikipedia.org/wiki/Alfa_Romeo_in_Formula_One").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/Alfa_Romeo_in_Formula_One").unwrap(),
     name: "Alfa Romeo".to_string(),
     nationality: "Swiss".to_string(),
 });
 
 pub(crate) static CONSTRUCTOR_LOLA: LazyLock<Constructor> = LazyLock::new(|| Constructor {
     constructor_id: "lola".into(),
-    url: Url::parse("http://en.wikipedia.org/wiki/MasterCard_Lola").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/MasterCard_Lola").unwrap(),
     name: "Lola".to_string(),
     nationality: "British".to_string(),
 });
 
 pub(crate) static CONSTRUCTOR_MCLAREN: LazyLock<Constructor> = LazyLock::new(|| Constructor {
     constructor_id: "mclaren".into(),
-    url: Url::parse("http://en.wikipedia.org/wiki/McLaren").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/McLaren").unwrap(),
     name: "McLaren".to_string(),
     nationality: "British".to_string(),
 });
 
 pub(crate) static CONSTRUCTOR_FERRARI: LazyLock<Constructor> = LazyLock::new(|| Constructor {
     constructor_id: "ferrari".into(),
-    url: Url::parse("http://en.wikipedia.org/wiki/Scuderia_Ferrari").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/Scuderia_Ferrari").unwrap(),
     name: "Ferrari".to_string(),
     nationality: "Italian".to_string(),
 });
 
 pub(crate) static CONSTRUCTOR_WILLIAMS: LazyLock<Constructor> = LazyLock::new(|| Constructor {
     constructor_id: "williams".into(),
-    url: Url::parse("http://en.wikipedia.org/wiki/Williams_Grand_Prix_Engineering").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/Williams_Grand_Prix_Engineering").unwrap(),
     name: "Williams".to_string(),
     nationality: "British".to_string(),
 });
 
 pub(crate) static CONSTRUCTOR_MINARDI: LazyLock<Constructor> = LazyLock::new(|| Constructor {
     constructor_id: "minardi".into(),
-    url: Url::parse("http://en.wikipedia.org/wiki/Minardi").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/Minardi").unwrap(),
     name: "Minardi".to_string(),
     nationality: "Italian".to_string(),
 });
 
 pub(crate) static CONSTRUCTOR_ALPHA_TAURI: LazyLock<Constructor> = LazyLock::new(|| Constructor {
     constructor_id: "alphatauri".into(),
-    url: Url::parse("http://en.wikipedia.org/wiki/Scuderia_AlphaTauri").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/Scuderia_AlphaTauri").unwrap(),
     name: "AlphaTauri".to_string(),
     nationality: "Italian".to_string(),
 });
 
 pub(crate) static CONSTRUCTOR_RED_BULL: LazyLock<Constructor> = LazyLock::new(|| Constructor {
     constructor_id: "red_bull".into(),
-    url: Url::parse("http://en.wikipedia.org/wiki/Red_Bull_Racing").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/Red_Bull_Racing").unwrap(),
     name: "Red Bull".to_string(),
     nationality: "Austrian".to_string(),
 });
 
 pub(crate) static CONSTRUCTOR_MERCEDES: LazyLock<Constructor> = LazyLock::new(|| Constructor {
     constructor_id: "mercedes".into(),
-    url: Url::parse("http://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One").unwrap(),
     name: "Mercedes".to_string(),
     nationality: "German".to_string(),
 });
 
 pub(crate) static CONSTRUCTOR_ASTON_MARTIN: LazyLock<Constructor> = LazyLock::new(|| Constructor {
     constructor_id: "aston_martin".into(),
-    url: Url::parse("http://en.wikipedia.org/wiki/Aston_Martin_in_Formula_One").unwrap(),
+    url: Url::parse("https://en.wikipedia.org/wiki/Aston_Martin_in_Formula_One").unwrap(),
     name: "Aston Martin".to_string(),
     nationality: "British".to_string(),
 });
