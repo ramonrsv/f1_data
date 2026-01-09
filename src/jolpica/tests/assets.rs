@@ -244,7 +244,7 @@ pub(crate) const DRIVER_DE_VRIES_STR: &str = r#"{
 
 pub(crate) const DRIVER_MAX_STR: &str = r#"{
     "driverId": "max_verstappen",
-    "permanentNumber": "33",
+    "permanentNumber": "3",
     "code": "VER",
     "url": "http://en.wikipedia.org/wiki/Max_Verstappen",
     "givenName": "Max",
@@ -420,7 +420,7 @@ pub(crate) static DRIVER_DE_VRIES: LazyLock<Driver> = LazyLock::new(|| Driver {
 
 pub(crate) static DRIVER_MAX: LazyLock<Driver> = LazyLock::new(|| Driver {
     driver_id: "max_verstappen".into(),
-    permanent_number: Some(33),
+    permanent_number: Some(3),
     code: Some("VER".to_string()),
     url: Url::parse("http://en.wikipedia.org/wiki/Max_Verstappen").unwrap(),
     given_name: "Max".to_string(),
