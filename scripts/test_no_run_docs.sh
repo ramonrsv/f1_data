@@ -39,7 +39,7 @@ if [ "$local_jolpica" == true ]; then
     git apply ./patches/no_run_doc_tests_local_jolpica.patch
 else
      # Apply rate limiting patch to ./src/jolpica/get.rs
-     git apply ./patches/no_run_doc_tests_rate_limiting.patch
+     git apply ./patches/no_run_doc_tests_add_rate_limiting.patch
 fi
 
 # Log the applied changes for verification
