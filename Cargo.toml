@@ -58,3 +58,9 @@ harness = false
 
 [[example]]
 name = "validate_jolpica"
+
+[lints.rust]
+# Suppress warning about unstable #[coverage] attribute
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(coverage,coverage_nightly)',
+] }

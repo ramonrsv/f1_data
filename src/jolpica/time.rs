@@ -394,6 +394,7 @@ where
 }
 
 #[cfg(test)]
+#[cfg_attr(coverage, coverage(off))]
 mod tests {
     use std::panic::catch_unwind;
 

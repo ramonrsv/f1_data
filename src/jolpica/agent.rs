@@ -1276,6 +1276,7 @@ fn verify_is_single_page(response: Response) -> Result<Response> {
 }
 
 #[cfg(test)]
+#[cfg_attr(coverage, coverage(off))]
 mod tests {
     use std::collections::HashMap;
     use std::sync::LazyLock;

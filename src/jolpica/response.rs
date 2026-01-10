@@ -1965,6 +1965,7 @@ fn into<T: Into<U>, U>(t: T) -> U {
 }
 
 #[cfg(test)]
+#[cfg_attr(coverage, coverage(off))]
 mod tests {
     use std::sync::LazyLock;
 

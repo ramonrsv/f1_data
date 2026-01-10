@@ -61,6 +61,7 @@ impl RaceID {
 }
 
 #[cfg(test)]
+#[cfg_attr(coverage, coverage(off))]
 mod tests {
     use crate::tests::asserts::*;
     use shadow_asserts::{assert_eq, assert_ne};

@@ -122,6 +122,9 @@ assert!(all_drivers.len() >= 864);
 ```
 */
 
+// Enable the unstable `#[coverage]` attribute when building with coverage instrumentation.
+#![cfg_attr(coverage, feature(coverage_attribute))]
+//
 // These are all the lint groups or allowed-by-default lints that are enabled as `deny` in f1_data.
 // Lints that are warn-by-default, deny-by-default, or in one of the groups are not included, for
 // brevity. As such, it is expected that `cargo build/test/clippy/doc` will be run with

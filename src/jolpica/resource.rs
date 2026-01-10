@@ -913,6 +913,7 @@ impl From<Pagination> for Page {
 }
 
 #[cfg(test)]
+#[cfg_attr(coverage, coverage(off))]
 mod tests {
     use crate::tests::asserts::*;
     use shadow_asserts::assert_eq;

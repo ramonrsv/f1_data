@@ -4,6 +4,8 @@
 //! potentially push for fixes in the jolpica-f1 API. If any of these tests start failing, it may
 //! indicate that the underlying issue has been fixed, and the associated workaround can be removed.
 
+#[cfg(test)]
+#[cfg_attr(coverage, coverage(off))]
 mod tests {
     use serde::Deserialize;
 

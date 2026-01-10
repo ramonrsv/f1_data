@@ -216,6 +216,7 @@ fn concat_races(races: Vec<Race>) -> Result<Vec<Race>> {
 }
 
 #[cfg(test)]
+#[cfg_attr(coverage, coverage(off))]
 mod tests {
     use std::sync::LazyLock;
 

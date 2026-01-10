@@ -45,6 +45,7 @@ fn into<T: Into<U>, U>(t: T) -> U {
 }
 
 #[cfg(test)]
+#[cfg_attr(coverage, coverage(off))]
 mod tests {
     use crate::tests::asserts::*;
     use shadow_asserts::assert_eq;

@@ -235,6 +235,7 @@ pub fn retry_on_http_error<T>(
 }
 
 #[cfg(test)]
+#[cfg_attr(coverage, coverage(off))]
 mod tests {
     use std::cell::RefCell;
     use std::time::Duration;
