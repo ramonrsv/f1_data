@@ -47,9 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - name: Build
         run: cargo build --workspace --all-features
       - name: Test (non-ignored)
@@ -65,9 +64,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - run: cargo doc --workspace --all-features --no-deps --document-private-items
       - run: cargo doc --examples --no-deps
 
@@ -75,20 +73,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
           components: clippy
+      - uses: Swatinem/rust-cache@v2
       - run: cargo clippy --workspace --all-features --no-deps
 
   rustfmt:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
           components: rustfmt
+      - uses: Swatinem/rust-cache@v2
       - run: cargo fmt --all -- --check
 
   code_coverage:
@@ -96,9 +94,8 @@ jobs:
     if: github.event_name == 'schedule' || vars.FORCE_CODECOV == 'true'
     steps:
       - uses: actions/checkout@v5
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - name: Install cargo-llvm-cov
         run: cargo install cargo-llvm-cov
       - name: Run cargo-llvm-cov
@@ -117,9 +114,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - name: Build benchmarks
         run: cargo bench --workspace --all-features --no-run
       - name: Run benchmarks
