@@ -151,7 +151,7 @@ pub fn get_response_page(base_url: &str, resource: &Resource, page: Option<Page>
 /// assert_eq!(seasons.first().unwrap().season, 1950);
 ///
 /// let seasons = responses.last().unwrap().table.as_seasons().unwrap();
-/// assert_eq!(seasons.len(), 26);
+/// assert_eq!(seasons.len(), 27);
 /// assert_eq!(seasons.first().unwrap().season, 2000);
 /// ```
 pub fn get_response_multi_pages(

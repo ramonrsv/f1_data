@@ -79,14 +79,14 @@ pub struct PageVerify: u32 {
 /// assert_eq!(responses.len(), 3); // 76 / 30 -> 3 pages
 /// assert_eq!(responses[0].as_seasons().unwrap().len(), 30);
 /// assert_eq!(responses[1].as_seasons().unwrap().len(), 30);
-/// assert_eq!(responses[2].as_seasons().unwrap().len(), 16);
+/// assert_eq!(responses[2].as_seasons().unwrap().len(), 17);
 ///
 /// let response = concat_response_multi_pages(responses, PageVerify::ALL).unwrap();
-/// assert_eq!(response.as_seasons().unwrap().len(), 76);
+/// assert_eq!(response.as_seasons().unwrap().len(), 77);
 /// assert!(response.pagination.is_last_page());
 /// assert_eq!(response.pagination.offset, 0);
 /// assert_eq!(response.pagination.limit, 90);
-/// assert_eq!(response.pagination.total, 76);
+/// assert_eq!(response.pagination.total, 77);
 ///
 /// assert_eq!(response.as_seasons().unwrap()[0].season, 1950);
 /// assert_eq!(response.as_seasons().unwrap()[75].season, 2025);
