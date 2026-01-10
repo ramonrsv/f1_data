@@ -1061,9 +1061,13 @@ pub struct Driver {
     /// Family name of the driver, e.g. `"Verstappen"` for _Max Verstappen_.
     pub family_name: String,
     /// Date of birth of the driver, e.g. `1997-09-30` for _Max Verstappen_.
-    pub date_of_birth: Date,
+    ///
+    /// This information may be missing for some drivers, represented by `None`.
+    pub date_of_birth: Option<Date>,
     /// Nationality of the driver, e.g. `"Dutch"` for _Max Verstappen_.
-    pub nationality: String,
+    ///
+    /// This information may be missing for some drivers, represented by `None`.
+    pub nationality: Option<String>,
 }
 
 impl Driver {

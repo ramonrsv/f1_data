@@ -282,8 +282,8 @@ pub(crate) static DRIVER_FANGIO: LazyLock<Driver> = LazyLock::new(|| Driver {
     url: Some(Url::parse("http://en.wikipedia.org/wiki/Juan_Manuel_Fangio").unwrap()),
     given_name: "Juan".to_string(),
     family_name: "Fangio".to_string(),
-    date_of_birth: date!(1911 - 06 - 24),
-    nationality: "Argentine".to_string(),
+    date_of_birth: Some(date!(1911 - 06 - 24)),
+    nationality: Some("Argentine".to_string()),
 });
 
 pub(crate) static DRIVER_HAILWOOD: LazyLock<Driver> = LazyLock::new(|| Driver {
@@ -293,8 +293,8 @@ pub(crate) static DRIVER_HAILWOOD: LazyLock<Driver> = LazyLock::new(|| Driver {
     url: Some(Url::parse("http://en.wikipedia.org/wiki/Mike_Hailwood").unwrap()),
     given_name: "Mike".to_string(),
     family_name: "Hailwood".to_string(),
-    date_of_birth: date!(1940 - 04 - 02),
-    nationality: "British".to_string(),
+    date_of_birth: Some(date!(1940 - 04 - 02)),
+    nationality: Some("British".to_string()),
 });
 
 pub(crate) static DRIVER_ABATE: LazyLock<Driver> = LazyLock::new(|| Driver {
@@ -304,8 +304,8 @@ pub(crate) static DRIVER_ABATE: LazyLock<Driver> = LazyLock::new(|| Driver {
     url: Some(Url::parse("http://en.wikipedia.org/wiki/Carlo_Mario_Abate").unwrap()),
     given_name: "Carlo".to_string(),
     family_name: "Abate".to_string(),
-    date_of_birth: date!(1932 - 07 - 10),
-    nationality: "Italian".to_string(),
+    date_of_birth: Some(date!(1932 - 07 - 10)),
+    nationality: Some("Italian".to_string()),
 });
 
 pub(crate) static DRIVER_MICHAEL: LazyLock<Driver> = LazyLock::new(|| Driver {
@@ -315,8 +315,8 @@ pub(crate) static DRIVER_MICHAEL: LazyLock<Driver> = LazyLock::new(|| Driver {
     url: Some(Url::parse("http://en.wikipedia.org/wiki/Michael_Schumacher").unwrap()),
     given_name: "Michael".to_string(),
     family_name: "Schumacher".to_string(),
-    date_of_birth: date!(1969 - 01 - 03),
-    nationality: "German".to_string(),
+    date_of_birth: Some(date!(1969 - 01 - 03)),
+    nationality: Some("German".to_string()),
 });
 
 pub(crate) static DRIVER_JOS: LazyLock<Driver> = LazyLock::new(|| Driver {
@@ -326,8 +326,8 @@ pub(crate) static DRIVER_JOS: LazyLock<Driver> = LazyLock::new(|| Driver {
     url: Some(Url::parse("http://en.wikipedia.org/wiki/Jos_Verstappen").unwrap()),
     given_name: "Jos".to_string(),
     family_name: "Verstappen".to_string(),
-    date_of_birth: date!(1972 - 03 - 04),
-    nationality: "Dutch".to_string(),
+    date_of_birth: Some(date!(1972 - 03 - 04)),
+    nationality: Some("Dutch".to_string()),
 });
 
 pub(crate) static DRIVER_RALF: LazyLock<Driver> = LazyLock::new(|| Driver {
@@ -337,8 +337,8 @@ pub(crate) static DRIVER_RALF: LazyLock<Driver> = LazyLock::new(|| Driver {
     url: Some(Url::parse("http://en.wikipedia.org/wiki/Ralf_Schumacher").unwrap()),
     given_name: "Ralf".to_string(),
     family_name: "Schumacher".to_string(),
-    date_of_birth: date!(1975 - 06 - 30),
-    nationality: "German".to_string(),
+    date_of_birth: Some(date!(1975 - 06 - 30)),
+    nationality: Some("German".to_string()),
 });
 
 pub(crate) static DRIVER_WILSON: LazyLock<Driver> = LazyLock::new(|| Driver {
@@ -348,8 +348,8 @@ pub(crate) static DRIVER_WILSON: LazyLock<Driver> = LazyLock::new(|| Driver {
     url: Some(Url::parse("http://en.wikipedia.org/wiki/Justin_Wilson_(racing_driver)").unwrap()),
     given_name: "Justin".to_string(),
     family_name: "Wilson".to_string(),
-    date_of_birth: date!(1978 - 07 - 31),
-    nationality: "British".to_string(),
+    date_of_birth: Some(date!(1978 - 07 - 31)),
+    nationality: Some("British".to_string()),
 });
 
 pub(crate) static DRIVER_KIMI: LazyLock<Driver> = LazyLock::new(|| Driver {
@@ -359,8 +359,8 @@ pub(crate) static DRIVER_KIMI: LazyLock<Driver> = LazyLock::new(|| Driver {
     url: Some(Url::parse("http://en.wikipedia.org/wiki/Kimi_R%C3%A4ikk%C3%B6nen").unwrap()),
     given_name: "Kimi".to_string(),
     family_name: "Räikkönen".to_string(),
-    date_of_birth: date!(1979 - 10 - 17),
-    nationality: "Finnish".to_string(),
+    date_of_birth: Some(date!(1979 - 10 - 17)),
+    nationality: Some("Finnish".to_string()),
 });
 
 pub(crate) static DRIVER_ALONSO: LazyLock<Driver> = LazyLock::new(|| Driver {
@@ -370,8 +370,8 @@ pub(crate) static DRIVER_ALONSO: LazyLock<Driver> = LazyLock::new(|| Driver {
     url: Some(Url::parse("http://en.wikipedia.org/wiki/Fernando_Alonso").unwrap()),
     given_name: "Fernando".to_string(),
     family_name: "Alonso".to_string(),
-    date_of_birth: date!(1981 - 07 - 29),
-    nationality: "Spanish".to_string(),
+    date_of_birth: Some(date!(1981 - 07 - 29)),
+    nationality: Some("Spanish".to_string()),
 });
 
 pub(crate) static DRIVER_HAMILTON: LazyLock<Driver> = LazyLock::new(|| Driver {
@@ -381,8 +381,8 @@ pub(crate) static DRIVER_HAMILTON: LazyLock<Driver> = LazyLock::new(|| Driver {
     url: Some(Url::parse("http://en.wikipedia.org/wiki/Lewis_Hamilton").unwrap()),
     given_name: "Lewis".to_string(),
     family_name: "Hamilton".to_string(),
-    date_of_birth: date!(1985 - 01 - 07),
-    nationality: "British".to_string(),
+    date_of_birth: Some(date!(1985 - 01 - 07)),
+    nationality: Some("British".to_string()),
 });
 
 pub(crate) static DRIVER_PEREZ: LazyLock<Driver> = LazyLock::new(|| Driver {
@@ -392,8 +392,8 @@ pub(crate) static DRIVER_PEREZ: LazyLock<Driver> = LazyLock::new(|| Driver {
     url: Some(Url::parse("http://en.wikipedia.org/wiki/Sergio_P%C3%A9rez").unwrap()),
     given_name: "Sergio".to_string(),
     family_name: "Pérez".to_string(),
-    date_of_birth: date!(1990 - 01 - 26),
-    nationality: "Mexican".to_string(),
+    date_of_birth: Some(date!(1990 - 01 - 26)),
+    nationality: Some("Mexican".to_string()),
 });
 
 pub(crate) static DRIVER_SAINZ: LazyLock<Driver> = LazyLock::new(|| Driver {
@@ -403,8 +403,8 @@ pub(crate) static DRIVER_SAINZ: LazyLock<Driver> = LazyLock::new(|| Driver {
     url: Some(Url::parse("http://en.wikipedia.org/wiki/Carlos_Sainz_Jr.").unwrap()),
     given_name: "Carlos".to_string(),
     family_name: "Sainz".to_string(),
-    date_of_birth: date!(1994 - 09 - 01),
-    nationality: "Spanish".to_string(),
+    date_of_birth: Some(date!(1994 - 09 - 01)),
+    nationality: Some("Spanish".to_string()),
 });
 
 pub(crate) static DRIVER_DE_VRIES: LazyLock<Driver> = LazyLock::new(|| Driver {
@@ -414,8 +414,8 @@ pub(crate) static DRIVER_DE_VRIES: LazyLock<Driver> = LazyLock::new(|| Driver {
     url: Some(Url::parse("http://en.wikipedia.org/wiki/Nyck_de_Vries").unwrap()),
     given_name: "Nyck".to_string(),
     family_name: "de Vries".to_string(),
-    date_of_birth: date!(1995 - 02 - 06),
-    nationality: "Dutch".to_string(),
+    date_of_birth: Some(date!(1995 - 02 - 06)),
+    nationality: Some("Dutch".to_string()),
 });
 
 pub(crate) static DRIVER_MAX: LazyLock<Driver> = LazyLock::new(|| Driver {
@@ -425,8 +425,8 @@ pub(crate) static DRIVER_MAX: LazyLock<Driver> = LazyLock::new(|| Driver {
     url: Some(Url::parse("http://en.wikipedia.org/wiki/Max_Verstappen").unwrap()),
     given_name: "Max".to_string(),
     family_name: "Verstappen".to_string(),
-    date_of_birth: date!(1997 - 09 - 30),
-    nationality: "Dutch".to_string(),
+    date_of_birth: Some(date!(1997 - 09 - 30)),
+    nationality: Some("Dutch".to_string()),
 });
 
 pub(crate) static DRIVER_LECLERC: LazyLock<Driver> = LazyLock::new(|| Driver {
@@ -436,8 +436,8 @@ pub(crate) static DRIVER_LECLERC: LazyLock<Driver> = LazyLock::new(|| Driver {
     url: Some(Url::parse("http://en.wikipedia.org/wiki/Charles_Leclerc").unwrap()),
     given_name: "Charles".to_string(),
     family_name: "Leclerc".to_string(),
-    date_of_birth: date!(1997 - 10 - 16),
-    nationality: "Monegasque".to_string(),
+    date_of_birth: Some(date!(1997 - 10 - 16)),
+    nationality: Some("Monegasque".to_string()),
 });
 
 pub(crate) static DRIVER_RUSSELL: LazyLock<Driver> = LazyLock::new(|| Driver {
@@ -447,8 +447,8 @@ pub(crate) static DRIVER_RUSSELL: LazyLock<Driver> = LazyLock::new(|| Driver {
     url: Some(Url::parse("http://en.wikipedia.org/wiki/George_Russell_(racing_driver)").unwrap()),
     given_name: "George".to_string(),
     family_name: "Russell".to_string(),
-    date_of_birth: date!(1998 - 02 - 15),
-    nationality: "British".to_string(),
+    date_of_birth: Some(date!(1998 - 02 - 15)),
+    nationality: Some("British".to_string()),
 });
 
 pub(crate) const DRIVER_TABLE_STR: &str = formatcp!(
