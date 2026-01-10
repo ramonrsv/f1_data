@@ -1053,7 +1053,9 @@ pub struct Driver {
     pub code: Option<String>,
     /// URL to the Wikipedia page for this driver, e.g. for _Max Verstappen_:
     /// [`"https://en.wikipedia.org/wiki/Max_Verstappen"`](https://en.wikipedia.org/wiki/Max_Verstappen)
-    pub url: Url,
+    ///
+    /// Some drivers may not have a Wikipedia page, represented by `None`.
+    pub url: Option<Url>,
     /// Given name of the driver, e.g. `"Max"` for _Max Verstappen_.
     pub given_name: String,
     /// Family name of the driver, e.g. `"Verstappen"` for _Max Verstappen_.
