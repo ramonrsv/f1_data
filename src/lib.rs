@@ -122,9 +122,6 @@ assert!(all_drivers.len() >= 864);
 ```
 */
 
-// Enable the unstable `#[coverage]` attribute when building with coverage instrumentation.
-#![cfg_attr(coverage, feature(coverage_attribute))]
-//
 // These are all the lint groups or allowed-by-default lints that are enabled as `deny` in f1_data.
 // Lints that are warn-by-default, deny-by-default, or in one of the groups are not included, for
 // brevity. As such, it is expected that `cargo build/test/clippy/doc` will be run with
@@ -199,6 +196,9 @@ assert!(all_drivers.len() >= 864);
 // Developers can locally change to `warn` to see the warnings - CI would fail due to `-D warnings`.
 // @todo Fix the associated violations and remove these lints - list should normally be empty.
 #![allow(clippy::missing_errors_doc)]
+//
+// Enable the unstable `#[coverage]` attribute when building with coverage instrumentation.
+#![cfg_attr(coverage, feature(coverage_attribute), allow(unstable_features))]
 
 // Silence unused_crate_dependencies lint for [dev-dependencies] used in /benches and /examples.
 // While clippy detects uses in unit tests, it doesn't seem to capture these particular uses.
