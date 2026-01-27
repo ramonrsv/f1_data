@@ -99,7 +99,7 @@ jobs:
       - name: Install cargo-llvm-cov
         run: cargo install cargo-llvm-cov
       - name: Run cargo-llvm-cov
-        run:
+        run: |
           cargo +nightly llvm-cov --codecov test --workspace --all-features -- \
           --include-ignored --test-threads 1 > codecove_code_coverage.json
       - name: Archive codecove_code_coverage.json
