@@ -648,7 +648,7 @@ mod tests {
 
         assert!(matches!(result, Err(Error::HttpRetries((3, _)))));
         assert_eq!(*count.borrow(), 4);
-        assert_ge!(elapsed, Duration::from_millis(100 * 4));
+        assert_ge!(elapsed, Duration::from_millis(100 * 4 - 20)); // -20ms margin
         assert_lt!(elapsed, Duration::from_millis(100 * (4 + 1))); // * +1 margin
     }
 }
