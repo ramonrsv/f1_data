@@ -51,14 +51,26 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Build
         run: cargo build --workspace --all-features
-      - name: Test (non-ignored)
-        run: cargo test --workspace --all-features
-      - name: Test (ignored)
+      - name: Test (non-ignored, no timing tests)
+        run: cargo test --workspace --all-features -- --skip __TIMING
+      - name: Test (ignored, no timing tests)
         if: github.event_name == 'schedule' || vars.ACT == 'true'
-        run: cargo test --workspace --all-features -- --ignored --test-threads 1
+        run: cargo test --workspace --all-features -- --ignored --test-threads 1 --skip __TIMING
       - name: Test (doc no_run)
         if: github.event_name == 'schedule' || vars.ACT == 'true'
         run: ./scripts/test_no_run_docs.sh
+
+  timing_tests:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || vars.ACT == 'true'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        run: cargo build --workspace --all-features
+      - name: Test (timing tests)
+        run: cargo test --workspace --all-features -- __TIMING --include-ignored --test-threads 1
 
   build_docs:
     runs-on: ubuntu-latest

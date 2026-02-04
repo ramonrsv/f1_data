@@ -481,7 +481,8 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_response_multi_pages_rate_limiting() {
+    #[allow(nonstandard_style)]
+    fn get_response_multi_pages_rate_limiting__TIMING() {
         let rate_limiter = RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA);
 
         let start = std::time::Instant::now();
@@ -521,7 +522,8 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn get_response_multi_pages_error_exceeded_max_page_count() {
+    #[allow(nonstandard_style)]
+    fn get_response_multi_pages_error_exceeded_max_page_count__TIMING() {
         let rate_limiter = RateLimiter::new(JOLPICA_API_RATE_LIMIT_QUOTA);
 
         let req = Resource::SeasonList(Filters::none());
@@ -574,7 +576,8 @@ mod tests {
     }
 
     #[test]
-    fn retry_on_http_error() {
+    #[allow(nonstandard_style)]
+    fn retry_on_http_error__TIMING() {
         let count = RefCell::<u32>::new(0);
 
         let f_ok = || Ok(42);
@@ -586,31 +589,31 @@ mod tests {
         let _unused: Result<u32> = f_err_non_http();
 
         // No retries, forwards everything
-        let result = super::retry_on_http_error(make_counter_f(&count, f_ok), None, None);
+        let result = retry_on_http_error(make_counter_f(&count, f_ok), None, None);
         assert_eq!(result.unwrap(), 42);
         assert_eq!(*count.borrow(), 1);
 
-        let result = super::retry_on_http_error(make_counter_f(&count, f_err_http), None, None);
+        let result = retry_on_http_error(make_counter_f(&count, f_err_http), None, None);
         assert!(matches!(result, Err(Error::Http(_))));
         assert_eq!(*count.borrow(), 1);
 
-        let result = super::retry_on_http_error(make_counter_f(&count, f_err_non_http), None, Some(0));
+        let result = retry_on_http_error(make_counter_f(&count, f_err_non_http), None, Some(0));
         assert!(matches!(result, Err(Error::NotFound)));
         assert_eq!(*count.borrow(), 1);
 
         // Succeeds on first try
-        let result = super::retry_on_http_error(make_counter_f(&count, f_ok), None, Some(3));
+        let result = retry_on_http_error(make_counter_f(&count, f_ok), None, Some(3));
         assert_true!(result.is_ok());
         assert_eq!(result.unwrap(), 42);
         assert_eq!(*count.borrow(), 1);
 
         // Fails with non-HTTP error
-        let result = super::retry_on_http_error(make_counter_f(&count, f_err_non_http), None, Some(3));
+        let result = retry_on_http_error(make_counter_f(&count, f_err_non_http), None, Some(3));
         assert!(matches!(result, Err(Error::NotFound)));
         assert_eq!(*count.borrow(), 1);
 
         // Fails twice with HTTP error, then succeeds
-        let result = super::retry_on_http_error(
+        let result = retry_on_http_error(
             make_counter_f(&count, || if *count.borrow() < 3 { f_err_http() } else { f_ok() }),
             None,
             Some(3),
@@ -619,7 +622,7 @@ mod tests {
         assert_eq!(*count.borrow(), 3);
 
         // Fails twice with HTTP error, then with non-HTTP error
-        let result = super::retry_on_http_error(
+        let result = retry_on_http_error(
             make_counter_f(&count, || {
                 if *count.borrow() < 3 {
                     f_err_http()
@@ -634,7 +637,7 @@ mod tests {
         assert_eq!(*count.borrow(), 3);
 
         // Fails with HTTP error exceeding max retries
-        let result = super::retry_on_http_error(make_counter_f(&count, f_err_http), None, Some(3));
+        let result = retry_on_http_error(make_counter_f(&count, f_err_http), None, Some(3));
         assert!(matches!(result, Err(Error::HttpRetries((3, _)))));
         assert_eq!(*count.borrow(), 4);
 
@@ -643,7 +646,7 @@ mod tests {
         rate_limiter.wait_until_ready(); // Clear the starting burst cell
 
         let start = std::time::Instant::now();
-        let result = super::retry_on_http_error(make_counter_f(&count, f_err_http), Some(&rate_limiter), Some(3));
+        let result = retry_on_http_error(make_counter_f(&count, f_err_http), Some(&rate_limiter), Some(3));
         let elapsed = start.elapsed();
 
         assert!(matches!(result, Err(Error::HttpRetries((3, _)))));

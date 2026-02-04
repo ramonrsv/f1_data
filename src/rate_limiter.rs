@@ -64,7 +64,8 @@ mod tests {
     }
 
     #[test]
-    fn basic_rate_limiting_and_burst() {
+    #[allow(nonstandard_style)]
+    fn basic_rate_limiting_and_burst__TIMING() {
         let quota = Quota::per_second(nonzero!(10u32)).allow_burst(nonzero!(5u32));
         let limiter = RateLimiter::new(quota);
 
@@ -108,7 +109,8 @@ mod tests {
     }
 
     #[test]
-    fn multi_threaded_rate_limiting_and_burst() {
+    #[allow(nonstandard_style)]
+    fn multi_threaded_rate_limiting_and_burst__TIMING() {
         let quota = Quota::per_second(nonzero!(10u32)).allow_burst(nonzero!(10u32));
         let limiter = Arc::new(RateLimiter::new(quota));
 

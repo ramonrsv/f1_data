@@ -2509,7 +2509,8 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn rate_limiting() {
+    #[allow(nonstandard_style)]
+    fn rate_limiting__TIMING() {
         // Separate instance to avoid rate limiting interference
         let jolpica = Agent::new(AgentConfigs {
             base_url: get_jolpica_test_base_url().into(),
