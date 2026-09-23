@@ -2249,7 +2249,6 @@ pub(crate) const SPRINT_RESULT_2023_4_P3_STR: &str = formatcp!(
   }}"#
 );
 
-// @todo Buggy "Time" field with "+-" in Jolpi-ca F1 for this entry
 pub(crate) const SPRINT_RESULT_2024_5_P20_STR: &str = formatcp!(
     r#"{{
     "number": "14",
@@ -2263,7 +2262,7 @@ pub(crate) const SPRINT_RESULT_2024_5_P20_STR: &str = formatcp!(
     "status": "Retired",
     "Time": {{
         "millis": "1779513",
-        "time": "+-1:57:34.853"
+        "time": ""
     }},
     "FastestLap": {{
         "rank": "3",
@@ -2313,7 +2312,6 @@ pub(crate) const SPRINT_RESULT_2023_4_P3: LazyLock<SprintResult> = LazyLock::new
     }),
 });
 
-// @todo Buggy "Time" field with "+-" in Jolpi-ca F1 for this entry, parsed as [`None`] for now
 pub(crate) const SPRINT_RESULT_2024_5_P20: LazyLock<SprintResult> = LazyLock::new(|| SprintResult {
     number: 14,
     position: 20,
@@ -2324,7 +2322,7 @@ pub(crate) const SPRINT_RESULT_2024_5_P20: LazyLock<SprintResult> = LazyLock::ne
     grid: 3,
     laps: 17,
     status: "Retired".to_string(),
-    time: None, // Buggy in Jolpi-ca F1
+    time: None,
     fastest_lap: Some(FastestLap {
         rank: Some(3),
         lap: 3,
@@ -2559,7 +2557,6 @@ pub(crate) const RACE_RESULT_2021_12_P10_STR: &str = formatcp!(
   }}"#
 );
 
-// @todo Buggy "Time" field with "+-" in Jolpi-ca F1 for this entry
 pub(crate) const RACE_RESULT_2023_3_P15_STR: &str = formatcp!(
     r#"{{
     "number": "21",
@@ -2573,7 +2570,7 @@ pub(crate) const RACE_RESULT_2023_3_P15_STR: &str = formatcp!(
     "status": "Retired",
     "Time": {{
         "millis": "7005713",
-        "time": "+-1:24:07.342"
+        "time": ""
     }},
     "FastestLap": {{
         "rank": "10",
@@ -2834,7 +2831,6 @@ pub(crate) const RACE_RESULT_2021_12_P10: LazyLock<RaceResult> = LazyLock::new(|
     fastest_lap: None,
 });
 
-// @todo Buggy "Time" field with "+-" in Jolpi-ca F1 for this entry, parsed as [`None`] for now
 pub(crate) const RACE_RESULT_2023_3_P15: LazyLock<RaceResult> = LazyLock::new(|| RaceResult {
     number: 21,
     position: 15,
@@ -2845,7 +2841,7 @@ pub(crate) const RACE_RESULT_2023_3_P15: LazyLock<RaceResult> = LazyLock::new(||
     grid: 15,
     laps: 56,
     status: "Retired".to_string(),
-    time: None, // Buggy in Jolpi-ca F1
+    time: None,
     fastest_lap: Some(FastestLap {
         rank: Some(10),
         lap: 50,

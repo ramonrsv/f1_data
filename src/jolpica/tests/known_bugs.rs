@@ -13,7 +13,7 @@ mod tests {
         error::Error,
         jolpica::{
             resource::Filters,
-            response::{Position, RaceResult, SprintResult},
+            response::{Position, RaceResult},
             tests::util::JOLPICA_MP,
             time::{RaceTime, deserialize_buggy_race_time, duration_hms_ms, duration_millis},
         },
@@ -28,11 +28,9 @@ mod tests {
     // `jolpica::time::deserialize_buggy_race_time`, which is being tested here. If/when any of
     // these tests fail, we can investigate further, and potentially remove the workaround.
     //
-    // "+-" issue, for example:
-    //   - 2024, R5, sprint P20, sprint result has 'millis' that is lower than P19, and the
-    //     'time', expected as a "+hh:mm:ss.sss" string, is instead "+-1:57:34.853"
-    //   - 2023, R3, P13+, non-lapped cars have 'millis' that are lower than P12, and the 'time',
-    //     expected as a "+hh:mm:ss.sss" string, is instead something like "+-1:24:07.342" for P15
+    // Empty 'time' issue, for example:
+    //   - 2023, R3, P13-P17, and 2024, R5, sprint P20, drivers that retired but were still
+    //     classified have a 'millis' but an empty 'time', which is not a valid [`RaceTime`]
     //
     // "hh:mm" issue, for example:
     //   - 1950, R5, P1, the 'time' should be "2:47:26" but is instead "2:47". 'millis' is correct
@@ -72,11 +70,8 @@ mod tests {
 
     #[test]
     fn deserialize_buggy_race_time_workarounds() {
-        // "+-" issue, works when we use `deserialize_buggy_race_time`, should return [`None`]
-        assert_eq!(
-            serde_json::from_str::<Proxy>(r#"{"millis": "1779513", "time": "+-1:57:34.853"}"#).unwrap(),
-            Proxy::none()
-        );
+        // Empty 'time' issue, works when we use `deserialize_buggy_race_time`, should return [`None`]
+        assert_eq!(serde_json::from_str::<Proxy>(r#"{"millis": "1779513", "time": ""}"#).unwrap(), Proxy::none());
 
         assert_eq!(duration_millis(10046000), duration_hms_ms(2, 47, 26, 0));
 
@@ -109,29 +104,7 @@ mod tests {
     }
 
     #[test]
-    fn sprint_result_buggy_time() {
-        // "+-" issue
-        assert_true!(SPRINT_RESULT_2024_5_P20.time.is_none());
-        assert_eq!(
-            serde_json::from_str::<SprintResult>(SPRINT_RESULT_2024_5_P20_STR).unwrap(),
-            *SPRINT_RESULT_2024_5_P20
-        );
-    }
-
-    #[test]
-    #[ignore]
-    fn get_sprint_result_buggy_time() {
-        // "+-" issue
-        let result = JOLPICA_MP.get_sprint_result(Filters::new().season(2024).round(5).driver_id("alonso".into()));
-        assert_eq!(result.unwrap().sprint_result(), &*SPRINT_RESULT_2024_5_P20);
-    }
-
-    #[test]
     fn race_result_buggy_time() {
-        // "+-" issue
-        assert_true!(RACE_RESULT_2023_3_P15.time.is_none());
-        assert_eq!(serde_json::from_str::<RaceResult>(RACE_RESULT_2023_3_P15_STR).unwrap(), *RACE_RESULT_2023_3_P15);
-
         // "hh:mm" issue
         assert_true!(RACE_RESULT_1950_5_P1.time.is_some());
         assert_eq!(serde_json::from_str::<RaceResult>(RACE_RESULT_1950_5_P1_STR).unwrap(), *RACE_RESULT_1950_5_P1);
@@ -144,10 +117,6 @@ mod tests {
     #[test]
     #[ignore]
     fn get_race_result_buggy_time() {
-        // "+-" issue
-        let result = JOLPICA_MP.get_race_result(Filters::new().season(2023).round(3).finish_pos(15));
-        assert_eq!(result.unwrap().race_result(), &*RACE_RESULT_2023_3_P15);
-
         // "hh:mm" issue
         let result = JOLPICA_MP.get_race_result(Filters::new().season(1950).round(5).finish_pos(1));
         assert_eq!(result.unwrap().race_result(), &*RACE_RESULT_1950_5_P1);

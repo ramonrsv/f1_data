@@ -321,10 +321,10 @@ impl<'de> Deserialize<'de> for RaceTime {
 
 /// Workaround for sever issues/bugs in some race times from the jolpica-f1 API.
 ///
-/// For example, 2023, R3, P13+, non-lapped cars have 'millis' that are lower than P12, and the
-/// 'time', expected as a "+hh:mm:ss.sss" string, is instead something like "+-1:24:07.342" for P15.
-/// To handle this issue, we manually deserialize an [`Option<RaceTime>`], returning [`None`] if we
-/// detect a leading `"+-"` in the time string, and otherwise parsing a [`RaceTime`] as normal.
+/// For example, 2023, R3, P13-P17, drivers that retired but were still classified have a 'millis'
+/// but an empty 'time', which is not a valid [`RaceTime`]. To handle this issue, we manually
+/// deserialize an [`Option<RaceTime>`], returning [`None`] if the time string is empty, and
+/// otherwise parsing a [`RaceTime`] as normal.
 ///
 /// For example, 1950, R5, P1, the 'time' should be "2:47:26" but is instead "2:47". It seems that
 /// the seconds component is missing, although the 'millis' is correct and contains the seconds.
@@ -343,6 +343,10 @@ impl<'de> Deserialize<'de> for RaceTime {
 ///
 /// See `crate::jolpica::tests::known_bugs` for more details and associated tests.
 //
+// @todo An empty 'time' field may be a valid case and the expected behavior for drivers without a
+// finishing time, e.g. retired; review the jolpica-f1 API and reassess if this should be handled
+// outside of this workaround, e.g. in a separate `Option<RaceTime>` deserializer, or by allowing
+// a [`RaceTime`] with only a total duration, to keep the 'millis' for these drivers.
 // @todo Remove these workaround as soon as possible; probably need upstream fixes in jolpica-f1.
 pub(crate) fn deserialize_buggy_race_time<'de, D>(deserializer: D) -> Result<Option<RaceTime>, D::Error>
 where
@@ -362,7 +366,7 @@ where
     let proxy = serde_json::from_str::<Proxy>(in_str.as_str()).map_err(serde::de::Error::custom)?;
     let millis = parse_integer(&proxy.millis);
 
-    if proxy.time.starts_with("+-") {
+    if proxy.time.is_empty() {
         Ok(None)
     } else if let Some(matches) = RE.captures(&proxy.time) {
         let hours = parse_integer(&matches[1]);
