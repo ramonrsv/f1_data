@@ -1821,15 +1821,13 @@ pub(crate) const QUALIFYING_RESULT_2023_4_P2_STR: &str = formatcp!(
   }}"#
 );
 
-// @todo jolpica-f1 is incorrectly reporting the Q1 time as 1:41.131, but it should be 1:41.756
-// This asset is temporarily changed to the wrong value in order to allow the tests to pass.
 pub(crate) const QUALIFYING_RESULT_2023_4_P3_STR: &str = formatcp!(
     r#"{{
     "number": "11",
     "position": "3",
     "Driver": {DRIVER_PEREZ_STR},
     "Constructor": {CONSTRUCTOR_RED_BULL_STR},
-    "Q1": "1:41.131",
+    "Q1": "1:41.756",
     "Q2": "1:41.131",
     "Q3": "1:40.495"
   }}"#
@@ -1909,14 +1907,12 @@ pub(crate) const QUALIFYING_RESULT_2023_4_P2: LazyLock<QualifyingResult> = LazyL
     q3: Some(QualifyingTime::Time(duration_m_s_ms(1, 40, 391))),
 });
 
-// @todo jolpica-f1 is incorrectly reporting the Q1 time as 1:41.131, but it should be 1:41.756
-// This asset is temporarily changed to the wrong value in order to allow the tests to pass.
 pub(crate) const QUALIFYING_RESULT_2023_4_P3: LazyLock<QualifyingResult> = LazyLock::new(|| QualifyingResult {
     number: 11,
     position: 3,
     driver: DRIVER_PEREZ.clone(),
     constructor: CONSTRUCTOR_RED_BULL.clone(),
-    q1: Some(QualifyingTime::Time(duration_m_s_ms(1, 41, 131))),
+    q1: Some(QualifyingTime::Time(duration_m_s_ms(1, 41, 756))),
     q2: Some(QualifyingTime::Time(duration_m_s_ms(1, 41, 131))),
     q3: Some(QualifyingTime::Time(duration_m_s_ms(1, 40, 495))),
 });

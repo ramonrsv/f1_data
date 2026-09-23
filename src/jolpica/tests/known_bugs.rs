@@ -13,12 +13,9 @@ mod tests {
         error::Error,
         jolpica::{
             resource::Filters,
-            response::{Position, QualifyingResult, RaceResult, SprintResult},
+            response::{Position, RaceResult, SprintResult},
             tests::util::JOLPICA_MP,
-            time::{
-                QualifyingTime, RaceTime, deserialize_buggy_race_time, duration_hms_ms, duration_m_s_ms,
-                duration_millis,
-            },
+            time::{RaceTime, deserialize_buggy_race_time, duration_hms_ms, duration_millis},
         },
     };
 
@@ -158,21 +155,6 @@ mod tests {
         // "hh:mm" issue
         let result = JOLPICA_MP.get_race_result(Filters::new().season(1998).round(8).finish_pos(1));
         assert_eq!(result.unwrap().race_result(), &*RACE_RESULT_1998_8_P1);
-    }
-
-    // @todo jolpica-f1 is incorrectly reporting Q1 time as 1:41.131, but it should be 1:41.756
-    #[test]
-    fn qualifying_result_2023_4_p3() {
-        assert_eq!(QUALIFYING_RESULT_2023_4_P3.q1, Some(QualifyingTime::Time(duration_m_s_ms(1, 41, 131))));
-        let result = serde_json::from_str::<QualifyingResult>(QUALIFYING_RESULT_2023_4_P3_STR);
-        assert_eq!(result.unwrap(), *QUALIFYING_RESULT_2023_4_P3);
-    }
-
-    #[test]
-    #[ignore]
-    fn get_qualifying_result_2023_4_p3() {
-        let result = JOLPICA_MP.get_qualifying_result(Filters::new().season(2023).round(4).driver_id("perez".into()));
-        assert_eq!(result.unwrap().qualifying_result(), &*QUALIFYING_RESULT_2023_4_P3);
     }
 
     // @todo The 'millis' field is incorrect by 26ms in jolpica-f1, it should be "5685026"
