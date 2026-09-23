@@ -1171,12 +1171,14 @@ impl TableInnerList for Status {
     }
 }
 
-/// This generic struct represents a race weekend event, corresponding to the list element type
-/// under the `"RaceTable.Races"` property key in the JSON response from the jolpica-f1 API. The
-/// generic type parameter `T` represents the type of payload that may be returned, depending on the
-/// requested [`Resource`]. The default <code>T = [Payload]</code> accepts all possible payload
-/// types, but the `T` parameter may be specified during postprocessing to restrict the payload
-/// type, e.g. by `get_*` API functions that know the expected payload variant.
+/// This generic struct represents a race weekend event.
+///
+/// It corresponds to the list element type under the `"RaceTable.Races"` property key in the JSON
+/// response from the jolpica-f1 API. The generic type parameter `T` represents the type of payload
+/// that may be returned, depending on the requested [`Resource`]. The default
+/// <code>T = [Payload]</code> accepts all possible payload types, but the `T` parameter may be
+/// specified during postprocessing to restrict the payload type, e.g. by `get_*` API functions that
+/// know the expected payload variant.
 #[serde_as]
 #[derive(Deserialize, Eq, PartialEq, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -1260,6 +1262,7 @@ impl<T> Race<T> {
 
     /// Maps a [`Race<T>`] to a [`Result<Race<U>, E>`] by applying a type `T` -> `U` conversion
     /// function, which may fail with error `E`, to the payload, and keeping all the other fields.
+    //
     // @todo This implementation can be simplified if/once the type_chaining_struct_update feature
     // is implemented and stabilized; see tracking https://github.com/rust-lang/rust/issues/86555.
     pub fn try_map<U, F, E>(self, op: F) -> std::result::Result<Race<U>, E>
