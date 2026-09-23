@@ -1,4 +1,4 @@
-# !/bin/bash
+#!/bin/bash
 
 # This script runs a local test suite roughly equivalent to the GitHub Actions CI workflow.
 # It is meant to allow running the CI workflow against a local jolpica-f1 API server instance
@@ -16,7 +16,7 @@ function print_usage() {
 }
 
 test_no_run_docs=false
-fun_benchmarks=false
+run_benchmarks=false
 
 for i in "$@"; do
   case $i in

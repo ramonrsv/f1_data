@@ -1,4 +1,4 @@
-# !/bin/bash
+#!/bin/bash
 
 # This script tests all documentation tests marked with ```no_run. It temporarily removes the
 # ```no_run markers, applies a patch to add rate limiting to the jolpica::get::get_response_page

@@ -1,4 +1,4 @@
-# !/bin/bash
+#!/bin/bash
 
 # This script sets up and runs a local instance of the jolpica-f1 server for testing purposes. It
 # requires a destination directory as an argument, where it will clone the jolpica-f1 repository.

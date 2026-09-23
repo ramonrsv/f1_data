@@ -1,4 +1,4 @@
-# !/bin/bash
+#!/bin/bash
 
 # This script enters a bash shell in the jolpica-f1 devcontainer, which was likely started via
 # `setup_and_run_local_jolpica_server.sh`, at the /workspaces/f1_data directory, and with the
