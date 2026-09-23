@@ -1,7 +1,7 @@
 # This workflow will install Rust toolchain dependencies, build the workspace, run tests (including
-# ignored tests), build docs, run clippy, run rustfmt, run benchmarks, and generate code coverage
-# reports and upload them to Codecov. It runs on push and pull_requests, on a weekly schedule, and
-# manually via workflow_dispatch.
+# ignored tests), build docs, run clippy, run rustfmt, run benchmarks and track their results, and
+# generate code coverage reports and upload them to Codecov. It runs on push and pull_requests, on a
+# weekly schedule, and manually via workflow_dispatch.
 #
 # Some jobs and/or steps, e.g. live API and timing tests, benchmarks, and code coverage, are slow
 # and/or depend on network and jolpica-f1 API availability. This can cause several issues if run
@@ -27,6 +27,12 @@
 # built-in way to run these tests, as it does with --ignored tests, the script `test_no_run_docs.sh`
 # is provided as a workaround.
 #
+# Benchmark results are tracked with github-action-benchmark, which stores them in the `gh-pages`
+# branch and charts them at https://ramonrsv.github.io/f1_data/dev/bench/. Some benchmarks make
+# requests to the jolpica-f1 API, and so are dominated by network and API latency, which is too
+# noisy to fail on. As such, regressions only generate a commit comment, but don't fail the job.
+# Results are only stored for runs on the main branch, not when running locally with `act`.
+#
 # The workflow can be run manually from the GitHub Actions tab or with `gh workflow run`, with the
 # `workflow_dispatch` inputs selecting which of the optional jobs and/or steps run. The regular
 # jobs, e.g. `build_and_test`, `clippy`, etc., always run.
@@ -41,7 +47,7 @@
 # To force running these steps/jobs when running locally with `act`, several options are supported,
 # which can be configured via `--var <OPTION_NAME>=true`. The supported options are:
 #   - `FORCE_CODECOV=true` will run the code coverage job, which uploads a report to Codecov.
-#   - `FORCE_RUN_BENCH=true` will run the benchmarks, which may upload perf reports to GitHub.
+#   - `FORCE_RUN_BENCH=true` will run the benchmarks, but their results are not stored.
 #
 # Example local runs:
 #   `act --reuse`
@@ -92,8 +98,8 @@ jobs:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - name: Build
-        run: cargo build --workspace --all-features
+      - name: Build all targets (library, tests, benches, examples)
+        run: cargo build --workspace --all-features --all-targets
       - name: Test (non-ignored, no timing tests)
         run: cargo test --workspace --all-features -- --skip __TIMING
 
@@ -185,12 +191,28 @@ jobs:
 
   bench:
     runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || vars.FORCE_RUN_BENCH == 'true' || inputs.bench
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - name: Build benchmarks
-        run: cargo bench --workspace --all-features --no-run
+      - name: Install cargo-criterion
+        run: cargo install --locked cargo-criterion
       - name: Run benchmarks
-        if: github.event_name == 'schedule' || vars.FORCE_RUN_BENCH == 'true' || inputs.bench
-        run: cargo bench --workspace --all-features
+        run: |
+          set -o pipefail
+          cargo criterion --workspace --all-features --output-format bencher 2>&1 | tee bench_output.txt
+      - name: Store benchmark results
+        if: github.ref == 'refs/heads/main' && vars.ACT != 'true'
+        uses: benchmark-action/github-action-benchmark@v1.22.2
+        with:
+          name: "f1_data benchmarks"
+          tool: "cargo"
+          output-file-path: bench_output.txt
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          fail-on-alert: false
+          comment-on-alert: true
+          alert-comment-cc-users: "@ramonrsv"

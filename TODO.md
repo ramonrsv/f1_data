@@ -10,8 +10,6 @@
       supported by the API
 - [ ] Add support for jolpica-f1 [driver](https://api.jolpi.ca/ergast/f1/2025/driverstandings/) and
       [constructor](https://api.jolpi.ca/ergast/f1/2025/constructorstandings/) standings
-- [ ] Use [github-action-benchmark](https://github.com/benchmark-action/github-action-benchmark) to
-      track benchmark results in CI.
 - [ ] Look into using `newtype` idiom for ID types, and into implementing `From<>` for common
       sources, e.g. `&str` and `u32`. Consider using https://docs.rs/derive_more/latest/derive_more/
 - [ ] Clean up and improve the `get_*` and `into_*` lap timings and pit stops interface.

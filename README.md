@@ -4,6 +4,7 @@
 [![Crates.io](https://img.shields.io/crates/v/f1_data.svg)](https://crates.io/crates/f1_data)
 [![Documentation](https://docs.rs/f1_data/badge.svg)](https://docs.rs/f1_data)
 [![codecov](https://codecov.io/github/ramonrsv/f1_data/graph/badge.svg?token=LYPNED8OXF)](https://codecov.io/github/ramonrsv/f1_data)
+[![Benchmarks](https://img.shields.io/badge/benchmarks-GitHub%20Pages-blue)](https://ramonrsv.github.io/f1_data/dev/bench/)
 
 `f1_data` is a Rust library that provides consolidated access to various sources of Formula 1
 information and data, including event schedules, session results, timing and telemetry data, as well
