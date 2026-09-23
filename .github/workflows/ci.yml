@@ -1,19 +1,40 @@
 # This workflow will install Rust toolchain dependencies, build the workspace, run tests (including
 # ignored tests), build docs, run clippy, run rustfmt, run benchmarks, and generate code coverage
-# reports and upload them to Codecov. It runs on push and pull_requests, and on a nightly schedule.
+# reports and upload them to Codecov. It runs on push and pull_requests, on a weekly schedule, and
+# manually via workflow_dispatch.
 #
-# Some jobs and/or steps, e.g. ignored tests, benchmarks, and code coverage, are time consuming
+# Some jobs and/or steps, e.g. live API and timing tests, benchmarks, and code coverage, are slow
 # and/or depend on network and jolpica-f1 API availability. This can cause several issues if run
 # on every CI job, including spurious failures, excessive API usage, and consuming a lot of the
 # available GitHub Actions minutes. As such, these jobs and/or steps are skipped on push and PRs,
-# and only run on schedules and locally via act. It is highly recommended that the full CI workflow
-# be run locally before pushing changes, to catch any issues that the reduced workflow may miss.
+# and only run on schedules, manually, and locally via act. It is highly recommended that the full
+# CI workflow be run locally before pushing changes, to catch any issues that the reduced workflow
+# may miss.
+#
+# Tests are split into separate jobs, so that each group can be run and re-run on its own:
+#   - `build_and_test` runs the regular tests, which don't make requests to the jolpica-f1 API.
+#   - `timing_tests` runs all timing-sensitive tests, tagged with a `__TIMING` suffix, which are
+#     prone to spurious failures. Some of them make requests to the jolpica-f1 API.
+#   - `live_api_tests` runs the ignored tests, excluding timing tests, most of which make requests
+#     to the jolpica-f1 API. They are rate limited to stay within the API's limits, so the job
+#     takes around 50 minutes.
+#   - `live_doc_tests` runs the ```no_run doc tests, see below. It runs after `live_api_tests`, even
+#     if that job failed, to avoid exceeding the API's rate limits with concurrent requests.
 #
 # Many of the documentation tests are marked with ```no_run since they make requests to the jolpica
 # API, and so have the same issues mentioned above, but we still want to check that they compile -
 # doc tests marked with #[ignore] are not compile, unlike regular tests. Since Rust doesn't have a
 # built-in way to run these tests, as it does with --ignored tests, the script `test_no_run_docs.sh`
 # is provided as a workaround.
+#
+# The workflow can be run manually from the GitHub Actions tab or with `gh workflow run`, with the
+# `workflow_dispatch` inputs selecting which of the optional jobs and/or steps run. The regular
+# jobs, e.g. `build_and_test`, `clippy`, etc., always run.
+#
+# Example manual runs:
+#   `gh workflow run ci.yml` (default inputs: live API, ```no_run doc, and timing tests)
+#   `gh workflow run ci.yml -f live_doc_tests=false -f timing_tests=false` (live API tests only)
+#   `gh workflow run ci.yml -f live_api_tests=false -f live_doc_tests=false` (timing tests only)
 #
 # Some jobs and/or steps are skipped when running locally with `act` - controlled via env.ACT and
 # vars.ACT, because they may take too long or may undesirably upload codecov or performance reports.
@@ -35,6 +56,28 @@ on:
   schedule:
     # Weekly, at 00:00 on Sundays
     - cron: "0 0 * * 0"
+  workflow_dispatch:
+    inputs:
+      live_api_tests:
+        description: "Run live API tests, i.e. ignored tests, excl. __TIMING, against the jolpica-f1 API"
+        type: boolean
+        default: true
+      live_doc_tests:
+        description: "Run ```no_run doc tests against the live jolpica-f1 API"
+        type: boolean
+        default: true
+      timing_tests:
+        description: "Run timing tests, i.e. __TIMING tests, some of which use the jolpica-f1 API"
+        type: boolean
+        default: true
+      code_coverage:
+        description: "Run code coverage, incl. all live API tests, and upload the report to Codecov"
+        type: boolean
+        default: false
+      bench:
+        description: "Run benchmarks, incl. those making requests to the live jolpica-f1 API"
+        type: boolean
+        default: false
 
 env:
   CARGO_TERM_COLOR: always
@@ -53,16 +96,10 @@ jobs:
         run: cargo build --workspace --all-features
       - name: Test (non-ignored, no timing tests)
         run: cargo test --workspace --all-features -- --skip __TIMING
-      - name: Test (ignored, no timing tests)
-        if: github.event_name == 'schedule' || vars.ACT == 'true'
-        run: cargo test --workspace --all-features -- --ignored --test-threads 1 --skip __TIMING
-      - name: Test (doc no_run)
-        if: github.event_name == 'schedule' || vars.ACT == 'true'
-        run: ./scripts/test_no_run_docs.sh
 
   timing_tests:
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || vars.ACT == 'true'
+    if: github.event_name == 'schedule' || vars.ACT == 'true' || inputs.timing_tests
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -71,6 +108,29 @@ jobs:
         run: cargo build --workspace --all-features
       - name: Test (timing tests)
         run: cargo test --workspace --all-features -- __TIMING --include-ignored --test-threads 1
+
+  live_api_tests:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || vars.ACT == 'true' || inputs.live_api_tests
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        run: cargo build --workspace --all-features
+      - name: Test (ignored, no timing tests)
+        run: cargo test --workspace --all-features -- --ignored --test-threads 1 --skip __TIMING
+
+  live_doc_tests:
+    runs-on: ubuntu-latest
+    needs: live_api_tests
+    if: ${{ !cancelled() && (github.event_name == 'schedule' || vars.ACT == 'true' || inputs.live_doc_tests) }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Test (doc no_run)
+        run: ./scripts/test_no_run_docs.sh
 
   build_docs:
     runs-on: ubuntu-latest
@@ -103,7 +163,7 @@ jobs:
 
   code_coverage:
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || vars.FORCE_CODECOV == 'true'
+    if: github.event_name == 'schedule' || vars.FORCE_CODECOV == 'true' || inputs.code_coverage
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -132,5 +192,5 @@ jobs:
       - name: Build benchmarks
         run: cargo bench --workspace --all-features --no-run
       - name: Run benchmarks
-        if: github.event_name == 'schedule' || vars.FORCE_RUN_BENCH == 'true'
+        if: github.event_name == 'schedule' || vars.FORCE_RUN_BENCH == 'true' || inputs.bench
         run: cargo bench --workspace --all-features
