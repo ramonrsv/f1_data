@@ -6,4 +6,6 @@ allowed-duplicate-crates = [
     "webpki-roots",
     "getrandom",
     "wasi",
+    "bitflags",
+    "syn",
 ]
