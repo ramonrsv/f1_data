@@ -14,7 +14,8 @@
 # Tests are split into separate jobs, so that each group can be run and re-run on its own:
 #   - `build_and_test` runs the regular tests, which don't make requests to the jolpica-f1 API.
 #   - `timing_tests` runs all timing-sensitive tests, tagged with a `__TIMING` suffix, which are
-#     prone to spurious failures. Some of them make requests to the jolpica-f1 API.
+#     prone to spurious failures. Some of them make requests to the jolpica-f1 API. They are run
+#     with cargo-nextest, which retries failed tests, as configured in `.config/nextest.toml`.
 #   - `live_api_tests` runs the ignored tests, excluding timing tests, most of which make requests
 #     to the jolpica-f1 API. They are rate limited to stay within the API's limits, so the job
 #     takes around 50 minutes.
@@ -110,10 +111,15 @@ jobs:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
       - name: Build
         run: cargo build --workspace --all-features
       - name: Test (timing tests)
-        run: cargo test --workspace --all-features -- __TIMING --include-ignored --test-threads 1
+        run: |
+          cargo nextest run --workspace --all-features --no-fail-fast --run-ignored all \
+          -E 'test(/__TIMING$/)'
 
   live_api_tests:
     runs-on: ubuntu-latest

@@ -1,0 +1,12 @@
+# Configuration for cargo-nextest, currently only used by the `timing_tests` CI job.
+#
+# Timing-sensitive tests, tagged with a `__TIMING` suffix, are prone to spurious failures, so they
+# are retried. The delay between retries is needed because some of them make back-to-back requests
+# to the jolpica-f1 API, and nextest runs each test in a new process, so a retry starts with a fresh
+# rate limiter. Without a delay, a retry could exceed the API's burst limit of 4 requests/second.
+# They are also run one at a time, equivalent to `--test-threads 1` with `cargo test`.
+
+[[profile.default.overrides]]
+filter = 'test(/__TIMING$/)'
+retries = { backoff = "fixed", count = 3, delay = "2s" }
+threads-required = "num-test-threads"
