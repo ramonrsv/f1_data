@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790205816036,
+  "lastUpdate": 1790208218711,
   "repoUrl": "https://github.com/ramonrsv/f1_data",
   "entries": {
     "f1_data benchmarks": [
@@ -299,6 +299,106 @@ window.BENCHMARK_DATA = {
             "name": "process_response/into_one_race_with_one_session_result::<RaceResult>",
             "value": 67659,
             "range": "± 15314",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Ramon Sibello",
+            "username": "ramonrsv",
+            "email": "ramon@sibello.ca"
+          },
+          "committer": {
+            "name": "Ramon Sibello",
+            "username": "ramonrsv",
+            "email": "ramon@sibello.ca"
+          },
+          "id": "1abc69894d1daf45383a64e8ffc17946a662b6a7",
+          "message": "Track benchmark results on GitHub Pages\n\nUse github-action-benchmark to store benchmark results in the `gh-pages`\nbranch and chart them on GitHub Pages, at\nhttps://ramonrsv.github.io/f1_data/dev/bench/. Benchmarks still only\nrun on the weekly schedule, manually, or locally with `act` via\n`FORCE_RUN_BENCH`, and results are only stored for runs on main, not\nwith `act`. Some benchmarks make requests to the jolpica-f1 API, which\nis too noisy to fail on, so regressions only generate a commit comment.\n\nRun the benchmarks with cargo-criterion, whose bencher output format\nthe action parses. With `cargo bench`, the `--output-format bencher`\nargument would also be passed to the library's libtest harness, which\nrejects it.\n\nGate the whole `bench` job, instead of its individual steps, and move\nthe check that the benchmarks compile into `build_and_test`, which now\nbuilds all targets, i.e. the library, tests, benches, and examples.\n\nAdd a benchmarks badge to README.md, and remove the TODO.md item.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-09-23T22:00:35Z",
+          "url": "https://github.com/ramonrsv/f1_data/commit/1abc69894d1daf45383a64e8ffc17946a662b6a7"
+        },
+        "date": 1790208218229,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "get_race_results/get_race_results",
+            "value": 17693184,
+            "range": "± 4169278",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "read_and_process_ureq_response/.read_json::<Response>",
+            "value": 1101087,
+            "range": "± 135855",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "read_and_process_ureq_response/serde_json::from_str::<Response>(.read_to_string())",
+            "value": 511944,
+            "range": "± 44629",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "read_and_process_ureq_response/serde_json::from_reader::<_, Response>(.into_reader())",
+            "value": 1152770,
+            "range": "± 86082",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "read_json/from_file",
+            "value": 29081,
+            "range": "± 86",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "read_json/from_http",
+            "value": 18408378,
+            "range": "± 3979653",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "resource_to_url/filters_none",
+            "value": 597,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "resource_to_url/filters_many",
+            "value": 1985,
+            "range": "± 39",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "deserialize_response",
+            "value": 4589230,
+            "range": "± 123270",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "process_response/into_race_schedules",
+            "value": 65434,
+            "range": "± 16079",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "process_response/into_race_schedule",
+            "value": 65735,
+            "range": "± 15370",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "process_response/into_many_races_with_many_session_results::<RaceResult>",
+            "value": 1328,
+            "range": "± 72",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "process_response/into_one_race_with_one_session_result::<RaceResult>",
+            "value": 66717,
+            "range": "± 14963",
             "unit": "ns/iter"
           }
         ]
