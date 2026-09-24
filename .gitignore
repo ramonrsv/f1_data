@@ -19,3 +19,5 @@ target/
 # Copilot instructions
 .github/copilot-instructions.md
 
+# Temporary Claude Code plans
+.claude/plans/tmp/
