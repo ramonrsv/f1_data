@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791076388094,
+  "lastUpdate": 1791678700723,
   "repoUrl": "https://github.com/ramonrsv/f1_data",
   "entries": {
     "f1_data benchmarks": [
@@ -699,6 +699,106 @@ window.BENCHMARK_DATA = {
             "name": "process_response/into_one_race_with_one_session_result::<RaceResult>",
             "value": 34510,
             "range": "± 8619",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Ramon Sibello",
+            "username": "ramonrsv",
+            "email": "ramon@sibello.ca"
+          },
+          "committer": {
+            "name": "Ramon Sibello",
+            "username": "ramonrsv",
+            "email": "ramon@sibello.ca"
+          },
+          "id": "c359fac8ca22d3b53ad7a6a25f7a5f07b99c3016",
+          "message": "Ignore temporary Claude Code plans\n\nAdd .claude/plans/tmp/ to .gitignore. The directory holds working\ndrafts of plans written with Claude Code, which are kept alongside the\ncode while in progress but aren't meant to be committed.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-09-24T17:20:18Z",
+          "url": "https://github.com/ramonrsv/f1_data/commit/c359fac8ca22d3b53ad7a6a25f7a5f07b99c3016"
+        },
+        "date": 1791678700386,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "get_race_results/get_race_results",
+            "value": 21831832,
+            "range": "± 4308401",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "read_and_process_ureq_response/.read_json::<Response>",
+            "value": 1190332,
+            "range": "± 103756",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "read_and_process_ureq_response/serde_json::from_str::<Response>(.read_to_string())",
+            "value": 510743,
+            "range": "± 28809",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "read_and_process_ureq_response/serde_json::from_reader::<_, Response>(.into_reader())",
+            "value": 1218180,
+            "range": "± 89252",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "read_json/from_file",
+            "value": 23267,
+            "range": "± 53",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "read_json/from_http",
+            "value": 21969826,
+            "range": "± 10669961",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "resource_to_url/filters_none",
+            "value": 567,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "resource_to_url/filters_many",
+            "value": 1990,
+            "range": "± 28",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "deserialize_response",
+            "value": 4576702,
+            "range": "± 134791",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "process_response/into_race_schedules",
+            "value": 66486,
+            "range": "± 15877",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "process_response/into_race_schedule",
+            "value": 66592,
+            "range": "± 15111",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "process_response/into_many_races_with_many_session_results::<RaceResult>",
+            "value": 1497,
+            "range": "± 97",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "process_response/into_one_race_with_one_session_result::<RaceResult>",
+            "value": 68239,
+            "range": "± 15287",
             "unit": "ns/iter"
           }
         ]
